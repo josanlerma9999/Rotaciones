@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Rotación - Versión Final</title>
+    <style>
+        :root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); padding: 20px; margin: 0; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        h1 { text-align: center; color: #1e293b; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; }
+
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #475569; }
+        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; }
+
+        .timer-card { background: #1e293b; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; border-left: 5px solid var(--accent); }
+        .timer-card span { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
+        button { border: none; padding: 12px 24px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .btn-rotar { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .btn-imprimir { background: #64748b; color: white; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        table { width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
+        th { background: #e2e8f0; color: #475569; padding: 12px; text-align: left; text-transform: uppercase; font-size: 0.8rem; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .op-name { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 15px; font-weight: 600; }
+
+        @media print {
+            .config-grid, .btn-group, h1, .subtitle { display: none; }
+            .container { box-shadow: none; border: none; width: 100%; }
+            .timer-card { background: white; color: black; border: 1px solid black; }
+            .timer-card span { color: black; }
+            .op-name { background: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Panel de Control de Turnos</h1>
+    <p class="subtitle">Configuración automática cada 2 horas</p>
+
+    <div class="config-grid">
+        <div>
+            <label>Operarios (comas):</label>
+            <textarea id="opsInput" oninput="guardarDatos()">Operario 1, Operario 2, Operario 3, Operario 4, Operario 5, Operario 6</textarea>
+        </div>
+        <div>
+            <label>Cargas (comas):</label>
+            <textarea id="cargasInput" oninput="guardarDatos()">Carga 1, Carga 2, Carga 3, Carga 4, Carga 5, Carga 6, Carga 7, Carga 8, Carga 9, Carga 10, Carga 11, Carga 12</textarea>
+        </div>
+    </div>
+
+    <div class="timer-card">
+        Turno actual válido hasta: <span id="proximaHora">--:--</span>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-rotar" onclick="ejecutarRotacion()">🔄 ROTAR TURNOS</button>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR LISTA</button>
+    </div>
+
+    <table id="tablaPrincipal">
+        <thead>
+            <tr>
+                <th>Carga de Trabajo</th>
+                <th>Operario Asignado</th>
+            </tr>
+        </thead>
+        <tbody id="tabla"></tbody>
+    </table>
+</div>
+
+<script>
+    let contadorRotacion = 0;
+
+    // Cargar datos guardados al abrir la app
+    window.onload = function() {
+        if(localStorage.getItem('ops')) document.getElementById("opsInput").value = localStorage.getItem('ops');
+        if(localStorage.getItem('cargas')) document.getElementById("cargasInput").value = localStorage.getItem('cargas');
+        ejecutarRotacion();
+    };
+
+    function guardarDatos() {
+        localStorage.setItem('ops', document.getElementById("opsInput").value);
+        localStorage.setItem('cargas', document.getElementById("cargasInput").value);
+    }
+
+    function ejecutarRotacion() {
+        const operarios = document.getElementById("opsInput").value.split(",").map(s => s.trim()).filter(s => s);
+        const cargas = document.getElementById("cargasInput").value.split(",").map(s => s.trim()).filter(s => s);
+        const tabla = document.getElementById("tabla");
+        
+        tabla.innerHTML = "";
+        cargas.forEach((carga, i) => {
+            const fila = tabla.insertRow();
+            const indexOp = (i + contadorRotacion) % operarios.length;
+            fila.innerHTML = `<td><b>${carga}</b></td><td><span class="op-name">${operarios[indexOp]}</span></td>`;
+        });
+
+        // Actualizar hora de la próxima rotación
+        const ahora = new Date();
+        ahora.setHours(ahora.getHours() + 2);
+        document.getElementById("proximaHora").innerText = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        contadorRotacion++;
+    }
+</script>
+
+</body>
+</html>
