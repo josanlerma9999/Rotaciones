@@ -6,12 +6,12 @@
     <title>Control de Rotaciones</title>
     <style>
         :root { 
-            --bg-main: #000000;       /* Fondo negro puro como la foto */
+            --bg-main: #000000;       /* Fondo negro puro */
             --bg-card: #111827;       /* Fondo de tarjetas gris oscuro mate */
             --primary: #3b82f6;       
-            --primary-light: #22d3ee; /* Azul Neón / Cian de la foto */
-            --accent: #f59e0b;        /* Amarillo Oro de los números de la foto */
-            --text-main: #ffffff;     /* Blanco puro para cargas */
+            --primary-light: #22d3ee; /* Azul Neón / Cian */
+            --accent: #f59e0b;        /* Amarillo Oro */
+            --text-main: #ffffff;     /* Blanco puro */
             --text-muted: #94a3b8;    
             --success: #10b981; 
             --danger: #f43f5e; 
@@ -31,7 +31,7 @@
         
         .container { max-width: 1200px; margin: auto; }
         
-        /* RÓTULO PRINCIPAL PROFESIONAL */
+        /* RÓTULO PRINCIPAL */
         .main-header {
             text-align: center;
             padding: 20px 0 25px 0;
@@ -131,7 +131,7 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 10px; border-radius: 50%; cursor: pointer; font-weight: bold; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
 
-        /* Tablas generales de Matriz y Contadores */
+        /* Tablas de Matriz y Contadores */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
@@ -162,19 +162,31 @@
         
         .carga-title { font-weight: 800; color: #ffffff; font-size: 1rem; letter-spacing: -0.3px; }
         
-        .op-badge { 
-            background: transparent;      
-            color: var(--primary-light);  
-            padding: 2px 0; 
-            font-weight: 800; 
-            font-size: 0.95rem; 
-            display: inline-block; 
-            text-transform: uppercase;   
+        /* SELECT INTERACTIVO PARA EDICIÓN MANUAL MANUAL */
+        .select-op-editable {
+            background: transparent;
+            color: var(--primary-light);
+            border: none;
+            font-weight: 800;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-        
-        .op-alert { color: var(--accent); } 
-        .op-error { color: var(--danger); text-decoration: line-through; }
+        .select-op-editable option {
+            background: #111827;
+            color: #fff;
+            font-weight: normal;
+            text-transform: none;
+        }
+        .select-op-editable.op-alert { color: var(--accent); }
+        .select-op-editable.op-error { color: var(--danger); font-weight: bold; }
 
         /* Historial */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
@@ -183,8 +195,9 @@
         .history-date { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
         .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
+        /* Para el modo impresión deshabilitamos selectores */
         @media print {
-            .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header { display: none !important; }
+            .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header, .schedule-selector { display: none !important; }
             body { background: white; padding: 0; color: black; }
             .container { padding: 0; }
             .tab-content { display: none !important; }
@@ -194,7 +207,7 @@
             .turno-header { background: #e2e8f0 !important; color: black !important; border-bottom: 1px solid #000; }
             .turno-header span { color: black !important; }
             .carga-title { color: black !important; }
-            .op-badge { background: none; color: black !important; }
+            .select-op-editable { color: black !important; -webkit-appearance: none; appearance: none; }
         }
     </style>
 </head>
@@ -234,7 +247,6 @@
     <!-- PESTAÑA 3: JORNADA DEFINITIVA -->
     <div id="tab-jornada" class="tab-content">
         
-        <!-- SELECTOR DE HORARIO INTEGRADO -->
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
             <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
@@ -296,27 +308,24 @@
     let competencias = {};
     let historialJornadas = [];
     let conteoSemanal = {}; 
-    let tipoHorarioSeleccionado = "manana"; // "manana" o "tarde"
+    let tipoHorarioSeleccionado = "manana"; 
 
-    // Definición exacta de los tramos horarios solicitados
     const horasMañana = [
         "05:45 - 08:00",
         "08:00 - 10:20",
         "10:20 - 12:00",
-        "12:00 - 14:00"  // Proyección lógica para el 4º bloque de salida
+        "12:00 - 14:00"
     ];
 
     const horasTarde = [
         "13:45 - 16:20",
         "16:20 - 18:00",
         "18:00 - 20:00",
-        "20:00 - 22:00"  // Proyección lógica para el 4º bloque de salida
+        "20:00 - 22:00"
     ];
 
     const defaultOps = ["Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 6"];
     const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
-
-    let turnosCalculadosActualmente = []; 
 
     window.onload = function() {
         if(localStorage.getItem('hist_competencias_v9')) {
@@ -360,15 +369,10 @@
     function actualizarVisualBotonesHorario() {
         const btnM = document.getElementById("btnHorarioManana");
         const btnT = document.getElementById("btnHorarioTarde");
-        
         btnM.className = "btn-schedule";
         btnT.className = "btn-schedule";
-
-        if(tipoHorarioSeleccionado === "manana") {
-            btnM.classList.add("active-day");
-        } else {
-            btnT.classList.add("active-afternoon");
-        }
+        if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
+        else btnT.classList.add("active-afternoon");
     }
 
     function agregarFila(contenedorId, tipo, valor = "") {
@@ -392,11 +396,11 @@
     function procesarCambios() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
+        const contenedorMatriz = document.getElementById("contenedorMatriz");
 
         localStorage.setItem('hist_ops_v9', JSON.stringify(ops));
         localStorage.setItem('hist_cargas_v9', JSON.stringify(cargas));
 
-        const contenedorMatriz = document.getElementById("contenedorMatriz");
         if(ops.length === 0 || cargas.length === 0) {
             contenedorMatriz.innerHTML = "<p style='padding:15px; color:gray;'>Carga operarios y tareas en Configuración.</p>";
             document.getElementById("contenedorContador").innerHTML = "<p style='padding:15px; color:gray;'>Carga operarios y tareas en Configuración.</p>";
@@ -433,12 +437,11 @@
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
         contenedor.innerHTML = "";
-        turnosCalculadosActualmente = []; 
 
         if(ops.length === 0 || cargas.length === 0) return;
-
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
+        // Generamos los 4 bloques de turnos
         for (let t = 0; t < 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -449,28 +452,45 @@
             cargas.forEach((carga, i) => {
                 let idx = (i + desplazo) % ops.length;
                 let opAsignado = ops[idx];
-                let clase = "op-badge";
+                let claseExtra = "";
 
+                // Validación automática de alertas de Polivalencia
                 if (competencias[`${opAsignado}_X_${carga}`] === false) {
                     let sEncontrado = null;
                     for (let s = 1; s < ops.length; s++) {
                         let cnd = ops[(idx + s) % ops.length];
                         if (competencias[`${cnd}_X_${carga}`] !== false) { sEncontrado = cnd; break; }
                     }
-                    if (sEncontrado) { opAsignado = sEncontrado; clase += " op-alert"; }
-                    else { opAsignado = "No Apto"; clase += " op-error"; }
+                    if (sEncontrado) { opAsignado = sEncontrado; claseExtra = "op-alert"; }
+                    else { opAsignado = "No Apto"; claseExtra = "op-error"; }
                 }
 
-                html += `<tr><td class="carga-title">${carga}</td><td><span class="${clase}">${opAsignado}</span></td></tr>`;
-                
-                if(opAsignado !== "No Apto") {
-                    turnosCalculadosActualmente.push({ operario: opAsignado, carga: carga });
-                }
+                html += `<tr>
+                    <td class="carga-title">${carga}</td>
+                    <td>
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t+1}" data-carga="${carga}" onchange="actualizarEstiloSelectManual(this)">
+                            ${ops.map(o => `<option value="${o}" ${o === opAsignado ? 'selected' : ''}>${o}</option>`).join('')}
+                            <option value="No Apto" ${opAsignado === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
+                        </select>
+                    </td>
+                </tr>`;
             });
 
             html += `</table>`;
             card.innerHTML = html;
             contenedor.appendChild(card);
+        }
+    }
+
+    // Cambia el color del texto dinámicamente si el usuario selecciona algo manualmente en el menú desplegable
+    function actualizarEstiloSelectManual(select) {
+        select.classList.remove("op-alert", "op-error");
+        const opSel = select.value;
+        const cargaSel = select.dataset.carga;
+        if(opSel === "No Apto") {
+            select.classList.add("op-error");
+        } else if(competencias[`${opSel}_X_${cargaSel}`] === false) {
+            select.classList.add("op-alert");
         }
     }
 
@@ -497,29 +517,46 @@
     }
 
     function guardarEnHistorial() {
-        const contenedor = document.getElementById("contenedorJornada").innerHTML;
-        if(!contenedor.trim() || turnosCalculadosActualmente.length === 0) return;
+        // Obtenemos todos los selectores de operarios vigentes en pantalla (incluyendo los cambios manuales)
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
 
-        turnosCalculadosActualmente.forEach(item => {
-            let clv = `${item.operario}_X_${item.carga}`;
-            if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-            conteoSemanal[clv]++;
+        // Sumamos al contador semanal basándonos estrictamente en lo que se ve en la pantalla
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
+            }
         });
 
         localStorage.setItem('conteo_semanal_v9', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
+        // Creamos la maqueta limpia para guardar de forma fija en la pestaña Historial
+        const contenedorClon = document.getElementById("contenedorJornada").cloneNode(true);
+        // Convertimos los desplegables en texto plano en la copia del historial para evitar problemas de visualización futuros
+        contenedorClon.querySelectorAll("select").forEach(sel => {
+            const spanfijo = document.createElement("span");
+            spanfijo.className = "op-badge " + (sel.classList.contains("op-alert") ? "op-alert" : sel.classList.contains("op-error") ? "op-error" : "");
+            spanfijo.innerText = sel.value;
+            sel.parentElement.replaceChild(spanfijo, sel);
+        });
+
         let prefijoTurno = (tipoHorarioSeleccionado === "manana") ? "☀️ Mañana" : "🌙 Tarde";
         let fecha = new Date().toLocaleString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit'});
-        historialJornadas.unshift({ fecha: `${prefijoTurno} - ${fecha}`, html: contenedor });
         
+        historialJornadas.unshift({ fecha: `${prefijoTurno} - ${fecha}`, html: contenedorClon.innerHTML });
         localStorage.setItem('registro_jornadas_v9', JSON.stringify(historialJornadas));
+        
         renderizarHistorial();
-        alert("💾 ¡Jornada guardada! Los contadores de la semana se han actualizado correctamente.");
+        alert("💾 ¡Guardado con éxito! Se han registrado todos los puestos tal y como los ves en pantalla.");
     }
 
     function reiniciarContadoresSemanales() {
-        if(confirm("¿Quieres poner a cero todos los contadores de puestos para empezar una nueva semana? (El historial no se borrará)")) {
+        if(confirm("¿Quieres poner a cero todos los contadores de puestos para empezar una nueva semana?")) {
             conteoSemanal = {};
             localStorage.removeItem('conteo_semanal_v9');
             renderizarTablaContadores();
