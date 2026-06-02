@@ -3,185 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotación Inteligente - Lista Dinámica</title>
+    <title>Gestor de Rotaciones Profesional</title>
     <style>
-        :root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; --success: #16a34a; --danger: #dc2626; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); padding: 20px; margin: 0; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        :root { 
+            --primary: #1e3a8a; /* Azul Marino Profesional */
+            --primary-light: #3b82f6; 
+            --accent: #f59e0b; 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --success: #10b981; 
+            --danger: #ef4444; 
+        }
         
-        h1 { text-align: center; color: #1e293b; margin-bottom: 5px; font-size: 1.6rem; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 0.9rem; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); padding: 15px; margin: 0; padding-bottom: 40px; }
+        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(15,23,42,0.05); }
+        
+        h1 { text-align: center; color: var(--primary); margin: 0 0 5px 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 20px; font-size: 0.85rem; }
 
-        /* Estilos de las listas dinámicas */
-        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; }
+        /* Navegación por Pestañas (Diseño Móvil Premium) */
+        .tabs-nav { display: flex; gap: 5px; background: #e2e8f0; padding: 4px; border-radius: 12px; margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+        .tabs-nav::-webkit-scrollbar { display: none; }
+        .tab-btn { flex: 1; border: none; padding: 10px 12px; font-size: 0.85rem; font-weight: 700; border-radius: 9px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; text-align: center; white-space: nowrap; }
+        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Pestaña 1: Configuración de listas */
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .section-box { background: #f1f5f9; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-weight: bold; color: #334155; font-size: 0.95rem; }
-        
-        .btn-add { background: var(--success); color: white; border: none; padding: 5px 12px; font-size: 0.85rem; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 5px; }
+        .section-title { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
         .item-row { display: flex; gap: 8px; align-items: center; }
-        .item-input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 0.9rem; }
-        .btn-del { background: var(--danger); color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .item-input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; background: white; }
+        .btn-del { background: #e2e8f0; color: var(--danger); border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* Matriz de competencias */
-        .matrix-section { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; margin-bottom: 25px; overflow-x: auto; }
-        .matrix-title { font-weight: bold; margin-bottom: 12px; color: #1e293b; font-size: 0.95rem; }
+        /* Pestaña 2: Matriz */
+        .matrix-container { overflow-x: auto; background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        .matrix-table th { background: #f1f5f9; color: #475569; font-size: 0.8rem; padding: 8px; border: 1px solid #cbd5e1; }
-        .matrix-table td { padding: 6px; text-align: center; border: 1px solid #cbd5e1; font-size: 0.85rem; }
-        .matrix-table td:first-child { text-align: left; font-weight: bold; background: #f8fafc; position: sticky; left: 0; z-index: 1; }
+        .matrix-table th { background: #f1f5f9; color: var(--text-muted); font-size: 0.75rem; padding: 10px; border: 1px solid #e2e8f0; font-weight: 700; text-transform: uppercase; }
+        .matrix-table td { padding: 8px; text-align: center; border: 1px solid #e2e8f0; font-size: 0.85rem; }
+        .matrix-table td:first-child { text-align: left; font-weight: 700; background: #f8fafc; color: var(--primary); position: sticky; left: 0; z-index: 1; border-right: 2px solid #e2e8f0; }
+        .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 
-        /* Botones generales */
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
-        button.main-btn { border: none; padding: 12px 20px; font-size: 0.95rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .btn-rotar { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
-        .btn-imprimir { background: #64748b; color: white; }
-        button.main-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        /* Botones de acción inferiores */
+        .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+        .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(30,58,138,0.2); }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* Resultados */
-        .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 10px; }
-        .turno-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .turno-header { background: #1e293b; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.95rem; }
-        .turno-header span { color: var(--accent); display: block; font-size: 0.8rem; margin-top: 2px; }
-
+        /* Pestaña 3: Vista de Turnos Definitiva */
+        .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .turno-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .turno-header { background: var(--primary); color: white; padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.5px; }
+        .turno-header span { color: var(--accent); display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; }
         .results-table { width: 100%; border-collapse: collapse; }
-        .results-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+        .results-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
         .results-table tr:last-child td { border-bottom: none; }
-        
-        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
-        .op-alert { background: #fef3c7; color: #b45309; border: 1px dashed #f59e0b; }
-        .op-error { background: #fee2e2; color: #b91c1c; font-style: italic; }
-        .carga-name { font-weight: 500; color: #334155; }
+        .carga-title { font-weight: 600; color: #334155; }
+        .op-badge { background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-block; }
+        .op-alert { background: #fef3c7; color: #b45309; }
+        .op-error { background: #fee2e2; color: #b91c1c; }
+
+        /* Pestaña 4: Historial Guardado */
+        .history-list { display: flex; flex-direction: column; gap: 15px; }
+        .history-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; margin-bottom: 10px; }
+        .history-date { font-weight: bold; color: var(--primary); font-size: 0.9rem; }
+        .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.8rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
         @media print {
-            .config-grid, .matrix-section, .btn-group, h1, .subtitle { display: none; }
-            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
+            .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, h1, .subtitle { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; }
+            .tab-content { display: none !important; }
+            #tab-jornada { display: block !important; }
             .jornada-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
-            .turno-card { border: 1px solid #000; page-break-inside: avoid; }
-            .turno-header { background: #f1f5f9; color: #000; border-bottom: 1px solid #000; }
-            .turno-header span { color: #000; }
-            .op-name { background: none; border: 1px solid #ccc; color: #000; }
+            .turno-card { border: 1px solid #94a3b8; page-break-inside: avoid; }
+            .turno-header { background: #f1f5f9 !important; color: black !important; border-bottom: 1px solid #94a3b8; }
+            .turno-header span { color: black !important; }
+            .op-badge { background: none; border: 1px solid #cbd5e1; color: black; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📅 Planificación de Jornada Inteligente</h1>
-    <p class="subtitle">Gestión de turnos sin comas y con matriz de competencias</p>
+    <h1>📊 Control de Rotaciones</h1>
+    <p class="subtitle">Panel inteligente de gestión de turnos</p>
 
-    <div class="config-grid">
-        <div class="section-box">
-            <div class="section-header">
-                <span class="section-title">👷 Operarios de hoy</span>
-                <button class="btn-add" onclick="agregarInput('listaOps', 'Operario')">+ Añadir</button>
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">⚙️ Configurar Día</button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">🛠️ Polivalencia</button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">📅 Ver Jornada</button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">🗄️ Historial</button>
+    </div>
+
+    <div id="tab-config" class="tab-content active">
+        <div class="config-grid">
+            <div class="section-box">
+                <div class="section-header">
+                    <span class="section-title">👷 Operarios en turno</span>
+                    <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
+                </div>
+                <div id="listaOps" class="item-list"></div>
             </div>
-            <div id="listaOps" class="item-list"></div>
-        </div>
-
-        <div class="section-box">
-            <div class="section-header">
-                <span class="section-title">📦 Cargas de Trabajo</span>
-                <button class="btn-add" onclick="agregarInput('listaCargas', 'Carga')">+ Añadir</button>
+            <div class="section-box">
+                <div class="section-header">
+                    <span class="section-title">📦 Cargas de Trabajo</span>
+                    <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
+                </div>
+                <div id="listaCargas" class="item-list"></div>
             </div>
-            <div id="listaCargas" class="item-list"></div>
         </div>
     </div>
 
-    <div class="matrix-section">
-        <div class="matrix-title">🛠️ Panel de Polivalencia (Marca qué sabe hacer cada uno):</div>
-        <div id="contenedorMatriz"></div>
+    <div id="tab-matriz" class="tab-content">
+        <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
-    <div class="btn-group">
-        <button class="main-btn btn-rotar" onclick="cambiarCombinacion()">🔄 PROBAR OTRA COMBINACIÓN</button>
-        <button class="main-btn btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR JORNADA</button>
+    <div id="tab-jornada" class="tab-content">
+        <div class="jornada-grid" id="contenedorJornada"></div>
+        <div class="action-bar">
+            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Cambiar Combinación</button>
+            <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Jornada de Hoy</button>
+            <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir Pantalla</button>
+        </div>
     </div>
 
-    <div class="jornada-grid" id="contenedorJornada"></div>
+    <div id="tab-historial" class="tab-content">
+        <div class="history-header" style="border:none; margin:0;">
+            <span class="section-title">🗄️ Registro de Jornadas Anteriores</span>
+            <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Borrar Historial</button>
+        </div>
+        <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
+    </div>
 </div>
 
 <script>
     let saltoInicialJornada = 0;
-    let competenciasGuardadas = {};
+    let competencias = {};
+    let historialJornadas = [];
 
-    // Valores iniciales si la app se abre por primera vez
-    const opsPorDefecto = ["Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 6"];
-    const cargasPorDefecto = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
+    const defaultOps = ["Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 6"];
+    const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
-        // Cargar competencias antiguas si existen
-        if(localStorage.getItem('competencias_v4')) {
-            try { competenciasGuardadas = JSON.parse(localStorage.getItem('competencias_v4')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias')) {
+            try { competencias = JSON.parse(localStorage.getItem('hist_competencias')); } catch(e) {}
+        }
+        if(localStorage.getItem('registro_jornadas')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas')); } catch(e) {}
         }
 
-        // Cargar listas guardadas o usar las de por defecto
-        let opsGuardadas = localStorage.getItem('ops_v4') ? JSON.parse(localStorage.getItem('ops_v4')) : opsPorDefecto;
-        let cargasGuardadas = localStorage.getItem('cargas_v4') ? JSON.parse(localStorage.getItem('cargas_v4')) : cargasPorDefecto;
+        let ops = localStorage.getItem('hist_ops') ? JSON.parse(localStorage.getItem('hist_ops')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas') ? JSON.parse(localStorage.getItem('hist_cargas')) : defaultCargas;
 
-        opsGuardadas.forEach(val => agregarInput('listaOps', 'Operario', val));
-        cargasGuardadas.forEach(val => agregarInput('listaCargas', 'Carga', val));
+        ops.forEach(v => agregarFila('listaOps', 'Operario', v));
+        cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
 
         procesarCambios();
+        renderizarHistorial();
     };
 
-    function agregarInput(contenedorId, tipo, valor = "") {
+    function cambiarPestaña(tabId, boton) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        boton.classList.add('active');
+    }
+
+    function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
         const row = document.createElement("div");
         row.className = "item-row";
-
         row.innerHTML = `
-            <input type="text" class="item-input" value="${valor}" placeholder="Nombre ${tipo}..." oninput="procesarCambios()">
-            <button class="btn-del" onclick="eliminarFila(this)">🗑️</button>
+            <input type="text" class="item-input" value="${valor}" placeholder="Nombre..." oninput="procesarCambios()">
+            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
         `;
         contenedor.appendChild(row);
-        
-        // Si el usuario añade manualmente uno en blanco, recalculamos al escribir
-        if(valor === "") row.querySelector('.item-input').focus();
-    }
-
-    function eliminarFila(btn) {
-        btn.parentElement.remove();
-        procesarCambios();
+        if(!valor) row.querySelector('.item-input').focus();
     }
 
     function leerLista(contenedorId) {
-        const inputs = document.querySelectorAll(`#${contenedorId} .item-input`);
-        let lista = [];
-        inputs.forEach(input => {
-            let val = input.value.trim();
-            if(val) lista.push(val);
-        });
-        return lista;
+        return Array.from(document.querySelectorAll(`#${contenedorId} .item-input`))
+            .map(i => i.value.trim())
+            .filter(v => v);
     }
 
     function procesarCambios() {
-        const operarios = leerLista("listaOps");
+        const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
-        // Guardar las listas limpias en memoria
-        localStorage.setItem('ops_v4', JSON.stringify(operarios));
-        localStorage.setItem('cargas_v4', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas', JSON.stringify(cargas));
 
-        // Reconstruir matriz de marcas
+        // Reconstruir Matriz Polivalencia
         const contenedorMatriz = document.getElementById("contenedorMatriz");
-        if(operarios.length === 0 || cargas.length === 0) {
-            contenedorMatriz.innerHTML = "<p style='color:gray; font-size:0.9rem; padding:10px;'>Añade operarios y cargas para ver la matriz.</p>";
-            document.getElementById("contenedorJornada").innerHTML = "";
+        if(ops.length === 0 || cargas.length === 0) {
+            contenedorMatriz.innerHTML = "<p style='padding:15px; color:gray;'>Carga operarios y tareas en Configuración.</p>";
             return;
         }
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
-        cargas.forEach(c => { html += `<th>${c}</th>`; });
+        cargas.forEach(c => html += `<th>${c}</th>`);
         html += `</tr></thead><tbody>`;
 
-        operarios.forEach(op => {
+        ops.forEach(op => {
             html += `<tr><td>${op}</td>`;
             cargas.forEach(c => {
-                let clave = `${op}_X_${c}`;
-                let check = (competenciasGuardadas[clave] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clave}" ${check} onchange="guardarCompetencia(this)"></td>`;
+                let clv = `${op}_X_${c}`;
+                let check = (competencias[clv] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -191,79 +231,102 @@
         generarJornadaCompleta();
     }
 
-    function guardarCompetencia(checkbox) {
-        let clave = checkbox.getAttribute("data-clave");
-        competenciasGuardadas[clave] = checkbox.checked;
-        localStorage.setItem('competencias_v4', JSON.stringify(competenciasGuardadas));
-        generarJornadaCompleta();
-    }
-
     function cambiarCombinacion() {
         saltoInicialJornada++;
         generarJornadaCompleta();
     }
 
     function generarJornadaCompleta() {
-        const operarios = leerLista("listaOps");
+        const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
-        
         contenedor.innerHTML = "";
-        if (operarios.length === 0 || cargas.length === 0) return;
+
+        if(ops.length === 0 || cargas.length === 0) return;
 
         let horaBase = new Date();
 
-        for (let turno = 0; turno < 4; turno++) {
-            let horaInicio = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        for (let t = 0; t < 4; t++) {
+            let hInicio = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             horaBase.setHours(horaBase.getHours() + 2);
-            let horaFin = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            let hFin = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            const turnoCard = document.createElement("div");
-            turnoCard.className = "turno-card";
+            const card = document.createElement("div");
+            card.className = "turno-card";
+            let html = `<div class="turno-header">TURNO ${t + 1} <span>⏱️ ${hInicio} - ${hFin}</span></div><table class="results-table">`;
 
-            let htmlTabla = `
-                <div class="turno-header">TURNO ${turno + 1} <span>⏱️ ${horaInicio} - ${horaFin}</span></div>
-                <table class="results-table">
-            `;
-
-            let desplazamientoTurno = saltoInicialJornada + turno;
+            let desplazo = saltoInicialJornada + t;
 
             cargas.forEach((carga, i) => {
-                let indexTeorico = (i + desplazamientoTurno) % operarios.length;
-                let operarioAsignado = operarios[indexTeorico];
-                let estiloBadge = "op-name";
+                let idx = (i + desplazo) % ops.length;
+                let opAsignado = ops[idx];
+                let clase = "op-badge";
 
-                let claveValidacion = `${operarioAsignado}_X_${carga}`;
-                if (competenciasGuardadas[claveValidacion] === false) {
-                    let sustitutoEncontrado = null;
-                    for (let s = 1; s < operarios.length; s++) {
-                        let indexSustituto = (indexTeorico + s) % operarios.length;
-                        let candidato = operarios[indexSustituto];
-                        if (competenciasGuardadas[`${candidato}_X_${carga}`] !== false) {
-                            sustitutoEncontrado = candidato;
-                            break;
-                        }
+                if (competencias[`${opAsignado}_X_${carga}`] === false) {
+                    let sEncontrado = null;
+                    for (let s = 1; s < ops.length; s++) {
+                        let cnd = ops[(idx + s) % ops.length];
+                        if (competencias[`${cnd}_X_${carga}`] !== false) { sEncontrado = cnd; break; }
                     }
-                    if (sustitutoEncontrado) {
-                        operarioAsignado = sustitutoEncontrado;
-                        estiloBadge = "op-name op-alert";
-                    } else {
-                        operarioAsignado = "Sin operario apto";
-                        estiloBadge = "op-name op-error";
-                    }
+                    if (sEncontrado) { opAsignado = sEncontrado; clase += " op-alert"; }
+                    else { opAsignado = "No Apto"; clase += " op-error"; }
                 }
 
-                htmlTabla += `
-                    <tr>
-                        <td class="carga-name"><b>${carga}</b></td>
-                        <td><span class="${estiloBadge}">${operarioAsignado}</span></td>
-                    </tr>
-                `;
+                html += `<tr><td class="carga-title"><b>${carga}</b></td><td><span class="${clase}">${opAsignado}</span></td></tr>`;
             });
 
-            htmlTabla += `</table>`;
-            turnoCard.innerHTML = htmlTabla;
-            contenedor.appendChild(turnoCard);
+            html += `</table>`;
+            card.innerHTML = html;
+            contenedor.appendChild(card);
+        }
+    }
+
+    function guardarEnHistorial() {
+        const contenedor = document.getElementById("contenedorJornada").innerHTML;
+        if(!contenedor.trim()) return;
+
+        let fecha = new Date().toLocaleString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+        historialJornadas.unshift({ fecha: fecha, html: contenedor });
+        
+        localStorage.setItem('registro_jornadas', JSON.stringify(historialJornadas));
+        renderizarHistorial();
+        alert("✅ ¡Jornada guardada con éxito en el Historial!");
+    }
+
+    function renderizarHistorial() {
+        const lista = document.getElementById("contenedorHistorial");
+        lista.innerHTML = "";
+        
+        if(historialJornadas.length === 0) {
+            lista.innerHTML = "<p style='color:gray; font-size:0.9rem;'>No hay jornadas guardadas todavía.</p>";
+            return;
+        }
+
+        historialJornadas.forEach((item, index) => {
+            const div = document.createElement("div");
+            div.className = "history-card";
+            div.innerHTML = `
+                <div class="history-header">
+                    <span class="history-date">📅 Registro: ${item.fecha}</span>
+                    <button class="btn-clear-hist" style="color:var(--danger);" onclick="eliminarRegistroIndividual(${index})">Eliminar</button>
+                </div>
+                <div class="jornada-grid">${item.html}</div>
+            `;
+            lista.appendChild(div);
+        });
+    }
+
+    function eliminarRegistroIndividual(index) {
+        historialJornadas.splice(index, 1);
+        localStorage.setItem('registro_jornadas', JSON.stringify(historialJornadas));
+        renderizarHistorial();
+    }
+
+    function borrarTodoElHistorial() {
+        if(confirm("¿Seguro que quieres borrar todo el registro histórico?")) {
+            historialJornadas = [];
+            localStorage.removeItem('registro_jornadas');
+            renderizarHistorial();
         }
     }
 </script>
