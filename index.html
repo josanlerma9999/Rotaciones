@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestor de Rotaciones - Dark Edition</title>
+    <title>Gestor de Rotaciones - High Contrast Edition</title>
     <style>
         :root { 
             --bg-main: #0f172a;       /* Fondo oscuro profundo */
             --bg-card: #1e293b;       /* Fondo de tarjetas gris grafito */
             --primary: #3b82f6;       /* Azul eléctrico moderno */
             --primary-light: #60a5fa; 
-            --accent: #f59e0b;        /* Oro/Naranja para destacar tramos */
-            --text-main: #f8fafc;     /* Texto claro */
+            --accent: #f59e0b;        /* Oro/Amarillo para la hora y operarios */
+            --text-main: #ffffff;     /* Blanco puro para títulos y cargas */
             --text-muted: #94a3b8;    /* Texto secundario gris */
             --success: #10b981; 
             --danger: #f43f5e; 
@@ -26,7 +26,7 @@
             color: var(--text-main); 
             padding: 15px; 
             margin: 0; 
-            padding-bottom: 85px; /* Espacio extra abajo para que el menú fijo no tape nada */
+            padding-bottom: 85px; 
         }
         
         .container { max-width: 1200px; margin: auto; }
@@ -34,13 +34,13 @@
         h1 { text-align: center; color: var(--primary-light); margin: 5px 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
         .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 20px; font-size: 0.8rem; }
 
-        /* PESTAÑAS ABAJO DE LA PANTALLA (Estilo App Nativa) */
+        /* PESTAÑAS ABAJO DE LA PANTALLA */
         .tabs-nav { 
             position: fixed; 
             bottom: 0; 
             left: 0; 
             right: 0; 
-            background: #111827; /* Fondo negro puro para el menú */
+            background: #111827; 
             display: flex; 
             justify-content: space-around;
             padding: 8px 5px; 
@@ -65,10 +65,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Iconos grandes integrados */
         .tab-btn .icon { font-size: 1.4rem; }
-        
-        /* Pestaña Activa en Azul Eléctrico */
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -86,15 +83,15 @@
         .item-input:focus { border-color: var(--primary-light); outline: none; }
         .btn-del { background: #334155; color: var(--danger); border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* Pestaña 2: Matriz Oscura */
+        /* Pestaña 2: Matriz */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .matrix-table th { background: #1e293b; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
-        .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; }
+        .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; color: #f8fafc; }
         .matrix-table td:first-child { text-align: left; font-weight: 700; background: #111827; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-light); }
 
-        /* Botones de acción inferiores */
+        /* Botones de acción */
         .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
@@ -102,19 +99,36 @@
         .btn-success { background: var(--success); color: white; }
         .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* Pestaña 3: Vista de Turnos */
+        /* Pestaña 3: Vista de Turnos (COLORES MEJORADOS) */
         .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; }
         .turno-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
         .turno-header { background: #111827; color: white; padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
         .turno-header span { color: var(--accent); display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; }
+        
         .results-table { width: 100%; border-collapse: collapse; }
         .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         .results-table tr:last-child td { border-bottom: none; }
-        .carga-title { font-weight: 600; color: var(--text-main); }
         
-        .op-badge { background: #1e3a8a; color: #60a5fa; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-block; }
-        .op-alert { background: #7c2d12; color: #fdba74; border: 1px dashed var(--accent); }
-        .op-error { background: #881337; color: #fda4af; }
+        /* Cargas en Blanco Brillante Intenso */
+        .carga-title { font-weight: 700; color: #ffffff; font-size: 0.9rem; }
+        
+        /* Operarios Normales en color ORO/AMARILLO (como la hora) */
+        .op-badge { 
+            background: #2d220c;          /* Fondo marrón/dorado oscuro sutil */
+            color: var(--accent);         /* Texto Oro Brillante */
+            border: 1px solid #78350f;    /* Borde ámbar */
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-weight: 800; 
+            font-size: 0.85rem; 
+            display: inline-block; 
+        }
+        
+        /* Alertas (Cambio por polivalencia) en Azul Claro para diferenciar */
+        .op-alert { background: #1e3a8a; color: #60a5fa; border: 1px dashed #3b82f6; }
+        
+        /* Errores (Sin nadie apto) en Rojo */
+        .op-error { background: #881337; color: #fda4af; border: 1px solid #991b1b; }
 
         /* Pestaña 4: Historial */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
@@ -123,7 +137,6 @@
         .history-date { font-weight: bold; color: var(--primary-light); font-size: 0.9rem; }
         .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
-        /* Control de impresión limpio */
         @media print {
             .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, h1, .subtitle { display: none !important; }
             body { background: white; padding: 0; color: black; }
@@ -134,7 +147,8 @@
             .turno-card { border: 1px solid #000; page-break-inside: avoid; background: white; }
             .turno-header { background: #e2e8f0 !important; color: black !important; border-bottom: 1px solid #000; }
             .turno-header span { color: black !important; }
-            .op-badge { background: none; border: 1px solid #ccc; color: black; }
+            .carga-title { color: black !important; }
+            .op-badge { background: none; border: 1px solid #ccc; color: black !important; }
         }
     </style>
 </head>
@@ -142,8 +156,9 @@
 
 <div class="container">
     <h1>📊 Control de Rotaciones</h1>
-    <p class="subtitle">Panel inteligente • Modo Oscuro</p>
+    <p class="subtitle">Panel inteligente • Contraste Alto</p>
 
+    <!-- PESTAÑA 1: CONFIGURACIÓN -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid">
             <div class="section-box">
@@ -163,10 +178,12 @@
         </div>
     </div>
 
+    <!-- PESTAÑA 2: POLIVALENCIA -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- PESTAÑA 3: JORNADA DEFINITIVA -->
     <div id="tab-jornada" class="tab-content">
         <div class="jornada-grid" id="contenedorJornada"></div>
         <div class="action-bar">
@@ -176,6 +193,7 @@
         </div>
     </div>
 
+    <!-- PESTAÑA 4: HISTORIAL -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header" style="border:none; margin:0;">
             <span class="section-title">🗄️ Historial de Jornadas</span>
@@ -184,6 +202,7 @@
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
     </div>
 
+    <!-- NAVBAR INFERIOR CON ICONOS -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
@@ -213,15 +232,15 @@
     const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v5')) {
-            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v5')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v6')) {
+            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v6')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v5')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v5')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v6')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v6')); } catch(e) {}
         }
 
-        let ops = localStorage.getItem('hist_ops_v5') ? JSON.parse(localStorage.getItem('hist_ops_v5')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v5') ? JSON.parse(localStorage.getItem('hist_cargas_v5')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v6') ? JSON.parse(localStorage.getItem('hist_ops_v6')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v6') ? JSON.parse(localStorage.getItem('hist_cargas_v6')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -259,8 +278,8 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
-        localStorage.setItem('hist_ops_v5', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v5', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v6', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v6', JSON.stringify(cargas));
 
         const contenedorMatriz = document.getElementById("contenedorMatriz");
         if(ops.length === 0 || cargas.length === 0) {
@@ -277,7 +296,7 @@
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
                 let check = (competencias[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v5', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v6', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -328,7 +347,7 @@
                     else { opAsignado = "No Apto"; clase += " op-error"; }
                 }
 
-                html += `<tr><td class="carga-title"><b>${carga}</b></td><td><span class="${clase}">${opAsignado}</span></td></tr>`;
+                html += `<tr><td class="carga-title">${carga}</td><td><span class="${clase}">${opAsignado}</span></td></tr>`;
             });
 
             html += `</table>`;
@@ -344,9 +363,9 @@
         let fecha = new Date().toLocaleString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit'});
         historialJornadas.unshift({ fecha: fecha, html: contenedor });
         
-        localStorage.setItem('registro_jornadas_v5', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v6', JSON.stringify(historialJornadas));
         renderizarHistorial();
-        alert("✅ ¡Jornada guardada con éxito en tu Historial!");
+        alert("✅ ¡Jornada guardada con éxito!");
     }
 
     function renderizarHistorial() {
@@ -374,14 +393,14 @@
 
     function eliminarRegistroIndividual(index) {
         historialJornadas.splice(index, 1);
-        localStorage.setItem('registro_jornadas_v5', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v6', JSON.stringify(historialJornadas));
         renderizarHistorial();
     }
 
     function borrarTodoElHistorial() {
         if(confirm("¿Seguro que quieres borrar todo el registro histórico?")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v5');
+            localStorage.removeItem('registro_jornadas_v6');
             renderizarHistorial();
         }
     }
