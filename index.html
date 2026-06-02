@@ -16,7 +16,6 @@
             --success: #10b981; 
             --danger: #f43f5e; 
             --border-color: #1f2937;
-            --cupra-copper: #c19143;  /* Color cobre Cupra idéntico al real */
         }
         
         * { box-sizing: border-box; }
@@ -32,30 +31,19 @@
         
         .container { max-width: 1200px; margin: auto; }
         
-        /* RÓTULO PRINCIPAL CON INSIGNIA SVG */
+        /* RÓTULO PRINCIPAL */
         .main-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
+            text-align: center;
             padding: 20px 0 25px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-        
-        .cupra-svg {
-            width: 36px;
-            height: 36px;
-            fill: var(--cupra-copper);
-            filter: drop-shadow(0 0 8px rgba(193, 145, 67, 0.5)); /* Destello deportivo cobre */
-            flex-shrink: 0;
-        }
-
         .main-header h1 {
             margin: 0;
             font-size: 1.5rem;
             font-weight: 900;
             color: #ffffff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            display: inline-block;
             border-bottom: 2px solid var(--primary-light);
             padding-bottom: 6px;
         }
@@ -174,7 +162,7 @@
         
         .carga-title { font-weight: 800; color: #ffffff; font-size: 1rem; letter-spacing: -0.3px; }
         
-        /* SELECT INTERACTIVO */
+        /* SELECT INTERACTIVO PARA EDICIÓN MANUAL MANUAL */
         .select-op-editable {
             background: transparent;
             color: var(--primary-light);
@@ -207,6 +195,7 @@
         .history-date { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
         .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
+        /* Para el modo impresión deshabilitamos selectores */
         @media print {
             .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header, .schedule-selector { display: none !important; }
             body { background: white; padding: 0; color: black; }
@@ -226,17 +215,7 @@
 
 <div class="container">
     
-    <!-- ENCABEZADO CON INSIGNIA OFICIAL CUPRA VECTORIZADA (SVG) -->
     <div class="main-header">
-        <svg class="cupra-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <!-- Trazado simétrico preciso del emblema tribal de Cupra -->
-            <path d="M 50,15 L 68,36 L 56,43 L 50,34 L 44,43 L 32,36 Z"/>
-            <path d="M 18,34 L 40,48 L 47,40 L 32,30 Z"/>
-            <path d="M 82,34 L 60,48 L 53,40 L 68,30 Z"/>
-            <path d="M 50,45 L 59,54 L 50,85 L 41,54 Z"/>
-            <path d="M 36,46 L 22,62 L 14,56 L 31,41 Z"/>
-            <path d="M 64,46 L 78,62 L 86,56 L 69,41 Z"/>
-        </svg>
         <h1>Control de Rotaciones</h1>
     </div>
 
@@ -462,6 +441,7 @@
         if(ops.length === 0 || cargas.length === 0) return;
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
+        // Generamos los 4 bloques de turnos
         for (let t = 0; t < 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -474,6 +454,7 @@
                 let opAsignado = ops[idx];
                 let claseExtra = "";
 
+                // Validación automática de alertas de Polivalencia
                 if (competencias[`${opAsignado}_X_${carga}`] === false) {
                     let sEncontrado = null;
                     for (let s = 1; s < ops.length; s++) {
@@ -501,6 +482,7 @@
         }
     }
 
+    // Cambia el color del texto dinámicamente si el usuario selecciona algo manualmente en el menú desplegable
     function actualizarEstiloSelectManual(select) {
         select.classList.remove("op-alert", "op-error");
         const opSel = select.value;
@@ -535,9 +517,11 @@
     }
 
     function guardarEnHistorial() {
+        // Obtenemos todos los selectores de operarios vigentes en pantalla (incluyendo los cambios manuales)
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
 
+        // Sumamos al contador semanal basándonos estrictamente en lo que se ve en la pantalla
         selectores.forEach(select => {
             let opAsignado = select.value;
             let carga = select.dataset.carga;
@@ -551,7 +535,9 @@
         localStorage.setItem('conteo_semanal_v9', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
+        // Creamos la maqueta limpia para guardar de forma fija en la pestaña Historial
         const contenedorClon = document.getElementById("contenedorJornada").cloneNode(true);
+        // Convertimos los desplegables en texto plano en la copia del historial para evitar problemas de visualización futuros
         contenedorClon.querySelectorAll("select").forEach(sel => {
             const spanfijo = document.createElement("span");
             spanfijo.className = "op-badge " + (sel.classList.contains("op-alert") ? "op-alert" : sel.classList.contains("op-error") ? "op-error" : "");
