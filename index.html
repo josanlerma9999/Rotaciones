@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Rotación - Jornada 8h</title>
+    <title>Rotación Inteligente con Competencias</title>
     <style>
-        :root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; }
+        :root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; --success: #16a34a; --danger: #dc2626; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); padding: 20px; margin: 0; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
         h1 { text-align: center; color: #1e293b; margin-bottom: 5px; font-size: 1.6rem; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
 
         .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         label { display: block; font-weight: 600; margin-bottom: 6px; color: #475569; font-size: 0.85rem; }
-        textarea { width: 100%; height: 70px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
+        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
+
+        /* Matriz de competencias */
+        .matrix-section { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; margin-bottom: 20px; overflow-x: auto; }
+        .matrix-title { font-weight: bold; margin-bottom: 10px; color: #1e293b; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
+        .matrix-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .matrix-table th { background: #f1f5f9; color: #475569; font-size: 0.8rem; padding: 8px; border: 1px solid #cbd5e1; }
+        .matrix-table td { padding: 6px; text-align: center; border: 1px solid #cbd5e1; font-size: 0.85rem; }
+        .matrix-table td:first-child { text-align: left; font-weight: bold; background: #f8fafc; }
 
         .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
         button { border: none; padding: 12px 20px; font-size: 0.95rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -22,20 +30,22 @@
         .btn-imprimir { background: #64748b; color: white; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 10px; }
+        .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 10px; }
         .turno-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .turno-header { background: #1e293b; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.95rem; }
         .turno-header span { color: var(--accent); display: block; font-size: 0.8rem; margin-top: 2px; }
 
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
-        tr:last-child td { border-bottom: none; }
-        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; display: inline-block; }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+        .results-table tr:last-child td { border-bottom: none; }
+        
+        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
+        .op-alert { background: #fef3c7; color: #b45309; border: 1px dashed #f59e0b; }
+        .op-error { background: #fee2e2; color: #b91c1c; font-style: italic; }
         .carga-name { font-weight: 500; color: #334155; }
-        .error-msg { color: #dc2626; background: #fee2e2; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; grid-column: span 2; }
 
         @media print {
-            .config-grid, .btn-group, h1, .subtitle { display: none; }
+            .config-grid, .matrix-section, .btn-group, h1, .subtitle { display: none; }
             .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
             .jornada-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
             .turno-card { border: 1px solid #000; page-break-inside: avoid; }
@@ -48,23 +58,29 @@
 <body>
 
 <div class="container">
-    <h1>📅 Planificación de Jornada Completa (8h)</h1>
-    <p class="subtitle">Rotación automática cada 2 horas</p>
+    <h1>📅 Planificación de Jornada Inteligente</h1>
+    <p class="subtitle">Rotación automática de 8h con filtro de polivalencia por operario</p>
 
     <div class="config-grid">
         <div>
             <label>Operarios (separados por comas):</label>
-            <textarea id="opsInput" oninput="guardarYGenerar()">Sara, Cesar, Cristian, Mario, Nara, Operario 6</textarea>
+            <textarea id="opsInput" oninput="actualizarMatrizYGenerar()">Sara, Cesar, Cristian, Mario, Nara, Operario 6</textarea>
         </div>
         <div>
             <label>Cargas de Trabajo (separadas por comas):</label>
-            <textarea id="cargasInput" oninput="guardarYGenerar()">Conexiones, Conexiones bateria m, Carga 3, Carga 4, Carga 5, Carga 6, Carga 7, Carga 8, Carga 9, Carga 10, Carga 11, Carga 12</textarea>
+            <textarea id="cargasInput" oninput="actualizarMatrizYGenerar()">Conexiones, Bateria M, Carga 3, Carga 4, Carga 5, Carga 6, Carga 7, Carga 8, Carga 9, Carga 10, Carga 11, Carga 12</textarea>
         </div>
-        <div id="errorContainer" style="display:none;" class="error-msg"></div>
+    </div>
+
+    <div class="matrix-section">
+        <div class="matrix-title">
+            <span>🛠️ Panel de Polivalencia (Marca qué sabe hacer cada uno):</span>
+        </div>
+        <div id="contenedorMatriz"></div>
     </div>
 
     <div class="btn-group">
-        <button class="btn-rotar" onclick="cambiarCombinacion()">🔄 CAMBIAR COMBINACIÓN</button>
+        <button class="btn-rotar" onclick="cambiarCombinacion()">🔄 PROBAR OTRA COMBINACIÓN</button>
         <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR JORNADA</button>
     </div>
 
@@ -73,17 +89,58 @@
 
 <script>
     let saltoInicialJornada = 0;
+    let competenciasGuardadas = {};
 
     window.onload = function() {
-        if(localStorage.getItem('ops_v2')) document.getElementById("opsInput").value = localStorage.getItem('ops_v2');
-        if(localStorage.getItem('cargas_v2')) document.getElementById("cargasInput").value = localStorage.getItem('cargas_v2');
-        generarJornadaCompleta();
+        if(localStorage.getItem('ops_v3')) document.getElementById("opsInput").value = localStorage.getItem('ops_v3');
+        if(localStorage.getItem('cargas_v3')) document.getElementById("cargasInput").value = localStorage.getItem('cargas_v3');
+        if(localStorage.getItem('competencias')) {
+            try { competenciasGuardadas = JSON.parse(localStorage.getItem('competencias')); } catch(e) { competenciasGuardadas = {}; }
+        }
+        actualizarMatrizYGenerar();
     };
 
-    function guardarYGenerar() {
-        localStorage.setItem('ops_v2', document.getElementById("opsInput").value);
-        localStorage.setItem('cargas_v2', document.getElementById("cargasInput").value);
+    function actualizarMatrizYGenerar() {
+        const operarios = obtenerListaLimpia("opsInput");
+        const cargas = obtenerListaLimpia("cargasInput");
+        
+        localStorage.setItem('ops_v3', document.getElementById("opsInput").value);
+        localStorage.setItem('cargas_v3', document.getElementById("cargasInput").value);
+
+        const contenedorMatriz = document.getElementById("contenedorMatriz");
+        
+        if(operarios.length === 0 || cargas.length === 0) {
+            contenedorMatriz.innerHTML = "<p style='color:gray; font-size:0.9rem;'>Introduce operarios y cargas para configurar sus tareas dominadas.</p>";
+            document.getElementById("contenedorJornada").innerHTML = "";
+            return;
+        }
+
+        // Crear la tabla de la matriz
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => { html += `<th>${c}</th>`; });
+        html += `</tr></thead><tbody>`;
+
+        operarios.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clave = `${op}_X_${c}`;
+                // Por defecto, si es nuevo, asumimos que "SÍ sabe" para no romper nada
+                let check = (competenciasGuardadas[clave] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clave}" ${check} onchange="guardarCompetencia(this)"></td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedorMatriz.innerHTML = html;
+
         generarJornadaCompleta();
+    }
+
+    function guardarCompetencia(checkbox) {
+        let clave = checkbox.getAttribute("data-clave");
+        competenciasGuardadas[clave] = checkbox.checked;
+        localStorage.setItem('competencias', JSON.stringify(competenciasGuardadas));
+        generarJornadaCompleta(); // Recalcular turnos al momento
     }
 
     function cambiarCombinacion() {
@@ -91,34 +148,23 @@
         generarJornadaCompleta();
     }
 
+    function obtenerListaLimpia(idInput) {
+        return document.getElementById(idInput).value
+            .split(",")
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+    }
+
     function generarJornadaCompleta() {
-        const errorContainer = document.getElementById("errorContainer");
+        const operarios = obtenerListaLimpia("opsInput");
+        const cargas = obtenerListaLimpia("cargasInput");
         const contenedor = document.getElementById("contenedorJornada");
         
-        // Limpieza ultra-segura de textos: quita comas vacías, espacios y saltos de línea
-        const operarios = document.getElementById("opsInput").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-
-        const cargas = document.getElementById("cargasInput").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-
         contenedor.innerHTML = "";
-        errorContainer.style.display = "none";
-
-        // Si las listas están vacías, mostramos un aviso amigable en la pantalla
-        if (operarios.length === 0 || cargas.length === 0) {
-            errorContainer.innerText = "⚠️ Por favor, introduce al menos un operario y una carga de trabajo.";
-            errorContainer.style.display = "block";
-            return;
-        }
+        if (operarios.length === 0 || cargas.length === 0) return;
 
         let horaBase = new Date();
 
-        // Generar los 4 turnos pase lo que pase
         for (let turno = 0; turno < 4; turno++) {
             let horaInicio = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             horaBase.setHours(horaBase.getHours() + 2);
@@ -127,28 +173,53 @@
             const turnoCard = document.createElement("div");
             turnoCard.className = "turno-card";
 
-            let tablaHTML = `
-                <div class="turno-header">
-                    TURNO ${turno + 1}
-                    <span>⏱️ ${horaInicio} - ${horaFin}</span>
-                </div>
-                <table>
+            let htmlTabla = `
+                <div class="turno-header">TURNO ${turno + 1} <span>⏱️ ${horaInicio} - ${horaFin}</span></div>
+                <table class="results-table">
             `;
 
             let desplazamientoTurno = saltoInicialJornada + turno;
 
             cargas.forEach((carga, i) => {
-                const indexOp = (i + desplazamientoTurno) % operarios.length;
-                tablaHTML += `
+                // 1. Ver qué operario tocaría de forma matemática continua
+                let indexTeorico = (i + desplazamientoTurno) % operarios.length;
+                let operarioAsignado = operarios[indexTeorico];
+                let estiloBadge = "op-name";
+
+                // 2. FILTRO INTELIGENTE: ¿Sabe hacer esta carga?
+                let claveValidacion = `${operarioAsignado}_X_${carga}`;
+                if (competenciasGuardadas[claveValidacion] === false) {
+                    // ¡ALERTA! No sabe. Busquemos en orden al siguiente operario de la lista que SÍ sepa
+                    let sustitutoEncontrado = null;
+                    
+                    for (let s = 1; s < operarios.length; s++) {
+                        let indexSustituto = (indexTeorico + s) % operarios.length;
+                        let candidato = operarios[indexSustituto];
+                        if (competenciasGuardadas[`${candidato}_X_${carga}`] !== false) {
+                            sustitutoEncontrado = candidato;
+                            break;
+                        }
+                    }
+
+                    if (sustitutoEncontrado) {
+                        operarioAsignado = sustitutoEncontrado;
+                        estiloBadge = "op-name op-alert"; // Color naranja de "sustituto"
+                    } else {
+                        operarioAsignado = "Sin operario apto";
+                        estiloBadge = "op-name op-error"; // Color rojo: nadie sabe hacerlo
+                    }
+                }
+
+                htmlTabla += `
                     <tr>
                         <td class="carga-name"><b>${carga}</b></td>
-                        <td><span class="op-name">${operarios[indexOp]}</span></td>
+                        <td><span class="${estiloBadge}">${operarioAsignado}</span></td>
                     </tr>
                 `;
             });
 
-            tablaHTML += `</table>`;
-            turnoCard.innerHTML = tablaHTML;
+            htmlTabla += `</table>`;
+            turnoCard.innerHTML = htmlTabla;
             contenedor.appendChild(turnoCard);
         }
     }
