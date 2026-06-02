@@ -16,7 +16,7 @@
             --success: #10b981; 
             --danger: #f43f5e; 
             --border-color: #1f2937;
-            --cupra-copper: #d1a153;  /* Color cobre corporativo de Cupra */
+            --cupra-copper: #c19143;  /* Color cobre Cupra idéntico al real */
         }
         
         * { box-sizing: border-box; }
@@ -32,20 +32,21 @@
         
         .container { max-width: 1200px; margin: auto; }
         
-        /* RÓTULO PRINCIPAL CON INSIGNIA CUPRA */
+        /* RÓTULO PRINCIPAL CON INSIGNIA SVG */
         .main-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             padding: 20px 0 25px 0;
         }
         
-        .cupra-logo {
-            width: 32px;
-            height: 32px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 6px rgba(209, 161, 83, 0.4)); /* Brillo sutil color cobre */
+        .cupra-svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--cupra-copper);
+            filter: drop-shadow(0 0 8px rgba(193, 145, 67, 0.5)); /* Destello deportivo cobre */
+            flex-shrink: 0;
         }
 
         .main-header h1 {
@@ -225,11 +226,21 @@
 
 <div class="container">
     
+    <!-- ENCABEZADO CON INSIGNIA OFICIAL CUPRA VECTORIZADA (SVG) -->
     <div class="main-header">
-        <img class="cupra-logo" src="https://www.cupraofficial.com/content/dam/brands/cupra/master/generic/logos/cupra-logo-copper.png" alt="Cupra">
+        <svg class="cupra-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Trazado simétrico preciso del emblema tribal de Cupra -->
+            <path d="M 50,15 L 68,36 L 56,43 L 50,34 L 44,43 L 32,36 Z"/>
+            <path d="M 18,34 L 40,48 L 47,40 L 32,30 Z"/>
+            <path d="M 82,34 L 60,48 L 53,40 L 68,30 Z"/>
+            <path d="M 50,45 L 59,54 L 50,85 L 41,54 Z"/>
+            <path d="M 36,46 L 22,62 L 14,56 L 31,41 Z"/>
+            <path d="M 64,46 L 78,62 L 86,56 L 69,41 Z"/>
+        </svg>
         <h1>Control de Rotaciones</h1>
     </div>
 
+    <!-- PESTAÑA 1: CONFIGURACIÓN -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid">
             <div class="section-box">
@@ -249,10 +260,12 @@
         </div>
     </div>
 
+    <!-- PESTAÑA 2: POLIVALENCIA -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- PESTAÑA 3: JORNADA DEFINITIVA -->
     <div id="tab-jornada" class="tab-content">
         
         <div class="schedule-selector">
@@ -268,6 +281,7 @@
         </div>
     </div>
 
+    <!-- PESTAÑA 4: CONTADOR SEMANAL -->
     <div id="tab-contador" class="tab-content">
         <div class="history-header" style="border:none; margin-bottom: 15px;">
             <span class="section-title">📊 Veces por Puesto (Esta Semana)</span>
@@ -276,6 +290,7 @@
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
+    <!-- PESTAÑA 5: HISTORIAL -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header" style="border:none; margin:0;">
             <span class="section-title">🗄️ Historial de Jornadas</span>
@@ -284,6 +299,7 @@
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
     </div>
 
+    <!-- NAVBAR INFERIOR -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
