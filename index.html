@@ -9,30 +9,30 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); padding: 20px; margin: 0; }
         .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
-        h1 { text-align: center; color: #1e293b; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; }
+        h1 { text-align: center; color: #1e293b; margin-bottom: 5px; font-size: 1.6rem; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 0.9rem; }
 
-        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: #475569; }
-        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; }
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #475569; font-size: 0.85rem; }
+        textarea { width: 100%; height: 70px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
 
         .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
-        button { border: none; padding: 12px 24px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        button { border: none; padding: 12px 20px; font-size: 0.95rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn-rotar { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
         .btn-imprimir { background: #64748b; color: white; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* Diseño de cuadrícula para los 4 turnos */
         .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 10px; }
         .turno-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .turno-header { background: #1e293b; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.95rem; }
         .turno-header span { color: var(--accent); display: block; font-size: 0.8rem; margin-top: 2px; }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
         tr:last-child td { border-bottom: none; }
-        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
+        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; display: inline-block; }
         .carga-name { font-weight: 500; color: #334155; }
+        .error-msg { color: #dc2626; background: #fee2e2; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; grid-column: span 2; }
 
         @media print {
             .config-grid, .btn-group, h1, .subtitle { display: none; }
@@ -49,21 +49,22 @@
 
 <div class="container">
     <h1>📅 Planificación de Jornada Completa (8h)</h1>
-    <p class="subtitle">Rotación automática de 6 operarios en 12 cargas cada 2 horas</p>
+    <p class="subtitle">Rotación automática cada 2 horas</p>
 
     <div class="config-grid">
         <div>
-            <label>Operarios (comas):</label>
-            <textarea id="opsInput" oninput="guardarDatos()">Operario 1, Operario 2, Operario 3, Operario 4, Operario 5, Operario 6</textarea>
+            <label>Operarios (separados por comas):</label>
+            <textarea id="opsInput" oninput="guardarYGenerar()">Sara, Cesar, Cristian, Mario, Nara, Operario 6</textarea>
         </div>
         <div>
-            <label>Cargas (comas):</label>
-            <textarea id="cargasInput" oninput="guardarDatos()">Carga 1, Carga 2, Carga 3, Carga 4, Carga 5, Carga 6, Carga 7, Carga 8, Carga 9, Carga 10, Carga 11, Carga 12</textarea>
+            <label>Cargas de Trabajo (separadas por comas):</label>
+            <textarea id="cargasInput" oninput="guardarYGenerar()">Conexiones, Conexiones bateria m, Carga 3, Carga 4, Carga 5, Carga 6, Carga 7, Carga 8, Carga 9, Carga 10, Carga 11, Carga 12</textarea>
         </div>
+        <div id="errorContainer" style="display:none;" class="error-msg"></div>
     </div>
 
     <div class="btn-group">
-        <button class="btn-rotar" onclick="generarJornadaCompleta()">🔄 GENERAR NUEVA JORNADA</button>
+        <button class="btn-rotar" onclick="cambiarCombinacion()">🔄 CAMBIAR COMBINACIÓN</button>
         <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR JORNADA</button>
     </div>
 
@@ -71,20 +72,87 @@
 </div>
 
 <script>
-    // Contador para cambiar el inicio de la jornada cada vez que se pulse el botón grande
     let saltoInicialJornada = 0;
 
     window.onload = function() {
-        if(localStorage.getItem('ops')) document.getElementById("opsInput").value = localStorage.getItem('ops');
-        if(localStorage.getItem('cargas')) document.getElementById("cargasInput").value = localStorage.getItem('cargas');
+        if(localStorage.getItem('ops_v2')) document.getElementById("opsInput").value = localStorage.getItem('ops_v2');
+        if(localStorage.getItem('cargas_v2')) document.getElementById("cargasInput").value = localStorage.getItem('cargas_v2');
         generarJornadaCompleta();
     };
 
-    function guardarDatos() {
-        localStorage.setItem('ops', document.getElementById("opsInput").value);
-        localStorage.setItem('cargas', document.getElementById("cargasInput").value);
+    function guardarYGenerar() {
+        localStorage.setItem('ops_v2', document.getElementById("opsInput").value);
+        localStorage.setItem('cargas_v2', document.getElementById("cargasInput").value);
+        generarJornadaCompleta();
+    }
+
+    function cambiarCombinacion() {
+        saltoInicialJornada++;
+        generarJornadaCompleta();
     }
 
     function generarJornadaCompleta() {
-        const operarios = document.getElementById("opsInput").value.split(",").map(s => s.trim()).filter(s => s);
-        const cargas = document.getElementById("cargasInput").value.split(",").map(s => s.trim
+        const errorContainer = document.getElementById("errorContainer");
+        const contenedor = document.getElementById("contenedorJornada");
+        
+        // Limpieza ultra-segura de textos: quita comas vacías, espacios y saltos de línea
+        const operarios = document.getElementById("opsInput").value
+            .split(",")
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+
+        const cargas = document.getElementById("cargasInput").value
+            .split(",")
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+
+        contenedor.innerHTML = "";
+        errorContainer.style.display = "none";
+
+        // Si las listas están vacías, mostramos un aviso amigable en la pantalla
+        if (operarios.length === 0 || cargas.length === 0) {
+            errorContainer.innerText = "⚠️ Por favor, introduce al menos un operario y una carga de trabajo.";
+            errorContainer.style.display = "block";
+            return;
+        }
+
+        let horaBase = new Date();
+
+        // Generar los 4 turnos pase lo que pase
+        for (let turno = 0; turno < 4; turno++) {
+            let horaInicio = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            horaBase.setHours(horaBase.getHours() + 2);
+            let horaFin = horaBase.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            const turnoCard = document.createElement("div");
+            turnoCard.className = "turno-card";
+
+            let tablaHTML = `
+                <div class="turno-header">
+                    TURNO ${turno + 1}
+                    <span>⏱️ ${horaInicio} - ${horaFin}</span>
+                </div>
+                <table>
+            `;
+
+            let desplazamientoTurno = saltoInicialJornada + turno;
+
+            cargas.forEach((carga, i) => {
+                const indexOp = (i + desplazamientoTurno) % operarios.length;
+                tablaHTML += `
+                    <tr>
+                        <td class="carga-name"><b>${carga}</b></td>
+                        <td><span class="op-name">${operarios[indexOp]}</span></td>
+                    </tr>
+                `;
+            });
+
+            tablaHTML += `</table>`;
+            turnoCard.innerHTML = tablaHTML;
+            contenedor.appendChild(turnoCard);
+        }
+    }
+</script>
+
+</body>
+</html>
