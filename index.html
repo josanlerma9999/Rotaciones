@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Rotación - Versión Final</title>
+    <title>Sistema de Rotación - Jornada 8h</title>
     <style>
         :root { --primary: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
         h1 { text-align: center; color: #1e293b; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; }
@@ -16,34 +16,40 @@
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #475569; }
         textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; box-sizing: border-box; font-family: inherit; }
 
-        .timer-card { background: #1e293b; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px; border-left: 5px solid var(--accent); }
-        .timer-card span { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
-
         .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
         button { border: none; padding: 12px 24px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
         .btn-rotar { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
         .btn-imprimir { background: #64748b; color: white; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        table { width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
-        th { background: #e2e8f0; color: #475569; padding: 12px; text-align: left; text-transform: uppercase; font-size: 0.8rem; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-        .op-name { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 15px; font-weight: 600; }
+        /* Diseño de cuadrícula para los 4 turnos */
+        .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 10px; }
+        .turno-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .turno-header { background: #1e293b; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.95rem; }
+        .turno-header span { color: var(--accent); display: block; font-size: 0.8rem; margin-top: 2px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        .op-name { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
+        .carga-name { font-weight: 500; color: #334155; }
 
         @media print {
             .config-grid, .btn-group, h1, .subtitle { display: none; }
-            .container { box-shadow: none; border: none; width: 100%; }
-            .timer-card { background: white; color: black; border: 1px solid black; }
-            .timer-card span { color: black; }
-            .op-name { background: none; border: 1px solid #ccc; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
+            .jornada-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+            .turno-card { border: 1px solid #000; page-break-inside: avoid; }
+            .turno-header { background: #f1f5f9; color: #000; border-bottom: 1px solid #000; }
+            .turno-header span { color: #000; }
+            .op-name { background: none; border: 1px solid #ccc; color: #000; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Panel de Control de Turnos</h1>
-    <p class="subtitle">Configuración automática cada 2 horas</p>
+    <h1>📅 Planificación de Jornada Completa (8h)</h1>
+    <p class="subtitle">Rotación automática de 6 operarios en 12 cargas cada 2 horas</p>
 
     <div class="config-grid">
         <div>
@@ -56,34 +62,22 @@
         </div>
     </div>
 
-    <div class="timer-card">
-        Turno actual válido hasta: <span id="proximaHora">--:--</span>
-    </div>
-
     <div class="btn-group">
-        <button class="btn-rotar" onclick="ejecutarRotacion()">🔄 ROTAR TURNOS</button>
-        <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR LISTA</button>
+        <button class="btn-rotar" onclick="generarJornadaCompleta()">🔄 GENERAR NUEVA JORNADA</button>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR JORNADA</button>
     </div>
 
-    <table id="tablaPrincipal">
-        <thead>
-            <tr>
-                <th>Carga de Trabajo</th>
-                <th>Operario Asignado</th>
-            </tr>
-        </thead>
-        <tbody id="tabla"></tbody>
-    </table>
+    <div class="jornada-grid" id="contenedorJornada"></div>
 </div>
 
 <script>
-    let contadorRotacion = 0;
+    // Contador para cambiar el inicio de la jornada cada vez que se pulse el botón grande
+    let saltoInicialJornada = 0;
 
-    // Cargar datos guardados al abrir la app
     window.onload = function() {
         if(localStorage.getItem('ops')) document.getElementById("opsInput").value = localStorage.getItem('ops');
         if(localStorage.getItem('cargas')) document.getElementById("cargasInput").value = localStorage.getItem('cargas');
-        ejecutarRotacion();
+        generarJornadaCompleta();
     };
 
     function guardarDatos() {
@@ -91,26 +85,6 @@
         localStorage.setItem('cargas', document.getElementById("cargasInput").value);
     }
 
-    function ejecutarRotacion() {
+    function generarJornadaCompleta() {
         const operarios = document.getElementById("opsInput").value.split(",").map(s => s.trim()).filter(s => s);
-        const cargas = document.getElementById("cargasInput").value.split(",").map(s => s.trim()).filter(s => s);
-        const tabla = document.getElementById("tabla");
-        
-        tabla.innerHTML = "";
-        cargas.forEach((carga, i) => {
-            const fila = tabla.insertRow();
-            const indexOp = (i + contadorRotacion) % operarios.length;
-            fila.innerHTML = `<td><b>${carga}</b></td><td><span class="op-name">${operarios[indexOp]}</span></td>`;
-        });
-
-        // Actualizar hora de la próxima rotación
-        const ahora = new Date();
-        ahora.setHours(ahora.getHours() + 2);
-        document.getElementById("proximaHora").innerText = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-        contadorRotacion++;
-    }
-</script>
-
-</body>
-</html>
+        const cargas = document.getElementById("cargasInput").value.split(",").map(s => s.trim
