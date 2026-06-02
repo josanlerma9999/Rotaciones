@@ -6,12 +6,12 @@
     <title>Control de Rotaciones</title>
     <style>
         :root { 
-            --bg-main: #000000;       /* Fondo negro puro */
-            --bg-card: #111827;       /* Fondo de tarjetas gris oscuro mate */
+            --bg-main: #000000;       
+            --bg-card: #111827;       
             --primary: #3b82f6;       
-            --primary-light: #22d3ee; /* Azul Neón / Cian */
-            --accent: #f59e0b;        /* Amarillo Oro */
-            --text-main: #ffffff;     /* Blanco puro */
+            --primary-light: #22d3ee; 
+            --accent: #f59e0b;        
+            --text-main: #ffffff;     
             --text-muted: #94a3b8;    
             --success: #10b981; 
             --danger: #f43f5e; 
@@ -31,7 +31,6 @@
         
         .container { max-width: 1200px; margin: auto; }
         
-        /* RÓTULO PRINCIPAL LIMPIO Y CENTRADO */
         .main-header {
             display: flex;
             align-items: center;
@@ -50,7 +49,6 @@
             padding-bottom: 6px;
         }
 
-        /* FILTRO DE HORARIOS DE MAÑANA Y TARDE */
         .schedule-selector {
             display: flex;
             justify-content: center;
@@ -81,7 +79,6 @@
             border-color: #a855f7;
         }
 
-        /* PESTAÑAS ABAJO DE LA PANTALLA */
         .tabs-nav { 
             position: fixed; 
             bottom: 0; 
@@ -118,7 +115,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* NUEVO CONTENEDOR DESLIZANTE PARA CONFIGURACIÓN (SCROLL X TÁCTIL) */
         .config-grid { 
             display: flex; 
             gap: 16px; 
@@ -136,8 +132,8 @@
             border-radius: 12px; 
             padding: 15px; 
             border: 1px solid var(--border-color);
-            flex: 0 0 calc(100% - 10px); /* Ocupa la pantalla completa en móvil */
-            scroll-snap-align: center;   /* Se imanta al centro */
+            flex: 0 0 calc(100% - 10px); 
+            scroll-snap-align: center;   
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
@@ -147,7 +143,6 @@
         .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
         .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        /* Listas con scroll interno cómodo */
         .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
         .item-row { display: flex; gap: 8px; align-items: center; }
         
@@ -157,7 +152,6 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 10px; border-radius: 50%; cursor: pointer; font-weight: bold; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
 
-        /* Tablas de Matriz y Contadores */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
@@ -167,7 +161,6 @@
 
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        /* Botones de acción */
         .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -175,7 +168,6 @@
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
         .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* CONTENEDOR DESLIZANTE JORNADA (SCROLL X) */
         .jornada-grid { 
             display: flex; 
             gap: 16px; 
@@ -198,7 +190,6 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         
-        /* VISTA ESCRITORIO / PANTALLAS GRANDES (Desactiva el scroll para ver todo en rejilla) */
         @media (min-width: 900px) {
             .jornada-grid { display: grid; grid-template-columns: repeat(4, 1fr); scroll-snap-type: none; overflow-x: visible; }
             .turno-card { flex: none; }
@@ -207,7 +198,6 @@
             .scroll-indicator { display: none !important; }
         }
         
-        /* Indicador visual táctil general */
         .scroll-indicator {
             display: flex;
             justify-content: center;
@@ -229,7 +219,6 @@
         
         .carga-title { font-weight: 800; color: #ffffff; font-size: 1rem; letter-spacing: -0.3px; }
         
-        /* SELECT INTERACTIVO */
         .select-op-editable {
             background: transparent;
             color: var(--primary-light);
@@ -255,7 +244,6 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); font-weight: bold; }
 
-        /* Historial */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
@@ -312,7 +300,6 @@
     </div>
 
     <div id="tab-jornada" class="tab-content">
-        
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
             <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
@@ -373,31 +360,20 @@
 
 <script>
     let saltoInicialJornada = 0;
-    let competencias = {};
+    let competencies = {};
     let historialJornadas = [];
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
 
-    const horasMañana = [
-        "05:45 - 08:00",
-        "08:00 - 10:20",
-        "10:20 - 12:00",
-        "12:00 - 14:00"
-    ];
-
-    const horasTarde = [
-        "13:45 - 16:20",
-        "16:20 - 18:00",
-        "18:00 - 20:00",
-        "20:00 - 22:00"
-    ];
+    const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
+    const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
 
     const defaultOps = ["Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 6"];
     const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
         if(localStorage.getItem('hist_competencias_v9')) {
-            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v9')); } catch(e) {}
+            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v9')); } catch(e) {}
         }
         if(localStorage.getItem('registro_jornadas_v9')) {
             try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v9')); } catch(e) {}
@@ -426,7 +402,6 @@
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
         
-        // Auto-reset de posición al cambiar de pestaña
         if(tabId === 'tab-jornada') {
             setTimeout(() => {
                 const contenedor = document.getElementById("contenedorJornada");
@@ -497,8 +472,8 @@
             html += `<tr><td>${op}</td>`;
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
-                let check = (competencias[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v9', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
+                let check = (competencies[clv] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v9', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -514,6 +489,7 @@
         generarJornadaCompleta();
     }
 
+    /* NUEVO ALGORITMO ANTIDUPLICADOS CON POLIVALENCIA ESTRICTA PERO COMPROMETIDA */
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -529,28 +505,58 @@
             let html = `<div class="turno-header">TURNO ${t + 1} <span>⏱️ ${horasActivas[t]}</span></div><table class="results-table">`;
 
             let desplazo = saltoInicialJornada + t;
+            
+            // Creamos un mapeo de asignación única para este turno
+            let asignacionesTurno = {}; 
+            let operariosAsignadosEnEsteTurno = new Set();
 
+            // Pasada 1: Intentar asignar por orden natural respetando la polivalencia estricta
             cargas.forEach((carga, i) => {
-                let idx = (i + desplazo) % ops.length;
-                let opAsignado = ops[idx];
-                let claseExtra = "";
+                let idxBase = (i + desplazo) % ops.length;
+                let asignado = false;
 
-                if (competencias[`${opAsignado}_X_${carga}`] === false) {
-                    let sEncontrado = null;
-                    for (let s = 1; s < ops.length; s++) {
-                        let cnd = ops[(idx + s) % ops.length];
-                        if (competencias[`${cnd}_X_${carga}`] !== false) { sEncontrado = cnd; break; }
+                // Buscamos el primer operario disponible a partir de esa posición que cumpla los checks
+                for (let s = 0; s < ops.length; s++) {
+                    let candidato = ops[(idxBase + s) % ops.length];
+                    
+                    if (!operariosAsignadosEnEsteTurno.has(candidato) && competencies[`${candidato}_X_${carga}`] !== false) {
+                        asignacionesTurno[carga] = { nombre: candidato, alerta: false };
+                        operariosAsignadosEnEsteTurno.add(candidato);
+                        asignado = true;
+                        break;
                     }
-                    if (sEncontrado) { opAsignado = sEncontrado; claseExtra = "op-alert"; }
-                    else { opAsignado = "No Apto"; claseExtra = "op-error"; }
                 }
+
+                // Pasada 2: Si por polivalencia estricta no hay nadie, buscamos cualquier operario libre (Alerta visual)
+                if (!asignado) {
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        if (!operariosAsignadosEnEsteTurno.has(candidato)) {
+                            asignacionesTurno[carga] = { nombre: candidato, alerta: true };
+                            operariosAsignadosEnEsteTurno.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Pasada 3: Si aun así no queda nadie libre en absoluto (porque hay menos personas que puestos)
+                if (!asignado) {
+                    asignacionesTurno[carga] = { nombre: "No Apto", error: true };
+                }
+            });
+
+            // Pintar la tabla del turno con los resultados limpios sin duplicados
+            cargas.forEach(carga => {
+                let res = asignacionesTurno[carga];
+                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
                         <select class="select-op-editable ${claseExtra}" data-turno="${t+1}" data-carga="${carga}" onchange="actualizarEstiloSelectManual(this)">
-                            ${ops.map(o => `<option value="${o}" ${o === opAsignado ? 'selected' : ''}>${o}</option>`).join('')}
-                            <option value="No Apto" ${opAsignado === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
+                            ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
+                            <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
                     </td>
                 </tr>`;
@@ -568,7 +574,7 @@
         const cargaSel = select.dataset.carga;
         if(opSel === "No Apto") {
             select.classList.add("op-error");
-        } else if(competencias[`${opSel}_X_${cargaSel}`] === false) {
+        } else if(competencies[`${opSel}_X_${cargaSel}`] === false) {
             select.classList.add("op-alert");
         }
     }
