@@ -31,7 +31,7 @@
         
         .container { max-width: 1200px; margin: auto; }
         
-        /* RÓTULO PRINCIPAL PROFESIONAL (Sin subtítulos ni emojis) */
+        /* RÓTULO PRINCIPAL PROFESIONAL */
         .main-header {
             text-align: center;
             padding: 20px 0 25px 0;
@@ -73,13 +73,13 @@
             flex-direction: column; 
             align-items: center; 
             gap: 4px; 
-            font-size: 0.75rem; 
+            font-size: 0.7rem; 
             font-weight: 600;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .tab-btn .icon { font-size: 1.4rem; }
+        .tab-btn .icon { font-size: 1.3rem; }
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -100,13 +100,16 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 10px; border-radius: 50%; cursor: pointer; font-weight: bold; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
 
-        /* Pestaña 2: Matriz */
+        /* Tablas generales de Matriz y Contadores */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
         .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; color: #ffffff; }
         .matrix-table td:first-child { text-align: left; font-weight: 700; background: #050505; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-light); }
+
+        /* Resaltado específico para los números del contador */
+        .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
         /* Botones de acción */
         .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
@@ -116,7 +119,7 @@
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
         .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* Pestaña 3: Vista de Turnos */
+        /* Pestaña: Vista de Turnos */
         .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; }
         .turno-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
         
@@ -143,7 +146,7 @@
         .op-alert { color: var(--accent); } 
         .op-error { color: var(--danger); text-decoration: line-through; }
 
-        /* Pestaña 4: Historial */
+        /* Historial */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
@@ -169,7 +172,6 @@
 
 <div class="container">
     
-    <!-- NUEVO RÓTULO LIMPIO Y PROFESIONAL -->
     <div class="main-header">
         <h1>Control de Rotaciones</h1>
     </div>
@@ -209,7 +211,16 @@
         </div>
     </div>
 
-    <!-- PESTAÑA 4: HISTORIAL -->
+    <!-- NUEVA PESTAÑA 4: CONTADOR SEMANAL -->
+    <div id="tab-contador" class="tab-content">
+        <div class="history-header" style="border:none; margin-bottom: 15px;">
+            <span class="section-title">📊 Veces por Puesto (Esta Semana)</span>
+            <button class="btn-clear-hist" style="color:var(--accent);" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
+        </div>
+        <div class="matrix-container" id="contenedorContador"></div>
+    </div>
+
+    <!-- PESTAÑA 5: HISTORIAL -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header" style="border:none; margin:0;">
             <span class="section-title">🗄️ Historial de Jornadas</span>
@@ -218,7 +229,7 @@
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
     </div>
 
-    <!-- NAVBAR INFERIOR -->
+    <!-- NAVBAR INFERIOR (AJUSTADO A 5 PESTAÑAS) -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
@@ -230,7 +241,11 @@
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
             <span class="icon">📅</span>
-            <span>Ver Turnos</span>
+            <span>Turnos</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+            <span class="icon">📊</span>
+            <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
             <span class="icon">🗄️</span>
@@ -243,20 +258,26 @@
     let saltoInicialJornada = 0;
     let competencias = {};
     let historialJornadas = [];
+    let conteoSemanal = {}; // Estructura: {"Operario_X_Carga": total_veces}
 
     const defaultOps = ["Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 6"];
     const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
+    let turnosCalculadosActualmente = []; 
+
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v7')) {
-            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v7')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v8')) {
+            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v8')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v7')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v7')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v8')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v8')); } catch(e) {}
+        }
+        if(localStorage.getItem('conteo_semanal_v8')) {
+            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v8')); } catch(e) {}
         }
 
-        let ops = localStorage.getItem('hist_ops_v7') ? JSON.parse(localStorage.getItem('hist_ops_v7')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v7') ? JSON.parse(localStorage.getItem('hist_cargas_v7')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v8') ? JSON.parse(localStorage.getItem('hist_ops_v8')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v8') ? JSON.parse(localStorage.getItem('hist_cargas_v8')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -294,15 +315,17 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
-        localStorage.setItem('hist_ops_v7', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v7', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v8', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v8', JSON.stringify(cargas));
 
         const contenedorMatriz = document.getElementById("contenedorMatriz");
         if(ops.length === 0 || cargas.length === 0) {
             contenedorMatriz.innerHTML = "<p style='padding:15px; color:gray;'>Carga operarios y tareas en Configuración.</p>";
+            document.getElementById("contenedorContador").innerHTML = "<p style='padding:15px; color:gray;'>Carga operarios y tareas en Configuración.</p>";
             return;
         }
 
+        // Renderizar tabla de polivalencia
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
         html += `</tr></thead><tbody>`;
@@ -312,7 +335,7 @@
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
                 let check = (competencias[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v7', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v8', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -320,6 +343,7 @@
         contenedorMatriz.innerHTML = html;
 
         generarJornadaCompleta();
+        renderizarTablaContadores();
     }
 
     function cambiarCombinacion() {
@@ -332,6 +356,7 @@
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
         contenedor.innerHTML = "";
+        turnosCalculadosActualmente = []; 
 
         if(ops.length === 0 || cargas.length === 0) return;
 
@@ -364,6 +389,10 @@
                 }
 
                 html += `<tr><td class="carga-title">${carga}</td><td><span class="${clase}">${opAsignado}</span></td></tr>`;
+                
+                if(opAsignado !== "No Apto") {
+                    turnosCalculadosActualmente.push({ operario: opAsignado, carga: carga });
+                }
             });
 
             html += `</table>`;
@@ -372,16 +401,57 @@
         }
     }
 
+    function renderizarTablaContadores() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorContador");
+
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => html += `<th>${c}</th>`);
+        html += `</tr></thead><tbody>`;
+
+        ops.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clv = `${op}_X_${c}`;
+                let total = conteoSemanal[clv] || 0;
+                html += `<td class="count-number">${total}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedor.innerHTML = html;
+    }
+
     function guardarEnHistorial() {
         const contenedor = document.getElementById("contenedorJornada").innerHTML;
-        if(!contenedor.trim()) return;
+        if(!contenedor.trim() || turnosCalculadosActualmente.length === 0) return;
 
+        // 1. Sumar los turnos actuales al contador semanal acumulado
+        turnosCalculadosActualmente.forEach(item => {
+            let clv = `${item.operario}_X_${item.carga}`;
+            if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+            conteoSemanal[clv]++;
+        });
+
+        localStorage.setItem('conteo_semanal_v8', JSON.stringify(conteoSemanal));
+        renderizarTablaContadores();
+
+        // 2. Guardar en la lista visual del historial completo
         let fecha = new Date().toLocaleString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit'});
         historialJornadas.unshift({ fecha: fecha, html: contenedor });
         
-        localStorage.setItem('registro_jornadas_v7', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v8', JSON.stringify(historialJornadas));
         renderizarHistorial();
-        alert("✅ ¡Jornada guardada con éxito!");
+        alert("💾 ¡Jornada guardada! Los contadores de la semana se han actualizado correctamente.");
+    }
+
+    function reiniciarContadoresSemanales() {
+        if(confirm("¿Quieres poner a cero todos los contadores de puestos para empezar una nueva semana? (El historial de días guardados no se borrará)")) {
+            conteoSemanal = {};
+            localStorage.removeItem('conteo_semanal_v8');
+            renderizarTablaContadores();
+        }
     }
 
     function renderizarHistorial() {
@@ -409,14 +479,14 @@
 
     function eliminarRegistroIndividual(index) {
         historialJornadas.splice(index, 1);
-        localStorage.setItem('registro_jornadas_v7', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v8', JSON.stringify(historialJornadas));
         renderizarHistorial();
     }
 
     function borrarTodoElHistorial() {
         if(confirm("¿Seguro que quieres borrar todo el registro histórico?")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v7');
+            localStorage.removeItem('registro_jornadas_v8');
             renderizarHistorial();
         }
     }
