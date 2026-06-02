@@ -118,13 +118,37 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Pestaña 1: Configuración */
-        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .section-box { background: var(--bg-card); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
+        /* NUEVO CONTENEDOR DESLIZANTE PARA CONFIGURACIÓN (SCROLL X TÁCTIL) */
+        .config-grid { 
+            display: flex; 
+            gap: 16px; 
+            overflow-x: auto; 
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            padding: 10px 5px 20px 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .config-grid::-webkit-scrollbar { display: none; }
+
+        .section-box { 
+            background: var(--bg-card); 
+            border-radius: 12px; 
+            padding: 15px; 
+            border: 1px solid var(--border-color);
+            flex: 0 0 calc(100% - 10px); /* Ocupa la pantalla completa en móvil */
+            scroll-snap-align: center;   /* Se imanta al centro */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
         .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+        
+        /* Listas con scroll interno cómodo */
+        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
         .item-row { display: flex; gap: 8px; align-items: center; }
         
         #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
@@ -151,18 +175,17 @@
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
         .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* CONTENEDOR DESLIZANTE HORIZONTAL (SCROLL X) */
+        /* CONTENEDOR DESLIZANTE JORNADA (SCROLL X) */
         .jornada-grid { 
             display: flex; 
             gap: 16px; 
             overflow-x: auto; 
             overflow-y: hidden;
             scroll-behavior: smooth;
-            scroll-snap-type: x mandatory; /* Fuerza el imán horizontal */
+            scroll-snap-type: x mandatory;
             padding: 10px 5px 20px 5px;
-            -webkit-overflow-scrolling: touch; /* Suavidad extrema en móviles */
+            -webkit-overflow-scrolling: touch;
         }
-        
         .jornada-grid::-webkit-scrollbar { display: none; }
 
         .turno-card { 
@@ -170,19 +193,21 @@
             border: 1px solid var(--border-color); 
             border-radius: 12px; 
             overflow: hidden; 
-            flex: 0 0 calc(100% - 10px); /* Ocupa casi toda la pantalla en el móvil */
-            scroll-snap-align: center; /* Se alinea justo al centro al deslizar */
+            flex: 0 0 calc(100% - 10px);
+            scroll-snap-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         
-        /* En pantallas grandes de PC, quitamos el scroll horizontal para ver los 4 turnos juntos */
+        /* VISTA ESCRITORIO / PANTALLAS GRANDES (Desactiva el scroll para ver todo en rejilla) */
         @media (min-width: 900px) {
             .jornada-grid { display: grid; grid-template-columns: repeat(4, 1fr); scroll-snap-type: none; overflow-x: visible; }
             .turno-card { flex: none; }
+            .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); scroll-snap-type: none; overflow-x: visible; }
+            .section-box { flex: none; }
             .scroll-indicator { display: none !important; }
         }
         
-        /* Indicador visual táctil */
+        /* Indicador visual táctil general */
         .scroll-indicator {
             display: flex;
             justify-content: center;
@@ -261,7 +286,10 @@
     </div>
 
     <div id="tab-config" class="tab-content active">
-        <div class="config-grid">
+        <div class="scroll-indicator">
+            <span>◀ Desliza para cambiar entre Operarios y Cargas ▶</span>
+        </div>
+        <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
                 <div class="section-header">
                     <span class="section-title">👷 Operarios en turno</span>
@@ -291,7 +319,7 @@
         </div>
 
         <div class="scroll-indicator">
-            <span>◀ Descubre deslizando entre turnos ▶</span>
+            <span>◀ Desliza de izquierda a derecha entre los 4 turnos ▶</span>
         </div>
 
         <div class="jornada-grid" id="contenedorJornada"></div>
@@ -398,10 +426,17 @@
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
         
+        // Auto-reset de posición al cambiar de pestaña
         if(tabId === 'tab-jornada') {
             setTimeout(() => {
                 const contenedor = document.getElementById("contenedorJornada");
                 if(contenedor) contenedor.scrollLeft = 0;
+            }, 50);
+        }
+        if(tabId === 'tab-config') {
+            setTimeout(() => {
+                const contenedorConf = document.getElementById("contenedorConfig");
+                if(contenedorConf) contenedorConf.scrollLeft = 0;
             }, 50);
         }
     }
