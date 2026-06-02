@@ -244,6 +244,17 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); font-weight: bold; }
 
+        /* NUEVOS ESTILOS EXCLUSIVOS PARA LOS TEXTOS FIJOS DEL HISTORIAL */
+        .op-badge-fijo {
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-light); /* Color Cian/Azul Neón por defecto */
+        }
+        .op-badge-fijo.alert-hist { color: var(--accent); }  /* Amarillo/Naranja */
+        .op-badge-fijo.error-hist { color: var(--danger); }  /* Rojo */
+
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
@@ -262,6 +273,7 @@
             .turno-header span { color: black !important; }
             .carga-title { color: black !important; }
             .select-op-editable { color: black !important; -webkit-appearance: none; appearance: none; }
+            .op-badge-fijo { color: black !important; }
         }
     </style>
 </head>
@@ -328,7 +340,7 @@
 
     <div id="tab-historial" class="tab-content">
         <div class="history-header" style="border:none; margin:0;">
-            <span class="section-title">🗄️ Historial de Jornadas</span>
+            <span class="section-title">𗄪 Historial de Jornadas</span>
             <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar</button>
         </div>
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
@@ -352,7 +364,7 @@
             <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">🗄️</span>
+            <span class="icon">𗄪</span>
             <span>Historial</span>
         </button>
     </div>
@@ -489,7 +501,6 @@
         generarJornadaCompleta();
     }
 
-    /* NUEVO ALGORITMO ANTIDUPLICADOS CON POLIVALENCIA ESTRICTA PERO COMPROMETIDA */
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -505,20 +516,15 @@
             let html = `<div class="turno-header">TURNO ${t + 1} <span>⏱️ ${horasActivas[t]}</span></div><table class="results-table">`;
 
             let desplazo = saltoInicialJornada + t;
-            
-            // Creamos un mapeo de asignación única para este turno
             let asignacionesTurno = {}; 
             let operariosAsignadosEnEsteTurno = new Set();
 
-            // Pasada 1: Intentar asignar por orden natural respetando la polivalencia estricta
             cargas.forEach((carga, i) => {
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // Buscamos el primer operario disponible a partir de esa posición que cumpla los checks
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
-                    
                     if (!operariosAsignadosEnEsteTurno.has(candidato) && competencies[`${candidato}_X_${carga}`] !== false) {
                         asignacionesTurno[carga] = { nombre: candidato, alerta: false };
                         operariosAsignadosEnEsteTurno.add(candidato);
@@ -527,7 +533,6 @@
                     }
                 }
 
-                // Pasada 2: Si por polivalencia estricta no hay nadie, buscamos cualquier operario libre (Alerta visual)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -540,13 +545,11 @@
                     }
                 }
 
-                // Pasada 3: Si aun así no queda nadie libre en absoluto (porque hay menos personas que puestos)
                 if (!asignado) {
                     asignacionesTurno[carga] = { nombre: "No Apto", error: true };
                 }
             });
 
-            // Pintar la tabla del turno con los resultados limpios sin duplicados
             cargas.forEach(carga => {
                 let res = asignacionesTurno[carga];
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
@@ -601,6 +604,7 @@
         contenedor.innerHTML = html;
     }
 
+    /* SISTEMA DE CAPTURA QUE TRANSFORMA SELECTS EN BADGES CON NUEVOS COLORES */
     function guardarEnHistorial() {
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
@@ -619,9 +623,19 @@
         renderizarTablaContadores();
 
         const contenedorClon = document.getElementById("contenedorJornada").cloneNode(true);
+        
+        // Aquí convertimos los campos interactivos en texto plano coloreado para la foto fija
         contenedorClon.querySelectorAll("select").forEach(sel => {
             const spanfijo = document.createElement("span");
-            spanfijo.className = "op-badge " + (sel.classList.contains("op-alert") ? "op-alert" : sel.classList.contains("op-error") ? "op-error" : "");
+            
+            let claseColorHist = "op-badge-fijo";
+            if (sel.classList.contains("op-alert")) {
+                claseColorHist += " alert-hist"; // Naranja
+            } else if (sel.classList.contains("op-error")) {
+                claseColorHist += " error-hist"; // Rojo
+            }
+            
+            spanfijo.className = claseColorHist;
             spanfijo.innerText = sel.value;
             sel.parentElement.replaceChild(spanfijo, sel);
         });
@@ -633,7 +647,7 @@
         localStorage.setItem('registro_jornadas_v9', JSON.stringify(historialJornadas));
         
         renderizarHistorial();
-        alert("💾 ¡Guardado con éxito! Se han registrado todos los puestos tal y como los ves en pantalla.");
+        alert("💾 ¡Guardado con éxito! Ahora en el historial verás los nombres de los operarios resaltados en color.");
     }
 
     function reiniciarContadoresSemanales() {
