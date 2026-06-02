@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestor de Rotaciones - High Contrast Edition</title>
+    <title>Gestor de Rotaciones - Neon Contrast Edition</title>
     <style>
         :root { 
-            --bg-main: #0f172a;       /* Fondo oscuro profundo */
-            --bg-card: #1e293b;       /* Fondo de tarjetas gris grafito */
-            --primary: #3b82f6;       /* Azul eléctrico moderno */
-            --primary-light: #60a5fa; 
-            --accent: #f59e0b;        /* Oro/Amarillo para la hora y operarios */
-            --text-main: #ffffff;     /* Blanco puro para títulos y cargas */
-            --text-muted: #94a3b8;    /* Texto secundario gris */
+            --bg-main: #000000;       /* Fondo negro puro como la foto */
+            --bg-card: #111827;       /* Fondo de tarjetas gris oscuro mate */
+            --primary: #3b82f6;       
+            --primary-light: #22d3ee; /* Azul Neón / Cian de la foto */
+            --accent: #f59e0b;        /* Amarillo Oro de los números de la foto */
+            --text-main: #ffffff;     /* Blanco puro para cargas */
+            --text-muted: #94a3b8;    
             --success: #10b981; 
             --danger: #f43f5e; 
-            --border-color: #334155;
+            --border-color: #1f2937;
         }
         
         * { box-sizing: border-box; }
@@ -40,13 +40,13 @@
             bottom: 0; 
             left: 0; 
             right: 0; 
-            background: #111827; 
+            background: #0a0a0a; 
             display: flex; 
             justify-content: space-around;
             padding: 8px 5px; 
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid #222;
             z-index: 9999;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         
         .tab-btn { 
@@ -75,66 +75,71 @@
         .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         .section-box { background: var(--bg-card); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-weight: 700; color: var(--primary-light); font-size: 0.95rem; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
+        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
         .item-row { display: flex; gap: 8px; align-items: center; }
-        .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #0f172a; color: white; }
+        
+        /* Inputs con texto de operarios en Azul Neón */
+        #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
+        #listaCargas .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
         .item-input:focus { border-color: var(--primary-light); outline: none; }
-        .btn-del { background: #334155; color: var(--danger); border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        /* Botón papelera con el círculo oscuro/amarillo de la foto */
+        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 10px; border-radius: 50%; cursor: pointer; font-weight: bold; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
 
         /* Pestaña 2: Matriz */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        .matrix-table th { background: #1e293b; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
-        .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; color: #f8fafc; }
-        .matrix-table td:first-child { text-align: left; font-weight: 700; background: #111827; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
+        .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
+        .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; color: #ffffff; }
+        .matrix-table td:first-child { text-align: left; font-weight: 700; background: #050505; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-light); }
 
         /* Botones de acción */
         .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: #475569; color: white; }
-        .btn-success { background: var(--success); color: white; }
+        .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
+        .btn-secondary { background: #334155; color: white; }
+        .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
         .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* Pestaña 3: Vista de Turnos (COLORES MEJORADOS) */
+        /* Pestaña 3: Vista de Turnos (COLORES Y GROSORES REAJUSTADOS SEGÚN LA FOTO) */
         .jornada-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; }
         .turno-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
-        .turno-header { background: #111827; color: white; padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
-        .turno-header span { color: var(--accent); display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; }
+        
+        /* Número de turno y horas en color Amarillo Oro */
+        .turno-header { background: #050505; color: var(--accent); padding: 12px; text-align: center; font-weight: 800; font-size: 1rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
+        .turno-header span { color: #ffffff; display: block; font-size: 0.8rem; margin-top: 3px; font-weight: 600; opacity: 0.8; }
         
         .results-table { width: 100%; border-collapse: collapse; }
-        .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+        .results-table td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
         .results-table tr:last-child td { border-bottom: none; }
         
-        /* Cargas en Blanco Brillante Intenso */
-        .carga-title { font-weight: 700; color: #ffffff; font-size: 0.9rem; }
+        /* Cargas de trabajo en Blanco Grueso como "Arnés Nala" */
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 1rem; letter-spacing: -0.3px; }
         
-        /* Operarios Normales en color ORO/AMARILLO (como la hora) */
+        /* Operarios en Azul Neón / Cian como "PAYPAL" */
         .op-badge { 
-            background: #2d220c;          /* Fondo marrón/dorado oscuro sutil */
-            color: var(--accent);         /* Texto Oro Brillante */
-            border: 1px solid #78350f;    /* Borde ámbar */
-            padding: 4px 12px; 
-            border-radius: 20px; 
+            background: transparent;      
+            color: var(--primary-light);  /* Azul Neón de la foto */
+            padding: 2px 0; 
             font-weight: 800; 
-            font-size: 0.85rem; 
+            font-size: 0.95rem; 
             display: inline-block; 
+            text-transform: uppercase;   /* Estilo bloque de la foto */
+            letter-spacing: 0.5px;
         }
         
-        /* Alertas (Cambio por polivalencia) en Azul Claro para diferenciar */
-        .op-alert { background: #1e3a8a; color: #60a5fa; border: 1px dashed #3b82f6; }
-        
-        /* Errores (Sin nadie apto) en Rojo */
-        .op-error { background: #881337; color: #fda4af; border: 1px solid #991b1b; }
+        /* Alertas y errores adaptados al tono oscuro */
+        .op-alert { color: var(--accent); } /* Pasa a oro si es un cambio */
+        .op-error { color: var(--danger); text-decoration: line-through; }
 
         /* Pestaña 4: Historial */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
-        .history-date { font-weight: bold; color: var(--primary-light); font-size: 0.9rem; }
+        .history-date { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
         .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
         @media print {
@@ -148,7 +153,7 @@
             .turno-header { background: #e2e8f0 !important; color: black !important; border-bottom: 1px solid #000; }
             .turno-header span { color: black !important; }
             .carga-title { color: black !important; }
-            .op-badge { background: none; border: 1px solid #ccc; color: black !important; }
+            .op-badge { background: none; color: black !important; }
         }
     </style>
 </head>
@@ -156,7 +161,7 @@
 
 <div class="container">
     <h1>📊 Control de Rotaciones</h1>
-    <p class="subtitle">Panel inteligente • Contraste Alto</p>
+    <p class="subtitle">Diseño de Alto Contraste Personalizado</p>
 
     <!-- PESTAÑA 1: CONFIGURACIÓN -->
     <div id="tab-config" class="tab-content active">
@@ -202,7 +207,7 @@
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
     </div>
 
-    <!-- NAVBAR INFERIOR CON ICONOS -->
+    <!-- NAVBAR INFERIOR -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
@@ -232,15 +237,15 @@
     const defaultCargas = ["Conexiones", "Bateria M", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v6')) {
-            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v6')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v7')) {
+            try { competencias = JSON.parse(localStorage.getItem('hist_competencias_v7')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v6')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v6')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v7')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v7')); } catch(e) {}
         }
 
-        let ops = localStorage.getItem('hist_ops_v6') ? JSON.parse(localStorage.getItem('hist_ops_v6')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v6') ? JSON.parse(localStorage.getItem('hist_cargas_v6')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v7') ? JSON.parse(localStorage.getItem('hist_ops_v7')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v7') ? JSON.parse(localStorage.getItem('hist_cargas_v7')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -278,8 +283,8 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
-        localStorage.setItem('hist_ops_v6', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v6', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v7', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v7', JSON.stringify(cargas));
 
         const contenedorMatriz = document.getElementById("contenedorMatriz");
         if(ops.length === 0 || cargas.length === 0) {
@@ -296,7 +301,7 @@
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
                 let check = (competencias[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v6', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencias[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v7', JSON.stringify(competencias)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -363,7 +368,7 @@
         let fecha = new Date().toLocaleString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit'});
         historialJornadas.unshift({ fecha: fecha, html: contenedor });
         
-        localStorage.setItem('registro_jornadas_v6', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v7', JSON.stringify(historialJornadas));
         renderizarHistorial();
         alert("✅ ¡Jornada guardada con éxito!");
     }
@@ -393,14 +398,14 @@
 
     function eliminarRegistroIndividual(index) {
         historialJornadas.splice(index, 1);
-        localStorage.setItem('registro_jornadas_v6', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v7', JSON.stringify(historialJornadas));
         renderizarHistorial();
     }
 
     function borrarTodoElHistorial() {
         if(confirm("¿Seguro que quieres borrar todo el registro histórico?")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v6');
+            localStorage.removeItem('registro_jornadas_v7');
             renderizarHistorial();
         }
     }
