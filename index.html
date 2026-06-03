@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Completo con Historial</title>
+    <title>Control de Rotaciones - Visual Corregido</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -26,7 +26,7 @@
             color: var(--text-main); 
             padding: 12px; 
             margin: 0; 
-            padding-bottom: 80px; 
+            padding-bottom: 85px; 
             font-size: 0.9rem; 
         }
         
@@ -35,7 +35,7 @@
             margin: auto;
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - 95px);
+            min-height: calc(100vh - 100px);
         }
         
         .main-header {
@@ -126,33 +126,39 @@
         .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
         .config-grid { 
-            display: flex; gap: 12px; 
-            overflow-x: auto; overflow-y: hidden;
-            scroll-behavior: smooth; scroll-snap-type: x mandatory;
+            display: flex; flex-direction: column; gap: 12px; 
             padding: 5px 5px 10px 5px;
-            -webkit-overflow-scrolling: touch;
             flex-grow: 1;
         }
-        .config-grid::-webkit-scrollbar { display: none; }
 
         .section-box { 
-            background: var(--bg-card); border-radius: 12px; padding: 12px; border: 1px solid var(--border-color);
-            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
+            background: var(--bg-card); border-radius: 12px; padding: 14px; border: 1px solid var(--border-color);
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; flex-grow: 1; margin-bottom: 12px;
+            display: flex; flex-direction: column;
+            flex-grow: 1;
         }
 
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.9rem; }
-        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
+        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        .item-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
-        .item-row { display: flex; gap: 6px; align-items: center; }
+        /* 📱 CORRECCIÓN CRÍTICA DE SCROLL Y AJUSTE VISUAL */
+        .item-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            flex-grow: 1;
+            overflow-y: auto; 
+            max-height: calc(100vh - 260px); /* Ajuste dinámico para que llegue hasta los iconos del menú inferior sin solaparlos */
+            padding-right: 4px; 
+        }
+        .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
         
-        #listaOps .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: var(--primary-light); font-weight: 700; }
-        #listaCargas .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: #fff; font-weight: 800; }
+        #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
+        #listaCargas .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
+        .item-input:focus { border-color: var(--primary-light); outline: none; }
         
-        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 550px; }
@@ -186,6 +192,7 @@
             .turno-card { flex: none; }
             .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); scroll-snap-type: none; overflow-x: visible; }
             .section-box { flex: none; }
+            .item-list { max-height: 65vh; }
         }
 
         .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
@@ -205,7 +212,6 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        /* Estilos del Historial */
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
@@ -235,7 +241,7 @@
                 </div>
                 <div id="listaOps" class="item-list"></div>
             </div>
-            <div class="section-box">
+            <div class="section-box" style="margin-top: 10px;">
                 <div class="section-header">
                     <span class="section-title">📦 Cargas de Trabajo</span>
                     <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
@@ -606,12 +612,10 @@
         contenedor.innerHTML = html;
     }
 
-    // 💾 GUARDAR COMPORTAMIENTO COMPLETO: CONTADOR + REGISTRO EN HISTORIAL VISUAL
     function guardarEnHistorial() {
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
 
-        // 1. Guardar en los contadores semanales numéricos
         selectores.forEach(select => {
             let opAsignado = select.value;
             let carga = select.dataset.carga;
@@ -624,7 +628,6 @@
         localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
-        // 2. Guardar estructura visual completa en el Historial de Jornadas
         let copiaTurnos = {};
         for(let t=1; t<=4; t++) {
             copiaTurnos[t] = {};
@@ -642,13 +645,12 @@
             datos: copiaTurnos
         };
 
-        historialJornadas.unshift(nuevaJornada); // El más nuevo al principio
+        historialJornadas.unshift(nuevaJornada);
         localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
         
         alert("💾 ¡Guardado con éxito en contadores e Historial!");
     }
 
-    // 📂 MOSTRAR EL HISTORIAL DE FORMA LIMPIA
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
         contenedor.innerHTML = "";
