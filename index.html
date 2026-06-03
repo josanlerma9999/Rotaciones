@@ -38,19 +38,22 @@
             padding: 15px 0 20px 0;
         }
 
-        .main-header h1 {
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: 900;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 6px;
-            text-align: center;
-            width: 100%;
-            max-width: 90%;
-        }
+        /* REEMPLAZA EL BLOQUE DE LA LÍNEA 42 POR ESTE REVISADO: */
+.main-header h1 {
+    margin: 0;
+    font-size: 1.1rem;             /* Lo bajamos a 1.1rem para que sea más compacto */
+    font-weight: 800;              /* Ajustamos un pelín el grosor */
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    line-height: 1.3;              /* Añadimos separación por si se divide en dos líneas */
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 6px;
+    text-align: center;
+    width: 100%;
+    max-width: 85%;                /* Le damos un poco más de margen lateral */
+}
+
 
         .schedule-selector {
             display: flex;
