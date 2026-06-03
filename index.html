@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Memoria Post-Edición</title>
+    <title>Control de Rotaciones - Completo con Historial</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -93,8 +93,7 @@
         .tabs-nav { 
             position: fixed; 
             bottom: 0; 
-            left: 0; 
-            right: 0; 
+            left: 0; right: 0; 
             background: #0a0a0a; 
             display: flex; 
             justify-content: space-around;
@@ -127,12 +126,9 @@
         .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
         .config-grid { 
-            display: flex; 
-            gap: 12px; 
-            overflow-x: auto; 
-            overflow-y: hidden;
-            scroll-behavior: smooth;
-            scroll-snap-type: x mandatory;
+            display: flex; gap: 12px; 
+            overflow-x: auto; overflow-y: hidden;
+            scroll-behavior: smooth; scroll-snap-type: x mandatory;
             padding: 5px 5px 10px 5px;
             -webkit-overflow-scrolling: touch;
             flex-grow: 1;
@@ -140,36 +136,21 @@
         .config-grid::-webkit-scrollbar { display: none; }
 
         .section-box { 
-            background: var(--bg-card); 
-            border-radius: 12px; 
-            padding: 12px; 
-            border: 1px solid var(--border-color);
-            flex: 0 0 calc(100% - 10px); 
-            scroll-snap-align: center;   
+            background: var(--bg-card); border-radius: 12px; padding: 12px; border: 1px solid var(--border-color);
+            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            margin-bottom: 12px;
+            display: flex; flex-direction: column; flex-grow: 1; margin-bottom: 12px;
         }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.9rem; }
         .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        .item-list { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 6px; 
-            max-height: 60vh; 
-            overflow-y: auto; 
-            padding-right: 4px; 
-        }
+        .item-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
         .item-row { display: flex; gap: 6px; align-items: center; }
         
         #listaOps .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: var(--primary-light); font-weight: 700; }
         #listaCargas .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: #fff; font-weight: 800; }
-        .item-input:focus { border-color: var(--primary-light); outline: none; }
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
 
@@ -187,28 +168,17 @@
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
-        .btn-main:hover { opacity: 0.95; transform: translateY(-1px); }
 
         .jornada-grid { 
-            display: flex; 
-            gap: 12px; 
-            overflow-x: auto; 
-            overflow-y: hidden;
-            scroll-behavior: smooth;
-            scroll-snap-type: x mandatory;
-            padding: 5px 5px 12px 5px;
+            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+            scroll-behavior: smooth; scroll-snap-type: x mandatory; padding: 5px 5px 12px 5px;
             -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
 
         .turno-card { 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            overflow: hidden; 
-            flex: 0 0 calc(100% - 10px);
-            scroll-snap-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; 
+            overflow: hidden; flex: 0 0 calc(100% - 10px); scroll-snap-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         
         @media (min-width: 900px) {
@@ -223,34 +193,30 @@
         
         .results-table { width: 100%; border-collapse: collapse; }
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-        .results-table tr:last-child td { border-bottom: none; }
         
         .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
         
         .select-op-editable {
-            background: transparent;
-            color: var(--primary-light);
-            border: none;
-            font-weight: 800;
-            font-size: 0.9rem;
-            width: 100%;
-            cursor: pointer;
-            outline: none;
-            font-family: inherit;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
+            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            -webkit-appearance: none; appearance: none;
         }
-        .select-op-editable option {
-            background: #111827;
-            color: #fff;
-            font-weight: normal;
-            text-transform: none;
-        }
+        .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
-        .select-op-editable.op-error { color: var(--danger); font-weight: bold; }
+        .select-op-editable.op-error { color: var(--danger); }
+
+        /* Estilos del Historial */
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
+        .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
+        .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
+        @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
+        .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
+        .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
+        .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
+        .history-linea strong { color: #fff; }
     </style>
 </head>
 <body>
@@ -299,11 +265,19 @@
     </div>
 
     <div id="tab-contador" class="tab-content">
-        <div class="history-header" style="border:none; margin-bottom: 12px;">
+        <div class="history-header" style="margin-bottom: 12px;">
             <span class="section-title">📊 Veces por Puesto (Esta Semana)</span>
-            <button class="btn-clear-hist" style="color:var(--accent);" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
+            <button class="btn-clear-hist" style="color:var(--accent); border-color: #78350f; background: #2a1f08;" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
         </div>
         <div class="matrix-container" id="contenedorContador"></div>
+    </div>
+
+    <div id="tab-historial" class="tab-content">
+        <div class="history-header">
+            <span class="section-title">📂 Historial de Jornadas</span>
+            <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar Todo</button>
+        </div>
+        <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
     <div class="tabs-nav">
@@ -323,12 +297,17 @@
             <span class="icon">📊</span>
             <span>Contador</span>
         </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
+            <span class="icon">📂</span>
+            <span>Historial</span>
+        </button>
     </div>
 </div>
 
 <script>
     let saltoInicialJornada = 0;
     let competencies = {};
+    let historialJornadas = [];
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
     let cambiosManualesUsuarios = {}; 
@@ -342,6 +321,9 @@
     window.onload = function() {
         if(localStorage.getItem('hist_competencias_v14')) {
             try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v14')); } catch(e) {}
+        }
+        if(localStorage.getItem('registro_jornadas_v14')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v14')); } catch(e) {}
         }
         if(localStorage.getItem('conteo_semanal_v14')) {
             try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v14')); } catch(e) {}
@@ -365,6 +347,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
+        if(tabId === 'tab-historial') renderizarHistorial();
     }
 
     function seleccionarTipoHorario(tipo) {
@@ -450,17 +433,13 @@
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        
-        // 🧠 MEMORIA DE PUESTOS ACUMULATIVA DIARIA
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
-        // PROCESAR LOS 4 TURNOS DE FORMA SECUENCIAL PARA QUE EL HISTORIAL SEA ACUMULATIVO REAL
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             
-            // 🛡️ Bloqueo inmediato en este turno de los operarios fijados manualmente
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
@@ -468,12 +447,11 @@
                     let opManual = cambiosManualesUsuarios[claveManual];
                     if (opManual !== "No Apto") {
                         operariosOcupadosEnEsteTurnoMismo.add(opManual); 
-                        historialPuestosPorOperarioDia[opManual].add(carga); // Se añade a su historial del día
+                        historialPuestosPorOperarioDia[opManual].add(carga);
                     }
                 }
             });
 
-            // 1. Escribir las asignaciones manuales finales en la matriz del turno
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -485,14 +463,12 @@
                 }
             });
 
-            // 2. Rellenar huecos de forma automática respetando lo que YA se ha hecho en turnos anteriores
             cargas.forEach((carga, i) => {
                 if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // REGLA 1: Libre en este turno, Apto en matriz, y JAMÁS ha hecho esta carga hoy (manual o automática)
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
@@ -503,13 +479,12 @@
                         
                         matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
                         operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                        historialPuestosPorOperarioDia[candidato].add(carga); // Se registra en su memoria diaria
+                        historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
 
-                // REGLA 2: No apto por matriz (alerta), pero sigue teniendo prohibido repetir carga hoy
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -525,7 +500,6 @@
                     }
                 }
 
-                // REGLA 3: Emergencia total por falta de personal disponible libre en el turno
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -544,7 +518,6 @@
             });
         }
 
-        // Construcción y renderizado de las tarjetas en la pantalla del móvil
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -571,19 +544,16 @@
         }
     }
 
-    // 🔄 TRUEQUE SEGURO + SINCRONIZACIÓN DE HISTORIAL POSTERIOR
     function registrarCambioManualYRecalcular(select) {
         let turnoActual = parseInt(select.dataset.turno);
         let cargaDondeEntra = select.dataset.carga;
         let operarioQueEntra = select.value;
 
-        // 1. Averiguar quién ocupaba físicamente ese puesto antes del click
         let operarioQueEstabaAntes = "No Apto";
         if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][cargaDondeEntra]) {
             operarioQueEstabaAntes = matrizJornadaCalculada[turnoActual][cargaDondeEntra].nombre;
         }
 
-        // 2. Buscar si el operario nuevo ya venía asignado en otra carga del mismo turno
         let cargaDondeEstabaElQueEntra = null;
         if (operarioQueEntra !== "No Apto") {
             const cargasEnTurno = leerLista("listaCargas");
@@ -597,25 +567,19 @@
             }
         }
 
-        // 3. Aplicar el trueque cruzado en los cambios manuales si aplica
         if (cargaDondeEstabaElQueEntra && cargaDondeEstabaElQueEntra !== cargaDondeEntra) {
             cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEstabaElQueEntra}`] = operarioQueEstabaAntes;
         }
 
-        // 4. Guardar la nueva posición fija
         cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEntra}`] = operarioQueEntra;
 
-        // 5. IMPORTANTE: Limpiar los registros manuales automáticos de los turnos POSTERIORES 
-        // para que el motor inteligente los recalcule desde cero con la nueva restricción diaria.
         const cargasEnTurno = leerLista("listaCargas");
         for (let t = turnoActual + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => {
-                // Si el sistema había hecho un trueque automático posterior, lo liberamos para recalcular de forma limpia
                 delete cambiosManualesUsuarios[`${t}_X_${c}`];
             });
         }
 
-        // Recalcular toda la jornada aplicando la nueva memoria en cascada
         generarJornadaCompleta();
     }
 
@@ -642,10 +606,12 @@
         contenedor.innerHTML = html;
     }
 
+    // 💾 GUARDAR COMPORTAMIENTO COMPLETO: CONTADOR + REGISTRO EN HISTORIAL VISUAL
     function guardarEnHistorial() {
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
 
+        // 1. Guardar en los contadores semanales numéricos
         selectores.forEach(select => {
             let opAsignado = select.value;
             let carga = select.dataset.carga;
@@ -655,14 +621,91 @@
                 conteoSemanal[clv]++;
             }
         });
-
         localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
-        alert("💾 ¡Guardado con éxito!");
+
+        // 2. Guardar estructura visual completa en el Historial de Jornadas
+        let copiaTurnos = {};
+        for(let t=1; t<=4; t++) {
+            copiaTurnos[t] = {};
+            for(let c in matrizJornadaCalculada[t]) {
+                copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
+            }
+        }
+
+        let fechaActual = new Date();
+        let nuevaJornada = {
+            id: Date.now(),
+            fecha: fechaActual.toLocaleDateString("es-ES"),
+            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
+            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
+            datos: copiaTurnos
+        };
+
+        historialJornadas.unshift(nuevaJornada); // El más nuevo al principio
+        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+        
+        alert("💾 ¡Guardado con éxito en contadores e Historial!");
+    }
+
+    // 📂 MOSTRAR EL HISTORIAL DE FORMA LIMPIA
+    function renderizarHistorial() {
+        const contenedor = document.getElementById("contenedorHistorial");
+        contenedor.innerHTML = "";
+
+        if(historialJornadas.length === 0) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
+            return;
+        }
+
+        historialJornadas.forEach(jornada => {
+            const item = document.createElement("div");
+            item.className = "history-item";
+            
+            let htmlTitle = `<div class="history-item-title">
+                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
+                <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
+            </div>`;
+            
+            let htmlContent = `<div class="history-item-content">`;
+            const horasActivas = (jornada.tipoHorario.includes("Mañana")) ? horasMañana : horasTarde;
+
+            for(let t=1; t<=4; t++) {
+                htmlContent += `<div class="history-turno-block">
+                    <div class="history-turno-title">TURNO ${t}</div>`;
+                
+                if(jornada.datos && jornada.datos[t]) {
+                    for(let carga in jornada.datos[t]) {
+                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
+                    }
+                }
+                htmlContent += `</div>`;
+            }
+            htmlContent += `</div>`;
+            
+            item.innerHTML = htmlTitle + htmlContent;
+            contenedor.appendChild(item);
+        });
+    }
+
+    function borrarJornadaIndividual(id) {
+        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
+            historialJornadas = historialJornadas.filter(j => j.id !== id);
+            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+            renderizarHistorial();
+        }
+    }
+
+    function borrarTodoElHistorial() {
+        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
+            historialJornadas = [];
+            localStorage.removeItem('registro_jornadas_v14');
+            renderizarHistorial();
+        }
     }
 
     function reiniciarContadoresSemanales() {
-        if(confirm("¿Reiniciar la semana?")) {
+        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
             conteoSemanal = {};
             localStorage.removeItem('conteo_semanal_v14');
             renderizarTablaContadores();
