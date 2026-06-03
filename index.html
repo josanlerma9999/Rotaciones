@@ -29,37 +29,41 @@
             padding-bottom: 85px; 
         }
         
-        .container { max-width: 1200px; margin: auto; }
+        .container { 
+            max-width: 1200px; 
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 100px);
+        }
         
         .main-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 15px 0 20px 0;
+            padding: 10px 0 15px 0;
         }
 
-        /* REEMPLAZA EL BLOQUE DE LA LÍNEA 42 POR ESTE REVISADO: */
-.main-header h1 {
-    margin: 0;
-    font-size: 1.1rem;             /* Lo bajamos a 1.1rem para que sea más compacto */
-    font-weight: 800;              /* Ajustamos un pelín el grosor */
-    color: #ffffff;
-    letter-spacing: 0.5px;
-    line-height: 1.3;              /* Añadimos separación por si se divide en dos líneas */
-    text-transform: uppercase;
-    border-bottom: 2px solid var(--primary-light);
-    padding-bottom: 6px;
-    text-align: center;
-    width: 100%;
-    max-width: 85%;                /* Le damos un poco más de margen lateral */
-}
-
+        .main-header h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 6px;
+            text-align: center;
+            width: 100%;
+            max-width: 85%;
+        }
 
         .schedule-selector {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .btn-schedule {
             background: #111827;
@@ -119,7 +123,7 @@
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
         .config-grid { 
             display: flex; 
@@ -128,8 +132,9 @@
             overflow-y: hidden;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
-            padding: 5px 5px 20px 5px;
+            padding: 5px 5px 10px 5px;
             -webkit-overflow-scrolling: touch;
+            flex-grow: 1;
         }
         .config-grid::-webkit-scrollbar { display: none; }
 
@@ -143,13 +148,22 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
+            flex-grow: 1;
+            margin-bottom: 15px;
         }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
         .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+        .item-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            max-height: 58vh; 
+            overflow-y: auto; 
+            padding-right: 4px; 
+        }
         .item-row { display: flex; gap: 8px; align-items: center; }
         
         #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
@@ -167,7 +181,7 @@
 
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
+        .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
@@ -181,7 +195,7 @@
             overflow-y: hidden;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
-            padding: 5px 5px 20px 5px;
+            padding: 5px 5px 15px 5px;
             -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
