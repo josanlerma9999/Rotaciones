@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Visual Corregido</title>
+    <title>Control de Rotaciones - Scroll Horizontal Fijo</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -125,31 +125,39 @@
         .tab-content { display: none; }
         .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
+        /* ✨ SCROLL HORIZONTAL OPTIMIZADO (IZQUIERDA/DERECHA) ✨ */
         .config-grid { 
-            display: flex; flex-direction: column; gap: 12px; 
-            padding: 5px 5px 10px 5px;
+            display: flex; 
+            gap: 12px; 
+            overflow-x: auto; 
+            overflow-y: hidden; /* Prohíbe el desborde vertical de la cuadrícula */
+            scroll-behavior: smooth; 
+            scroll-snap-type: x mandatory;
+            padding: 5px 5px 15px 5px;
+            -webkit-overflow-scrolling: touch;
             flex-grow: 1;
+            touch-action: pan-x; /* 🔒 CLAVE: Bloquea el movimiento vertical del móvil al deslizar de lado */
         }
+        .config-grid::-webkit-scrollbar { display: none; }
 
         .section-box { 
             background: var(--bg-card); border-radius: 12px; padding: 14px; border: 1px solid var(--border-color);
+            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             display: flex; flex-direction: column;
-            flex-grow: 1;
         }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
         .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        /* 📱 CORRECCIÓN CRÍTICA DE SCROLL Y AJUSTE VISUAL */
         .item-list { 
             display: flex; 
             flex-direction: column; 
             gap: 8px; 
             flex-grow: 1;
             overflow-y: auto; 
-            max-height: calc(100vh - 260px); /* Ajuste dinámico para que llegue hasta los iconos del menú inferior sin solaparlos */
+            max-height: calc(100vh - 270px); 
             padding-right: 4px; 
         }
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
@@ -160,15 +168,53 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
+        /* 📋 ESTRUCTURA DE TABLAS OPTIMIZADA */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
-        .matrix-table { width: 100%; border-collapse: collapse; min-width: 550px; }
-        .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.7rem; padding: 10px 8px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
-        .matrix-table td { padding: 8px; text-align: center; border: 1px solid var(--border-color); font-size: 0.8rem; color: #ffffff; }
-        .matrix-table td:first-child { text-align: left; font-weight: 700; background: #050505; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
+        .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
+        
+        .matrix-table th { 
+            background: #111827; 
+            color: var(--text-muted); 
+            font-size: 0.65rem; 
+            padding: 12px 6px; 
+            border: 1px solid var(--border-color); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            text-align: center;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            width: 125px; 
+        }
+        
+        .matrix-table th:first-child,
+        .matrix-table td:first-child {
+            width: 110px;
+            text-align: left; 
+            font-weight: 700; 
+            background: #050505; 
+            color: var(--primary-light); 
+            position: sticky; 
+            left: 0; 
+            z-index: 1; 
+            border-right: 2px solid var(--border-color);
+        }
+
+        .matrix-table td { 
+            padding: 12px 8px; 
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            font-size: 0.85rem; 
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
+        .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        .count-number { font-weight: 800; color: var(--accent); font-size: 0.9rem; }
-
+        /* 📱 SECCIÓN DE TURNOS (CON SCROLL LATERAL) */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -179,6 +225,7 @@
             display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
             scroll-behavior: smooth; scroll-snap-type: x mandatory; padding: 5px 5px 12px 5px;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
 
@@ -212,7 +259,34 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        /* 👑 CABECERA EN FILA ÚNICA IMPEDIBLE 👑 */
+        .history-header { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            gap: 10px; 
+            width: 100%;
+        }
+        .history-header .section-title {
+            font-size: 0.88rem; 
+            white-space: nowrap; 
+            font-weight: 800;
+        }
+        .btn-counter-reset {
+            background: #2a1f08; 
+            color: var(--accent); 
+            border: 1px solid #78350f; 
+            padding: 6px 10px; 
+            font-size: 0.78rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0; 
+        }
+
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
@@ -232,6 +306,7 @@
         <h1>Control de Rotaciones</h1>
     </div>
 
+    <!-- Pestaña Configuración (VUELVE AL SCROLL LATERAL PERFECTO) -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
@@ -241,7 +316,7 @@
                 </div>
                 <div id="listaOps" class="item-list"></div>
             </div>
-            <div class="section-box" style="margin-top: 10px;">
+            <div class="section-box">
                 <div class="section-header">
                     <span class="section-title">📦 Cargas de Trabajo</span>
                     <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
@@ -251,10 +326,12 @@
         </div>
     </div>
 
+    <!-- Pestaña Polivalencia -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- Pestaña Turnos -->
     <div id="tab-jornada" class="tab-content">
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
@@ -270,14 +347,16 @@
         </div>
     </div>
 
+    <!-- Pestaña Contador Semanal -->
     <div id="tab-contador" class="tab-content">
-        <div class="history-header" style="margin-bottom: 12px;">
+        <div class="history-header">
             <span class="section-title">📊 Veces por Puesto (Esta Semana)</span>
-            <button class="btn-clear-hist" style="color:var(--accent); border-color: #78350f; background: #2a1f08;" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
+            <button class="btn-counter-reset" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
         </div>
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
+    <!-- Pestaña Historial Guardado -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header">
             <span class="section-title">📂 Historial de Jornadas</span>
@@ -286,6 +365,7 @@
         <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
+    <!-- Navegación Inferior -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
