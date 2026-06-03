@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Cargas Completas</title>
+    <title>Control de Rotaciones - Interfaz Táctil</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -131,7 +131,7 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* 🔥 OPTIMIZACIÓN DE TABLAS (POLIVALENCIA Y CONTADORES) 🔥 */
+        /* TABLAS POLIVALENCIA Y CONTADORES */
         .matrix-container { 
             overflow-x: auto; 
             background: var(--bg-card); 
@@ -139,16 +139,12 @@
             border-radius: 12px; 
             width: 100%; 
         }
-        
-        /* Cambiado a table-layout: auto para que las columnas crezcan según el texto */
         .matrix-table { 
             width: 100%; 
             border-collapse: collapse; 
             min-width: 500px; 
             table-layout: auto; 
         }
-        
-        /* Eliminados los bloqueos de corte de texto (nowrap y ellipsis) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
@@ -158,11 +154,9 @@
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            min-width: 100px; /* Ancho mínimo para que respire */
+            min-width: 100px; 
             word-break: normal;
         }
-        
-        /* Fijado de la primera columna (Operarios) adaptado */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             min-width: 110px; 
@@ -175,7 +169,6 @@
             z-index: 1; 
             border-right: 2px solid var(--border-color);
         }
-
         .matrix-table td { 
             padding: 10px 12px; 
             text-align: center; 
@@ -183,11 +176,10 @@
             font-size: 0.8rem; 
             color: #ffffff; 
         }
-        
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        /* JORNADA Y TURNOS */
+        /* JORNADA Y TURNOS - SOLUCIÓN SCROLL VERTICAL LIBRE */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -195,9 +187,15 @@
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
         .jornada-grid { 
-            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
-            scroll-behavior: smooth; scroll-snap-type: x mandatory; padding: 5px 5px 12px 5px;
-            touch-action: pan-x; -webkit-overflow-scrolling: touch;
+            display: flex; 
+            gap: 12px; 
+            overflow-x: auto; 
+            overflow-y: visible; /* Permitimos desborde vertical */
+            scroll-behavior: smooth; 
+            scroll-snap-type: x mandatory; 
+            padding: 5px 5px 12px 5px;
+            touch-action: pan-x pan-y; /* Habilitamos explícitamente el scroll vertical táctil */
+            -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
 
@@ -220,9 +218,28 @@
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
         
+        /* 🔥 SOLUCIÓN SELECCIÓN SIN FLECHA DESPLEGABLE 🔥 */
         .select-op-editable {
-            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
-            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            background: transparent; 
+            color: var(--primary-light); 
+            border: none; 
+            font-weight: 800; 
+            font-size: 0.9rem;
+            width: 100%; 
+            cursor: pointer; 
+            outline: none; 
+            font-family: inherit; 
+            text-transform: uppercase;
+            text-align: right; /* Alineación limpia al lado derecho */
+            
+            /* Ocultamos la flecha nativa en todos los navegadores modernos */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        /* Ocultar flecha específica de Internet Explorer/Edge antiguo por seguridad */
+        .select-op-editable::-ms-expand {
+            display: none;
         }
         .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
