@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Solución Letras</title>
+    <title>Control de Rotaciones - Cargas Completas</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -27,7 +27,7 @@
             padding: 12px; 
             margin: 0; 
             padding-bottom: 85px; 
-            font-size: 0.9rem; /* Restauramos base segura */
+            font-size: 0.9rem; 
         }
         
         .container { 
@@ -58,7 +58,7 @@
             width: 100%;
         }
 
-        /* CONFIGURACIÓN ULTRA-COMPACTA SOLICITADA */
+        /* CONFIGURACIÓN COMPACTA */
         #tab-config .section-title { font-size: 0.8rem !important; font-weight: 700; }
         #tab-config .btn-add { padding: 4px 8px !important; font-size: 0.7rem !important; border-radius: 5px; }
         #tab-config .item-input { padding: 6px 10px !important; font-size: 0.78rem !important; border-radius: 6px; }
@@ -104,11 +104,10 @@
         .tab-btn .icon { font-size: 1.15rem; } 
         .tab-btn.active { color: var(--primary-light); }
 
-        /* VISIBILIDAD DE PESTAÑAS (CORREGIDO) */
         .tab-content { display: none; width: 100%; }
         .tab-content.active { display: flex !important; flex-direction: column; flex-grow: 1; }
 
-        /* SCROLL HORIZONTAL COMPACTO Fijo */
+        /* SCROLL HORIZONTAL CONFIGURAR */
         .config-grid { 
             display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; 
             scroll-snap-type: x mandatory; padding: 5px 5px 15px 5px;
@@ -132,22 +131,59 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* MATRIZ Y TABLAS */
-        .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; }
-        .matrix-table { width: 100%; border-collapse: collapse; min-width: 500px; table-layout: fixed; }
-        
-        .matrix-table th { 
-            background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 10px 6px; 
-            border: 1px solid var(--border-color); font-weight: 800; text-transform: uppercase; text-align: center;
+        /* 🔥 OPTIMIZACIÓN DE TABLAS (POLIVALENCIA Y CONTADORES) 🔥 */
+        .matrix-container { 
+            overflow-x: auto; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            width: 100%; 
         }
         
+        /* Cambiado a table-layout: auto para que las columnas crezcan según el texto */
+        .matrix-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 500px; 
+            table-layout: auto; 
+        }
+        
+        /* Eliminados los bloqueos de corte de texto (nowrap y ellipsis) */
+        .matrix-table th { 
+            background: #111827; 
+            color: var(--text-muted); 
+            font-size: 0.75rem; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border-color); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            text-align: center;
+            min-width: 100px; /* Ancho mínimo para que respire */
+            word-break: normal;
+        }
+        
+        /* Fijado de la primera columna (Operarios) adaptado */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
-            width: 110px; text-align: left; font-weight: 700; background: #050505; 
-            color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color);
+            min-width: 110px; 
+            text-align: left; 
+            font-weight: 700; 
+            background: #050505; 
+            color: var(--primary-light); 
+            position: sticky; 
+            left: 0; 
+            z-index: 1; 
+            border-right: 2px solid var(--border-color);
         }
 
-        .matrix-table td { padding: 10px 6px; text-align: center; border: 1px solid var(--border-color); font-size: 0.8rem; color: #ffffff; }
+        .matrix-table td { 
+            padding: 10px 12px; 
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            font-size: 0.8rem; 
+            color: #ffffff; 
+        }
+        
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
@@ -192,7 +228,7 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        /* HISTORIAL Y CABECERAS */
+        /* HISTORIAL */
         .history-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 10px; width: 100%; }
         .history-header .section-title { font-size: 0.88rem; font-weight: 800; }
         
@@ -221,7 +257,7 @@
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
                 <div class="section-header">
-                    <span class="section-title">裁 Operarios</span>
+                    <span class="section-title">👷 Operarios</span>
                     <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
                 </div>
                 <div id="listaOps" class="item-list"></div>
