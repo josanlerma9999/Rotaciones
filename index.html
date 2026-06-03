@@ -24,9 +24,10 @@
             font-family: 'Segoe UI', system-ui, sans-serif; 
             background-color: var(--bg-main); 
             color: var(--text-main); 
-            padding: 15px; 
+            padding: 12px; 
             margin: 0; 
-            padding-bottom: 85px; 
+            padding-bottom: 80px; 
+            font-size: 0.9rem; /* Reducimos la letra general un poquito */
         }
         
         .container { 
@@ -34,26 +35,26 @@
             margin: auto;
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - 100px);
+            min-height: calc(100vh - 95px);
         }
         
         .main-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 0 15px 0;
+            padding: 8px 0 12px 0;
         }
 
         .main-header h1 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1.05rem; /* Un pelín más pequeño para que respire mejor */
             font-weight: 800;
             color: #ffffff;
             letter-spacing: 0.5px;
             line-height: 1.3;
             text-transform: uppercase;
             border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 6px;
+            padding-bottom: 5px;
             text-align: center;
             width: 100%;
             max-width: 85%;
@@ -62,21 +63,21 @@
         .schedule-selector {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
         .btn-schedule {
             background: #111827;
             color: var(--text-muted);
             border: 1px solid var(--border-color);
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.2s;
             flex: 1;
-            max-width: 150px;
+            max-width: 140px;
         }
         .btn-schedule.active-day {
             background: #1e3a8a;
@@ -97,7 +98,7 @@
             background: #0a0a0a; 
             display: flex; 
             justify-content: space-around;
-            padding: 8px 5px; 
+            padding: 6px 4px; 
             border-top: 1px solid #222;
             z-index: 9999;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
@@ -112,14 +113,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 4px; 
-            font-size: 0.7rem; 
+            gap: 2px; 
+            font-size: 0.65rem; /* Letras de iconos inferiores un pelo más pequeñas */
             font-weight: 600;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .tab-btn .icon { font-size: 1.3rem; }
+        .tab-btn .icon { font-size: 1.15rem; } /* Iconos un poquito más pequeños */
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -127,7 +128,7 @@
 
         .config-grid { 
             display: flex; 
-            gap: 16px; 
+            gap: 12px; 
             overflow-x: auto; 
             overflow-y: hidden;
             scroll-behavior: smooth;
@@ -141,7 +142,7 @@
         .section-box { 
             background: var(--bg-card); 
             border-radius: 12px; 
-            padding: 15px; 
+            padding: 12px; 
             border: 1px solid var(--border-color);
             flex: 0 0 calc(100% - 10px); 
             scroll-snap-align: center;   
@@ -149,40 +150,40 @@
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
-        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.9rem; }
+        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
         .item-list { 
             display: flex; 
             flex-direction: column; 
-            gap: 8px; 
-            max-height: 58vh; 
+            gap: 6px; 
+            max-height: 60vh; 
             overflow-y: auto; 
             padding-right: 4px; 
         }
-        .item-row { display: flex; gap: 8px; align-items: center; }
+        .item-row { display: flex; gap: 6px; align-items: center; }
         
-        #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
-        #listaCargas .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
+        #listaOps .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: var(--primary-light); font-weight: 700; }
+        #listaCargas .item-input { flex: 1; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #000; color: #fff; font-weight: 800; }
         .item-input:focus { border-color: var(--primary-light); outline: none; }
         
-        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 10px; border-radius: 50%; cursor: pointer; font-weight: bold; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
 
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
-        .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.75rem; padding: 12px 10px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
-        .matrix-table td { padding: 10px; text-align: center; border: 1px solid var(--border-color); font-size: 0.85rem; color: #ffffff; }
+        .matrix-table { width: 100%; border-collapse: collapse; min-width: 550px; }
+        .matrix-table th { background: #111827; color: var(--text-muted); font-size: 0.7rem; padding: 10px 8px; border: 1px solid var(--border-color); font-weight: 700; text-transform: uppercase; }
+        .matrix-table td { padding: 8px; text-align: center; border: 1px solid var(--border-color); font-size: 0.8rem; color: #ffffff; }
         .matrix-table td:first-child { text-align: left; font-weight: 700; background: #050505; color: var(--primary-light); position: sticky; left: 0; z-index: 1; border-right: 2px solid var(--border-color); }
-        .matrix-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-light); }
+        .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
 
-        .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+        .count-number { font-weight: 800; color: var(--accent); font-size: 0.9rem; }
 
-        .action-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-        .btn-main { border: none; padding: 12px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
@@ -190,12 +191,12 @@
 
         .jornada-grid { 
             display: flex; 
-            gap: 16px; 
+            gap: 12px; 
             overflow-x: auto; 
             overflow-y: hidden;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
-            padding: 5px 5px 15px 5px;
+            padding: 5px 5px 12px 5px;
             -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
@@ -217,21 +218,21 @@
             .section-box { flex: none; }
         }
 
-        .turno-header { background: #050505; color: var(--accent); padding: 12px; text-align: center; font-weight: 800; font-size: 1rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
-        .turno-header span { color: #ffffff; display: block; font-size: 0.8rem; margin-top: 3px; font-weight: 600; opacity: 0.8; }
+        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
+        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
         
         .results-table { width: 100%; border-collapse: collapse; }
-        .results-table td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         .results-table tr:last-child td { border-bottom: none; }
         
-        .carga-title { font-weight: 800; color: #ffffff; font-size: 1rem; letter-spacing: -0.3px; }
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
         
         .select-op-editable {
             background: transparent;
             color: var(--primary-light);
             border: none;
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             width: 100%;
             cursor: pointer;
             outline: none;
@@ -253,7 +254,7 @@
 
         .op-badge-fijo {
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--primary-light); 
@@ -261,11 +262,11 @@
         .op-badge-fijo.alert-hist { color: var(--accent); }  
         .op-badge-fijo.error-hist { color: var(--danger); }  
 
-        .history-list { display: flex; flex-direction: column; gap: 15px; }
-        .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
-        .history-date { font-weight: bold; color: var(--accent); font-size: 0.9rem; }
-        .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
+        .history-list { display: flex; flex-direction: column; gap: 12px; }
+        .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 10px; }
+        .history-date { font-weight: bold; color: var(--accent); font-size: 0.85rem; }
+        .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.8rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
         @media print {
             .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header, .schedule-selector { display: none !important; }
@@ -330,7 +331,7 @@
     </div>
 
     <div id="tab-contador" class="tab-content">
-        <div class="history-header" style="border:none; margin-bottom: 15px;">
+        <div class="history-header" style="border:none; margin-bottom: 12px;">
             <span class="section-title">📊 Veces por Puesto (Esta Semana)</span>
             <button class="btn-clear-hist" style="color:var(--accent);" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
         </div>
@@ -342,7 +343,7 @@
             <span class="section-title">📂 Historial de Jornadas</span>
             <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar</button>
         </div>
-        <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
+        <div id="contenedorHistorial" class="history-list" style="margin-top: 12px;"></div>
     </div>
 
     <div class="tabs-nav">
@@ -644,7 +645,7 @@
         localStorage.setItem('registro_jornadas_v9', JSON.stringify(historialJornadas));
         
         renderizarHistorial();
-        alert("💾 ¡Guardado con éxito! Ahora en el historial verás los nombres de los operarios resaltados en color.");
+        alert("💾 ¡Guardado con éxito! Registro añadido al historial.");
     }
 
     function reiniciarContadoresSemanales() {
