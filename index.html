@@ -35,25 +35,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 0 25px 0;
+            padding: 15px 0 20px 0;
         }
 
         .main-header h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 900;
             color: #ffffff;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
             border-bottom: 2px solid var(--primary-light);
             padding-bottom: 6px;
+            text-align: center;
+            width: 100%;
+            max-width: 90%;
         }
 
         .schedule-selector {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .btn-schedule {
             background: #111827;
@@ -122,7 +125,7 @@
             overflow-y: hidden;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
-            padding: 10px 5px 20px 5px;
+            padding: 5px 5px 20px 5px;
             -webkit-overflow-scrolling: touch;
         }
         .config-grid::-webkit-scrollbar { display: none; }
@@ -175,7 +178,7 @@
             overflow-y: hidden;
             scroll-behavior: smooth;
             scroll-snap-type: x mandatory;
-            padding: 10px 5px 20px 5px;
+            padding: 5px 5px 20px 5px;
             -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
@@ -195,19 +198,6 @@
             .turno-card { flex: none; }
             .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); scroll-snap-type: none; overflow-x: visible; }
             .section-box { flex: none; }
-            .scroll-indicator { display: none !important; }
-        }
-        
-        .scroll-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: -5px;
-            margin-bottom: 15px;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: bold;
         }
 
         .turno-header { background: #050505; color: var(--accent); padding: 12px; text-align: center; font-weight: 800; font-size: 1rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
@@ -244,16 +234,15 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); font-weight: bold; }
 
-        /* NUEVOS ESTILOS EXCLUSIVOS PARA LOS TEXTOS FIJOS DEL HISTORIAL */
         .op-badge-fijo {
             font-weight: 800;
             font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--primary-light); /* Color Cian/Azul Neón por defecto */
+            color: var(--primary-light); 
         }
-        .op-badge-fijo.alert-hist { color: var(--accent); }  /* Amarillo/Naranja */
-        .op-badge-fijo.error-hist { color: var(--danger); }  /* Rojo */
+        .op-badge-fijo.alert-hist { color: var(--accent); }  
+        .op-badge-fijo.error-hist { color: var(--danger); }  
 
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
@@ -262,7 +251,7 @@
         .btn-clear-hist { background: transparent; border: none; color: var(--danger); font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
         @media print {
-            .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header, .schedule-selector, .scroll-indicator { display: none !important; }
+            .tabs-nav, .config-grid, .matrix-container, .action-bar, .btn-clear-hist, .main-header, .schedule-selector { display: none !important; }
             body { background: white; padding: 0; color: black; }
             .container { padding: 0; }
             .tab-content { display: none !important; }
@@ -286,9 +275,6 @@
     </div>
 
     <div id="tab-config" class="tab-content active">
-        <div class="scroll-indicator">
-            <span>◀ Desliza para cambiar entre Operarios y Cargas ▶</span>
-        </div>
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
                 <div class="section-header">
@@ -317,10 +303,6 @@
             <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
         </div>
 
-        <div class="scroll-indicator">
-            <span>◀ Desliza de izquierda a derecha entre los 4 turnos ▶</span>
-        </div>
-
         <div class="jornada-grid" id="contenedorJornada"></div>
 
         <div class="action-bar">
@@ -340,7 +322,7 @@
 
     <div id="tab-historial" class="tab-content">
         <div class="history-header" style="border:none; margin:0;">
-            <span class="section-title">𗄪 Historial de Jornadas</span>
+            <span class="section-title">📂 Historial de Jornadas</span>
             <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar</button>
         </div>
         <div id="contenedorHistorial" class="history-list" style="margin-top: 15px;"></div>
@@ -364,7 +346,7 @@
             <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">𗄪</span>
+            <span class="icon">📂</span>
             <span>Historial</span>
         </button>
     </div>
@@ -604,7 +586,6 @@
         contenedor.innerHTML = html;
     }
 
-    /* SISTEMA DE CAPTURA QUE TRANSFORMA SELECTS EN BADGES CON NUEVOS COLORES */
     function guardarEnHistorial() {
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
@@ -624,15 +605,14 @@
 
         const contenedorClon = document.getElementById("contenedorJornada").cloneNode(true);
         
-        // Aquí convertimos los campos interactivos en texto plano coloreado para la foto fija
         contenedorClon.querySelectorAll("select").forEach(sel => {
             const spanfijo = document.createElement("span");
             
             let claseColorHist = "op-badge-fijo";
             if (sel.classList.contains("op-alert")) {
-                claseColorHist += " alert-hist"; // Naranja
+                claseColorHist += " alert-hist"; 
             } else if (sel.classList.contains("op-error")) {
-                claseColorHist += " error-hist"; // Rojo
+                claseColorHist += " error-hist"; 
             }
             
             spanfijo.className = claseColorHist;
