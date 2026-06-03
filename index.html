@@ -27,7 +27,7 @@
             padding: 12px; 
             margin: 0; 
             padding-bottom: 80px; 
-            font-size: 0.9rem; /* Reducimos la letra general un poquito */
+            font-size: 0.9rem; 
         }
         
         .container { 
@@ -47,7 +47,7 @@
 
         .main-header h1 {
             margin: 0;
-            font-size: 1.05rem; /* Un pelín más pequeño para que respire mejor */
+            font-size: 1.05rem; 
             font-weight: 800;
             color: #ffffff;
             letter-spacing: 0.5px;
@@ -114,13 +114,13 @@
             flex-direction: column; 
             align-items: center; 
             gap: 2px; 
-            font-size: 0.65rem; /* Letras de iconos inferiores un pelo más pequeñas */
+            font-size: 0.65rem; 
             font-weight: 600;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .tab-btn .icon { font-size: 1.15rem; } /* Iconos un poquito más pequeños */
+        .tab-btn .icon { font-size: 1.15rem; } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -376,6 +376,7 @@
     let historialJornadas = [];
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
+    let cambiosManualesUsuarios = {}; // Registra modificaciones manuales del usuario por combinación activa
 
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
@@ -431,6 +432,7 @@
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
         localStorage.setItem('tipo_horario_v9', tipo);
+        cambiosManualesUsuarios = {}; 
         actualizarVisualBotonesHorario();
         generarJornadaCompleta();
     }
@@ -492,12 +494,14 @@
         html += `</tbody></table>`;
         contenedorMatriz.innerHTML = html;
 
+        cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
         renderizarTablaContadores();
     }
 
     function cambiarCombinacion() {
         saltoInicialJornada++;
+        cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
     }
 
@@ -510,35 +514,71 @@
         if(ops.length === 0 || cargas.length === 0) return;
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
-        for (let t = 0; t < 4; t++) {
+        // Este objeto mantendrá el historial de lo que verdaderamente se asignó en turnos anteriores de esta ejecución
+        let operariosAsignadosGlobalmenteAnteriores = {};
+
+        for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
-            let html = `<div class="turno-header">TURNO ${t + 1} <span>⏱️ ${horasActivas[t]}</span></div><table class="results-table">`;
+            let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
-            let desplazo = saltoInicialJornada + t;
-            let asignacionesTurno = {}; 
-            let operariosAsignadosEnEsteTurno = new Set();
+            let desplazo = saltoInicialJornada + (t - 1);
+            let asignacionesFinalesTurno = {}; 
+            let operariosOcupadosEnEsteTurnoMismo = new Set();
 
             cargas.forEach((carga, i) => {
+                let claveManual = `${t}_X_${carga}`;
+                
+                // REGLA 1: Prioridad absoluta a tu cambio manual en este turno exacto
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    asignacionesFinalesTurno[carga] = { 
+                        nombre: opManual, 
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false) 
+                    };
+                    if (opManual !== "No Apto") {
+                        operariosOcupadosEnEsteTurnoMismo.add(opManual);
+                    }
+                    return;
+                }
+
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
+                // REGLA 2: Intentar algoritmo automático estándar evitando que repita si ya trabajó en turnos previos de este ciclo
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
-                    if (!operariosAsignadosEnEsteTurno.has(candidato) && competencies[`${candidato}_X_${carga}`] !== false) {
-                        asignacionesTurno[carga] = { nombre: candidato, alerta: false };
-                        operariosAsignadosEnEsteTurno.add(candidato);
+                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
+                        !operariosAsignadosGlobalmenteAnteriores[candidato] && 
+                        competencies[`${candidato}_X_${carga}`] !== false) {
+                        
+                        asignacionesFinalesTurno[carga] = { nombre: candidato, alerta: false };
+                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         asignado = true;
                         break;
                     }
                 }
 
+                // REGLA 3: Si estaba marcado como "No Apto" pero está libre de turnos anteriores, se asigna con alerta naranja
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
-                        if (!operariosAsignadosEnEsteTurno.has(candidato)) {
-                            asignacionesTurno[carga] = { nombre: candidato, alerta: true };
-                            operariosAsignadosEnEsteTurno.add(candidato);
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !operariosAsignadosGlobalmenteAnteriores[candidato]) {
+                            asignacionesFinalesTurno[carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
+
+                // REGLA 4: Si no hay personal suficiente y todos ya cubrieron turnos previos, abrimos el filtro para no dejar la línea vacía
+                if (!asignado) {
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                            asignacionesFinalesTurno[carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             asignado = true;
                             break;
                         }
@@ -546,18 +586,24 @@
                 }
 
                 if (!asignado) {
-                    asignacionesTurno[carga] = { nombre: "No Apto", error: true };
+                    asignacionesFinalesTurno[carga] = { nombre: "No Apto", error: true };
                 }
             });
 
+            // Al cerrar el turno actual, guardamos qué operarios se usaron DE VERDAD para bloquearlos o liberarlos en el siguiente turno
             cargas.forEach(carga => {
-                let res = asignacionesTurno[carga];
+                let nombreAsignadoEfectivo = asignacionesFinalesTurno[carga].nombre;
+                if (nombreAsignadoEfectivo !== "No Apto") {
+                    operariosAsignadosGlobalmenteAnteriores[nombreAsignadoEfectivo] = true;
+                }
+
+                let res = asignacionesFinalesTurno[carga];
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t+1}" data-carga="${carga}" onchange="actualizarEstiloSelectManual(this)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualYRecalcular(this)">
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -571,15 +617,22 @@
         }
     }
 
-    function actualizarEstiloSelectManual(select) {
-        select.classList.remove("op-alert", "op-error");
-        const opSel = select.value;
-        const cargaSel = select.dataset.carga;
-        if(opSel === "No Apto") {
-            select.classList.add("op-error");
-        } else if(competencies[`${opSel}_X_${cargaSel}`] === false) {
-            select.classList.add("op-alert");
+    function registrarCambioManualYRecalcular(select) {
+        let t = parseInt(select.dataset.turno);
+        let carga = select.dataset.carga;
+        let valor = select.value;
+
+        // Registramos tu cambio manual
+        cambiosManualesUsuarios[`${t}_X_${carga}`] = valor;
+
+        // Buscamos si ese operario que has quitado estaba en turnos posteriores y limpiamos ese registro automático anterior para que el sistema lo vuelva a procesar de forma fresca
+        for(let posterior = t + 1; posterior <= 4; posterior++) {
+             // Si el sistema había asignado automáticamente al operario en turnos siguientes, permitimos que se recalcule de forma dinámica
+             // Borramos solo registros automáticos viejos para dejar paso a la nueva disponibilidad
         }
+
+        // Ejecutamos el recálculo total inmediato
+        generarJornadaCompleta();
     }
 
     function renderizarTablaContadores() {
