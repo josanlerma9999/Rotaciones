@@ -20,16 +20,19 @@
         
         * { box-sizing: border-box; }
         
-                body { 
+        html {
+            font-size: 14px; /* 🌌 Reduce la escala base de toda la app un pelín */
+        }
+        
+        body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
             background-color: var(--bg-main); 
             color: var(--text-main); 
             padding: 12px; 
             margin: 0; 
-            padding-bottom: 95px; /* <--- Este margen evita que el menú tape el contenido al bajar del todo */
-            font-size: 0.9rem; 
+            padding-bottom: 95px; 
+            font-size: 0.85rem; /* Un pelín más pequeño */
         }
-
         
         .container { 
             max-width: 1200px; 
@@ -126,18 +129,17 @@
         .tab-content { display: none; }
         .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
-        /* ✨ SCROLL HORIZONTAL OPTIMIZADO (IZQUIERDA/DERECHA) ✨ */
         .config-grid { 
             display: flex; 
             gap: 12px; 
             overflow-x: auto; 
-            overflow-y: hidden; /* Prohíbe el desborde vertical de la cuadrícula */
+            overflow-y: hidden; 
             scroll-behavior: smooth; 
             scroll-snap-type: x mandatory;
             padding: 5px 5px 15px 5px;
             -webkit-overflow-scrolling: touch;
             flex-grow: 1;
-            touch-action: pan-x; /* 🔒 CLAVE: Bloquea el movimiento vertical del móvil al deslizar de lado */
+            touch-action: pan-x; 
         }
         .config-grid::-webkit-scrollbar { display: none; }
 
@@ -169,15 +171,9 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-                /* ==========================================================================
-           📋 REDISEÑO COMPLETO DE TABLAS (POLIVALENCIA Y CONTADORES)
-           ========================================================================== */
-        
-        
         /* ==========================================================================
            📋 REDISEÑO COMPACTO Y BLINDADO DE TABLAS (POLIVALENCIA Y CONTADORES)
-           ========================================================================== */
-        
+           ========================================================================= */
         .matrix-container { 
             overflow-x: auto; 
             background: var(--bg-card); 
@@ -194,17 +190,17 @@
             table-layout: fixed; 
         }
 
-        /* Fuerza a que cada fila mantenga su estructura horizontal y sea más fina */
+        /* Fuerza un alto simétrico y más fino a todas las filas */
         .matrix-table tr {
             height: 46px !important;
             max-height: 46px !important;
         }
         
-        /* 🏷️ Cabeceras (Nombres de las cargas arriba) */
+        /* Cabeceras de cargas (Texto horizontal impecable) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.72rem; /* Letra un pelín más pequeña */
+            font-size: 0.72rem; 
             padding: 0 12px; 
             height: 46px;
             border: 1px solid var(--border-color); 
@@ -218,7 +214,7 @@
             box-sizing: border-box;
         }
         
-        /* 👥 Primera columna fija de Operarios (Bloqueada para que no estire) */
+        /* Operarios fijos (Evita desdoblamientos y estiramientos) */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             width: 120px !important;
@@ -243,7 +239,7 @@
             font-size: 0.8rem;
         }
 
-        /* 🔢 Celdas de contenido (Números y Checkboxes) */
+        /* Celdas generales congeladas en tamaño */
         .matrix-table td { 
             padding: 0 8px; 
             text-align: center; 
@@ -261,32 +257,32 @@
             vertical-align: middle;
         }
         
-        /* 📊 Estilo para los números del Contador */
+        /* Números del Contador estilizados */
         .count-number { 
             font-weight: 900; 
-            color: var(--accent); 
-            font-size: 1rem; 
+            color: var(--accent) !important; 
+            font-size: 1rem !important; 
             text-align: center;
             display: inline-block;
             width: 100%;
         }
 
-        /* ☑️ Cuadrados de Selección (Checkboxes un pelín más contenidos) */
+        /* Cuadrados de selección personalizados y más compactos */
         .matrix-table input[type="checkbox"] { 
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             background-color: #1f2937; 
             margin: 0 auto !important; 
-            display: block;
-            width: 22px;  
-            height: 22px; 
-            min-width: 22px; 
-            min-height: 22px;
-            max-width: 22px;
-            max-height: 22px;
-            border: 2px solid var(--border-color); 
-            border-radius: 6px; 
+            display: block !important;
+            width: 22px !important;  
+            height: 22px !important; 
+            min-width: 22px !important; 
+            min-height: 22px !important;
+            max-width: 22px !important;
+            max-height: 22px !important;
+            border: 2px solid var(--border-color) !important; 
+            border-radius: 6px !important; 
             cursor: pointer;
             position: relative;
             box-sizing: border-box;
@@ -294,8 +290,8 @@
         }
 
         .matrix-table input[type="checkbox"]:checked {
-            background-color: var(--primary-light); 
-            border-color: var(--primary-light);
+            background-color: var(--primary-light) !important; 
+            border-color: var(--primary-light) !important;
         }
 
         .matrix-table input[type="checkbox"]:checked::after {
@@ -310,50 +306,43 @@
             transform: rotate(45deg);
         }
 
-
-
-        
-        .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
-        .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
-
-        /* 📱 SECCIÓN DE TURNOS (CON SCROLL LATERAL) */
+        /* Botoneras y acciones */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
-        /* 📱 CORRECCIÓN DE SCROLL EN SECCIÓN DE TURNOS */
-.jornada-grid { 
-    display: flex; 
-    flex-direction: column; /* Cambiado a columna para apilar hacia abajo */
-    gap: 12px; 
-    overflow-y: auto;       /* Permitir scroll vertical */
-    overflow-x: hidden;     /* Bloquear scroll horizontal innecesario */
-    padding: 5px 5px 80px 5px; /* Padding extra abajo para no tapar el menú */
-    max-height: calc(100vh - 200px); /* Límite para que el scroll funcione dentro de la pantalla */
-    -webkit-overflow-scrolling: touch;
-}
+        /* 📱 SECCIÓN DE TURNOS (CON SCROLL VERTICAL NATURAL) */
+        .jornada-grid { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto;       
+            overflow-x: hidden;     
+            padding: 5px 5px 80px 5px; 
+            max-height: calc(100vh - 200px); 
+            -webkit-overflow-scrolling: touch;
+        }
 
-.turno-card { 
-    background: var(--bg-card); 
-    border: 1px solid var(--border-color); 
-    border-radius: 12px; 
-    overflow: hidden; 
-    flex: 0 0 auto; /* Permite que la tarjeta tenga su altura natural */
-    width: 100%;    /* Asegura que ocupe el ancho disponible */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
+        .turno-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            flex: 0 0 auto; 
+            width: 100%;    
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
 
-/* Ajuste para pantallas grandes (Escritorio) */
-@media (min-width: 900px) {
-    .jornada-grid { 
-        display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
-        overflow-y: visible;
-        max-height: none;
-    }
-}
+        @media (min-width: 900px) {
+            .jornada-grid { 
+                display: grid; 
+                grid-template-columns: repeat(4, 1fr); 
+                overflow-y: visible;
+                max-height: none;
+            }
+        }
 
         .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
         .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
@@ -372,7 +361,14 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        /* 👑 CABECERA EN FILA ÚNICA IMPEDIBLE 👑 */
+        /* 👑 MENÚ INFERIOR UN PELÍN MÁS COMPACTO 👑 */
+        .nav-item i, .nav-item svg, .nav-item img, .tab-btn .icon { 
+            font-size: 1.1rem !important; 
+        }
+        .tab-btn span { 
+            font-size: 0.62rem !important; 
+        }
+
         .history-header { 
             display: flex; 
             flex-direction: row; 
@@ -419,7 +415,6 @@
         <h1>Control de Rotaciones</h1>
     </div>
 
-    <!-- Pestaña Configuración (VUELVE AL SCROLL LATERAL PERFECTO) -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
@@ -439,12 +434,10 @@
         </div>
     </div>
 
-    <!-- Pestaña Polivalencia -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
-    <!-- Pestaña Turnos -->
     <div id="tab-jornada" class="tab-content">
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
@@ -460,7 +453,6 @@
         </div>
     </div>
 
-    <!-- Pestaña Contador Semanal -->
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -469,7 +461,6 @@
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
-    <!-- Pestaña Historial Guardado -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header">
             <span class="section-title">📂 Historial de Jornadas</span>
@@ -478,7 +469,6 @@
         <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
-    <!-- Navegación Inferior -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span>
