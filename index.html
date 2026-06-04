@@ -173,77 +173,9 @@
            📋 REDISEÑO COMPLETO DE TABLAS (POLIVALENCIA Y CONTADORES)
            ========================================================================== */
         
-        .matrix-container { 
-            overflow-x: auto; 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .matrix-table { 
-            width: max-content; /* Fuerza a la tabla a expandirse horizontalmente todo lo que necesite */
-            min-width: 100%;
-            border-collapse: collapse; 
-            table-layout: fixed; /* Cuadra todas las columnas con medidas exactas */
-        }
         
-        /* 🏷️ Cabeceras de las cargas (Nombres arriba) */
-        .matrix-table th { 
-            background: #111827; 
-            color: var(--text-muted); 
-            font-size: 0.8rem; /* Letra más grande y legible */
-            padding: 14px 10px; 
-            border: 1px solid var(--border-color); 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            text-align: center;
-            white-space: nowrap; /* Mantiene el nombre en una sola línea hacia la derecha */
-            
-            /* ✨ Ancho idéntico y equilibrado para todas las columnas de carga */
-            width: 160px; 
-            min-width: 160px;
-        }
-        
-        /* 👥 Primera columna fija: Nombres de los Operarios */
-        .matrix-table th:first-child,
-        .matrix-table td:first-child {
-            width: 120px;
-            min-width: 120px;
-            text-align: left; 
-            font-weight: 700; 
-            background: #050505; 
-            color: var(--primary-light); 
-            position: sticky; 
-            left: 0; 
-            z-index: 10; /* Se mantiene por encima al deslizar */
-            border-right: 2px solid var(--border-color);
-            padding-left: 12px;
-        }
-
-        /* 🔢 Celdas de contenido (Checks y Números de contadores) */
-        .matrix-table td { 
-            padding: 14px 8px; 
-            text-align: center; /* Alinea perfectamente al centro tanto los números como los checkbox */
-            vertical-align: middle;
-            border: 1px solid var(--border-color); 
-            font-size: 0.95rem; /* Aumentado para ver los contadores con claridad */
-            color: #ffffff;
-            white-space: nowrap;
-        }
-        
-        /* 📊 Estilo mejorado para los números del Contador */
-        .count-number { 
-            font-weight: 900; 
-            color: var(--accent); 
-            font-size: 1.1rem; /* Resalta el número en el centro de su tarjeta */
-            display: block;
-            text-align: center;
-            width: 100%;
-        }
-
-                /* ==========================================================================
-           📋 REDISEÑO DEFINITIVO Y BLINDADO DE TABLAS
+        /* ==========================================================================
+           📋 REDISEÑO COMPACTO Y BLINDADO DE TABLAS (POLIVALENCIA Y CONTADORES)
            ========================================================================== */
         
         .matrix-container { 
@@ -259,41 +191,41 @@
             width: max-content; 
             min-width: 100%;
             border-collapse: collapse; 
-            table-layout: fixed; /* Volvemos a fixed pero controlando estrictamente los anchos de todo */
+            table-layout: fixed; 
         }
 
-        /* Fuerza a que cada fila mantenga su estructura horizontal */
+        /* Fuerza a que cada fila mantenga su estructura horizontal y sea más fina */
         .matrix-table tr {
-            height: 54px !important;
-            max-height: 54px !important;
+            height: 46px !important;
+            max-height: 46px !important;
         }
         
         /* 🏷️ Cabeceras (Nombres de las cargas arriba) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.8rem; 
+            font-size: 0.72rem; /* Letra un pelín más pequeña */
             padding: 0 12px; 
-            height: 54px;
+            height: 46px;
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
             white-space: nowrap; 
-            width: 160px !important; 
-            min-width: 160px !important;
-            max-width: 160px !important;
+            width: 150px !important; 
+            min-width: 150px !important;
+            max-width: 150px !important;
             box-sizing: border-box;
         }
         
-        /* 👥 CORRECCIÓN CLAVE: Primera columna fija de Operarios (Bloqueada para que no estire) */
+        /* 👥 Primera columna fija de Operarios (Bloqueada para que no estire) */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             width: 120px !important;
             min-width: 120px !important;
             max-width: 120px !important;
-            height: 54px !important;
-            max-height: 54px !important;
+            height: 46px !important;
+            max-height: 46px !important;
             text-align: left; 
             font-weight: 700; 
             background: #050505 !important; 
@@ -306,8 +238,9 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: table-cell; /* Evita que se comporte como bloque flexible y se estire */
+            display: table-cell; 
             vertical-align: middle;
+            font-size: 0.8rem;
         }
 
         /* 🔢 Celdas de contenido (Números y Checkboxes) */
@@ -315,15 +248,15 @@
             padding: 0 8px; 
             text-align: center; 
             border: 1px solid var(--border-color); 
-            font-size: 1rem; 
+            font-size: 0.85rem; 
             color: #ffffff;
             white-space: nowrap;
             box-sizing: border-box;
-            height: 54px !important;
-            max-height: 54px !important;
-            width: 160px;
-            min-width: 160px;
-            max-width: 160px;
+            height: 46px !important;
+            max-height: 46px !important;
+            width: 150px;
+            min-width: 150px;
+            max-width: 150px;
             display: table-cell;
             vertical-align: middle;
         }
@@ -332,13 +265,13 @@
         .count-number { 
             font-weight: 900; 
             color: var(--accent); 
-            font-size: 1.1rem; 
+            font-size: 1rem; 
             text-align: center;
             display: inline-block;
             width: 100%;
         }
 
-        /* ☑️ Cuadrados de Selección (Checkboxes) */
+        /* ☑️ Cuadrados de Selección (Checkboxes un pelín más contenidos) */
         .matrix-table input[type="checkbox"] { 
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -346,12 +279,12 @@
             background-color: #1f2937; 
             margin: 0 auto !important; 
             display: block;
-            width: 24px;  
-            height: 24px; 
-            min-width: 24px; 
-            min-height: 24px;
-            max-width: 24px;
-            max-height: 24px;
+            width: 22px;  
+            height: 22px; 
+            min-width: 22px; 
+            min-height: 22px;
+            max-width: 22px;
+            max-height: 22px;
             border: 2px solid var(--border-color); 
             border-radius: 6px; 
             cursor: pointer;
@@ -368,10 +301,10 @@
         .matrix-table input[type="checkbox"]:checked::after {
             content: '';
             position: absolute;
-            left: 7px;
-            top: 2px;
-            width: 5px;
-            height: 11px;
+            left: 6px;
+            top: 1px;
+            width: 4px;
+            height: 9px;
             border: solid #000000; 
             border-width: 0 3px 3px 0;
             transform: rotate(45deg);
