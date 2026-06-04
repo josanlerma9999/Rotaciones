@@ -243,7 +243,7 @@
         }
 
                 /* ==========================================================================
-           📋 REDISEÑO BLINDADO DE TABLAS (POLIVALENCIA Y CONTADORES)
+           📋 REDISEÑO DEFINITIVO Y BLINDADO DE TABLAS
            ========================================================================== */
         
         .matrix-container { 
@@ -259,8 +259,13 @@
             width: max-content; 
             min-width: 100%;
             border-collapse: collapse; 
-            /* ✨ Eliminamos fixed para que respete las celdas por fila */
-            table-layout: auto; 
+            table-layout: fixed; /* Volvemos a fixed pero controlando estrictamente los anchos de todo */
+        }
+
+        /* Fuerza a que cada fila mantenga su estructura horizontal */
+        .matrix-table tr {
+            height: 54px !important;
+            max-height: 54px !important;
         }
         
         /* 🏷️ Cabeceras (Nombres de las cargas arriba) */
@@ -268,26 +273,30 @@
             background: #111827; 
             color: var(--text-muted); 
             font-size: 0.8rem; 
-            padding: 14px 12px; 
+            padding: 0 12px; 
+            height: 54px;
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
             white-space: nowrap; 
-            width: 160px; 
-            min-width: 160px;
+            width: 160px !important; 
+            min-width: 160px !important;
+            max-width: 160px !important;
             box-sizing: border-box;
         }
         
-        /* 👥 Primera columna fija: Operarios (Mantiene la fila alineada) */
+        /* 👥 CORRECCIÓN CLAVE: Primera columna fija de Operarios (Bloqueada para que no estire) */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
-            width: 120px;
-            min-width: 120px;
-            max-width: 120px;
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            height: 54px !important;
+            max-height: 54px !important;
             text-align: left; 
             font-weight: 700; 
-            background: #050505; 
+            background: #050505 !important; 
             color: var(--primary-light); 
             position: sticky; 
             left: 0; 
@@ -295,18 +304,28 @@
             border-right: 2px solid var(--border-color);
             padding-left: 12px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: table-cell; /* Evita que se comporte como bloque flexible y se estire */
+            vertical-align: middle;
         }
 
-        /* 🔢 Celdas de contenido (Garantiza que vayan en su fila horizontal) */
+        /* 🔢 Celdas de contenido (Números y Checkboxes) */
         .matrix-table td { 
-            padding: 14px 8px; 
+            padding: 0 8px; 
             text-align: center; 
             border: 1px solid var(--border-color); 
             font-size: 1rem; 
             color: #ffffff;
             white-space: nowrap;
             box-sizing: border-box;
-            height: 54px; /* Forzamos un alto fijo por fila para que todo quede simétrico */
+            height: 54px !important;
+            max-height: 54px !important;
+            width: 160px;
+            min-width: 160px;
+            max-width: 160px;
+            display: table-cell;
+            vertical-align: middle;
         }
         
         /* 📊 Estilo para los números del Contador */
@@ -315,35 +334,37 @@
             color: var(--accent); 
             font-size: 1.1rem; 
             text-align: center;
+            display: inline-block;
+            width: 100%;
         }
 
-        /* ☑️ CORRECCIÓN TOTAL DE LOS CUADRADOS DE SELECCIÓN (CHECKBOXES) */
+        /* ☑️ Cuadrados de Selección (Checkboxes) */
         .matrix-table input[type="checkbox"] { 
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             background-color: #1f2937; 
-            margin: 0 auto !important; /* Centrado absoluto en la celda */
+            margin: 0 auto !important; 
             display: block;
             width: 24px;  
             height: 24px; 
-            min-width: 24px; /* Evita que el navegador lo encoja o deforme */
+            min-width: 24px; 
             min-height: 24px;
+            max-width: 24px;
+            max-height: 24px;
             border: 2px solid var(--border-color); 
             border-radius: 6px; 
             cursor: pointer;
             position: relative;
-            box-sizing: border-box; /* Evita deformaciones por padding */
+            box-sizing: border-box;
             transition: background-color 0.2s ease;
         }
 
-        /* Color cuando está seleccionado */
         .matrix-table input[type="checkbox"]:checked {
             background-color: var(--primary-light); 
             border-color: var(--primary-light);
         }
 
-        /* El "tic" blanco (la V) rediseñado para que no se mueva de su sitio */
         .matrix-table input[type="checkbox"]:checked::after {
             content: '';
             position: absolute;
