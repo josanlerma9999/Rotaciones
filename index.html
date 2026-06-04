@@ -173,20 +173,21 @@
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
         
-        .matrix-table th { 
+                .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.65rem; 
-            padding: 12px 6px; 
+            font-size: 0.7rem; 
+            padding: 10px 8px; 
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            width: 125px; 
+            /* ✨ Ajustes para mostrar el nombre completo ✨ */
+            white-space: normal;       /* Permite que el texto baje de línea si no cabe */
+            word-wrap: break-word;     /* Rompe palabras largas si es necesario */
+            min-width: 100px;          /* Le da un espacio mínimo cómodo a cada columna */
         }
+
         
         .matrix-table th:first-child,
         .matrix-table td:first-child {
@@ -201,16 +202,17 @@
             border-right: 2px solid var(--border-color);
         }
 
-        .matrix-table td { 
+                .matrix-table td { 
             padding: 12px 8px; 
             text-align: center; 
             border: 1px solid var(--border-color); 
             font-size: 0.85rem; 
             color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            /* ✨ Ajustes para evitar que se recorte el contenido ✨ */
+            white-space: normal;       /* Evita que se oculte el texto hacia los lados */
+            word-wrap: break-word;
         }
+
         
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
