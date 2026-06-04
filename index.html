@@ -242,15 +242,41 @@
             width: 100%;
         }
 
-        /* ☑️ Centrado e interfaz de los Checkbox en Polivalencia */
+                /* ☑️ REDISEÑO DE LOS CUADRADOS DE SELECCIÓN (CHECKBOXES) */
         .matrix-table input[type="checkbox"] { 
-            width: 20px; /* Un poco más grandes para facilitar el toque táctil */
-            height: 20px; 
-            cursor: pointer; 
-            accent-color: var(--primary-light);
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #1f2937; /* Fondo oscuro que combina con la tarjeta */
             margin: 0 auto;
             display: block;
+            width: 26px;  /* Tamaño ideal para pulsar cómodamente */
+            height: 26px; 
+            border: 2px solid var(--border-color); 
+            border-radius: 6px; /* Bordes ligeramente redondeados */
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
         }
+
+        /* 💡 Efecto visual cuando pasas el dedo o está seleccionado */
+        .matrix-table input[type="checkbox"]:checked {
+            background-color: var(--primary-light); /* Se pinta con tu color azul brillante */
+            border-color: var(--primary-light);
+        }
+
+        /* ⚓ El tic blanco (la V) perfectamente centrado dentro del cuadrado grande */
+        .matrix-table input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 3px;
+            width: 6px;
+            height: 12px;
+            border: solid #000000; /* Check negro sobre fondo azul para máximo contraste */
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+
 
 
         
