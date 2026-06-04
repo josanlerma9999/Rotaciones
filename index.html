@@ -173,7 +173,7 @@
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
         
-                        .matrix-table th { 
+              .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
             font-size: 0.65rem; 
@@ -188,18 +188,7 @@
             text-overflow: clip;       
             width: auto; /* El ancho se adapta completamente al texto de la carga */
         }
-        
-        .matrix-table td { 
-            padding: 12px 8px; 
-            text-align: center; 
-            border: 1px solid var(--border-color); 
-            font-size: 0.85rem; 
-            color: #ffffff;
-            /* ✨ Mantiene la coherencia con las cabeceras hacia la derecha ✨ */
-            white-space: nowrap;
-            overflow: visible;
-        }
-        .matrix-table th:first-child,
+          .matrix-table th:first-child,
         .matrix-table td:first-child {
             width: 120px; /* Un poco más de ancho base para los nombres de operarios */
             text-align: left; 
@@ -212,7 +201,16 @@
             border-right: 2px solid var(--border-color);
             white-space: nowrap;
         }
-
+  .matrix-table td { 
+            padding: 12px 8px; 
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            font-size: 0.85rem; 
+            color: #ffffff;
+            /* ✨ Mantiene la coherencia con las cabeceras hacia la derecha ✨ */
+            white-space: nowrap;
+            overflow: visible;
+        }
 
         
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
