@@ -185,7 +185,6 @@
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
-        .btn-warning { background: #78350f; color: #f59e0b; border: 1px solid #d97706; }
 
         .jornada-grid { 
             display: flex; 
@@ -297,7 +296,6 @@
         <div class="jornada-grid" id="contenedorJornada"></div>
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación Base</button>
-            <button class="btn-main btn-warning" onclick="validarYLimpiarRepetidos()">🛡️ Validar y Quitar Repetidos</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
@@ -329,7 +327,7 @@
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
             <span class="icon">📅</span><span>Turnos</span>
         </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+        <button class="tab-btn" onclick="cambiarContadorTab(this)">
             <span class="icon">📊</span><span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
@@ -354,21 +352,21 @@
     const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
 
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v14')) {
-            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v14')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v15')) {
+            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v14')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v14')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v15')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('conteo_semanal_v14')) {
-            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v14')); } catch(e) {}
+        if(localStorage.getItem('conteo_semanal_v15')) {
+            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('tipo_horario_v14')) {
-            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v14');
+        if(localStorage.getItem('tipo_horario_v15')) {
+            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v15');
         }
 
-        let ops = localStorage.getItem('hist_ops_v14') ? JSON.parse(localStorage.getItem('hist_ops_v14')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v14') ? JSON.parse(localStorage.getItem('hist_cargas_v14')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v15') ? JSON.parse(localStorage.getItem('hist_ops_v15')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v15') ? JSON.parse(localStorage.getItem('hist_cargas_v15')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -385,12 +383,17 @@
         if(tabId === 'tab-historial') renderizarHistorial();
     }
 
+    function cambiarContadorTab(boton) {
+        cambiarPestaña('tab-contador', boton);
+        renderizarTablaContadores();
+    }
+
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
-        localStorage.setItem('tipo_horario_v14', tipo);
+        localStorage.setItem('tipo_horario_v15', tipo);
         cambiosManualesUsuarios = {}; 
         actualizarVisualBotonesHorario();
-        generarJornadaInicialBase();
+        recalcularEstructuraCompletaCascada();
     }
 
     function actualizarVisualBotonesHorario() {
@@ -426,8 +429,8 @@
         const cargas = leerLista("listaCargas");
         const contenedorMatriz = document.getElementById("contenedorMatriz");
 
-        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v15', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v15', JSON.stringify(cargas));
 
         if(ops.length === 0 || cargas.length === 0) return;
 
@@ -441,7 +444,7 @@
                 cargas.forEach(c => {
                     let clv = `${op}_X_${c}`;
                     let check = (competencies[clv] !== false) ? "checked" : "";
-                    html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies));"></td>`;
+                    html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v15', JSON.stringify(competencies)); recalcularEstructuraCompletaCascada();"></td>`;
                 });
                 html += `</tr>`;
             });
@@ -450,136 +453,120 @@
         }
 
         cambiosManualesUsuarios = {}; 
-        generarJornadaInicialBase();
-        renderizarTablaContadores();
+        recalcularEstructuraCompletaCascada();
     }
 
     function cambiarCombinacion() {
         saltoInicialJornada++;
         cambiosManualesUsuarios = {}; 
-        generarJornadaInicialBase();
+        recalcularEstructuraCompletaCascada();
     }
 
-    // Genera la tabla limpia inicial por algoritmo puro sin bloqueos cruzados agresivos
-    function generarJornadaInicialBase() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        
-        matrizJornadaCalculada = {};
-        for(let t=1; t<=4; t++) {
-            matrizJornadaCalculada[t] = {};
-            let desplazo = saltoInicialJornada + (t - 1);
-            cargas.forEach((carga, i) => {
-                let idx = (i + desplazo) % ops.length;
-                let opAsignado = ops[idx] || "No Apto";
-                matrizJornadaCalculada[t][carga] = {
-                    nombre: opAsignado,
-                    manual: false,
-                    alerta: competencies[`${opAsignado}_X_${carga}`] === false
-                };
-            });
-        }
-        dibujarTablaJornada();
-    }
-
-    // Guarda los cambios del usuario DIRECTAMENTE al tocar la pantalla sin recalcular de golpe
-    function guardarCambioCeldaDirecto(select) {
+    // Al modificar un valor se guarda de inmediato y se propaga en cadena al instante
+    function registrarEdicionManualReactiva(select) {
         let t = parseInt(select.dataset.turno);
         let c = select.dataset.carga;
         let nuevoOp = select.value;
 
-        if(!matrizJornadaCalculada[t]) matrizJornadaCalculada[t] = {};
-        
-        matrizJornadaCalculada[t][c] = {
-            nombre: nuevoOp,
-            manual: true, // Queda marcado como editado por ti
-            alerta: nuevoOp !== "No Apto" && competencies[`${nuevoOp}_X_${c}`] === false
-        };
-        
-        // Lo guardamos en el mapa persistente de cambios manuales
+        // Registrar la fijación manual firme
         cambiosManualesUsuarios[`${t}_X_${c}`] = nuevoOp;
         
-        // Refrescamos visualmente para pintar la celda de color rosa/rojo indicando cambio manual
-        select.className = "select-op-editable op-manual-forced";
+        // Ejecutar el motor de asignación para recalcular los turnos siguientes automáticamente
+        recalcularEstructuraCompletaCascada();
     }
 
-    // 🔥 LA FUNCIÓN CLAVE: Filtra y limpia repetidos respetando tus cambios manuales en todo el día
-    function validarYLimpiarRepetidos() {
+    // 🔥 MOTOR DE RECALCULO AUTOMÁTICO EN CASCADA
+    function recalcularEstructuraCompletaCascada() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
+        if (ops.length === 0 || cargas.length === 0) return;
 
-        // 1. Recolectar la lista de operarios fijados manualmente por ti en CUALQUIER momento del día
-        let operariosFijadosAmanoTodoElDia = new Set();
+        matrizJornadaCalculada = {};
+        
+        // Rastreador diario total de asignaciones estables
+        let operariosAsignadosHoyFirme = new Set();
+        
+        // Registrar primero TODOS los bloqueos manuales que metiste para tenerlos en cuenta como prioridad global
+        Object.keys(cambiosManualesUsuarios).forEach(key => {
+            let val = cambiosManualesUsuarios[key];
+            if (val && val !== "No Apto") {
+                operariosAsignadosHoyFirme.add(val);
+            }
+        });
+
+        // Construir turno por turno en orden cronológico puro
         for (let t = 1; t <= 4; t++) {
-            cargas.forEach(c => {
-                if (matrizJornadaCalculada[t] && matrizJornadaCalculada[t][c] && matrizJornadaCalculada[t][c].manual) {
-                    let nombreOp = matrizJornadaCalculada[t][c].nombre;
-                    if (nombreOp !== "No Apto") {
-                        operariosFijadosAmanoTodoElDia.add(nombreOp);
+            matrizJornadaCalculada[t] = {};
+            let operariosEnEsteTurnoMismo = new Set();
+            let desplazo = saltoInicialJornada + (t - 1);
+
+            // Fase 1: Forzar tus decisiones manuales en este turno concreto
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    if (opManual !== "No Apto") {
+                        operariosEnEsteTurnoMismo.add(opManual);
                     }
+                    matrizJornadaCalculada[t][carga] = {
+                        nombre: opManual,
+                        manual: true,
+                        alerta: opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false
+                    };
+                }
+            });
+
+            // Fase 2: Recalcular de forma automática las cargas libres restantes respetando el día
+            cargas.forEach((carga, i) => {
+                if (matrizJornadaCalculada[t][carga]) return; // Si ya lo editaste a mano, saltar
+
+                let idxBase = (i + desplazo) % ops.length;
+                let asignado = false;
+
+                // Intento 1: Buscar operario apto por polivalencia, que no esté en el turno y libre hoy
+                for (let s = 0; s < ops.length; s++) {
+                    let candidato = ops[(idxBase + s) % ops.length];
+
+                    if (!operariosEnEsteTurnoMismo.has(candidato) && 
+                        !operariosAsignadosHoyFirme.has(candidato) && 
+                        competencies[`${candidato}_X_${carga}`] !== false) {
+                        
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: false };
+                        operariosEnEsteTurnoMismo.add(candidato);
+                        operariosAsignadosHoyFirme.add(candidato);
+                        asignado = true;
+                        break;
+                    }
+                }
+
+                // Intento 2: Si la polivalencia estricta falla, buscar operario libre ignorando check de polivalencia (marca alerta)
+                if (!asignado) {
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+
+                        if (!operariosEnEsteTurnoMismo.has(candidato) && !operariosAsignadosHoyFirme.has(candidato)) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: true };
+                            operariosEnEsteTurnoMismo.add(candidato);
+                            operariosAsignadosHoyFirme.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Intento 3: Si no queda ningún operario libre en el banquillo del día, poner No Apto para tu intervención
+                if (!asignado) {
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", manual: false, error: true };
                 }
             });
         }
 
-        // Historial de operarios asignados de manera firme para evitar repeticiones
-        let operariosAsignadosFirmesHoy = new Set(operariosFijadosAmanoTodoElDia);
-
-        // 2. Filtrar turno por turno los huecos automáticos para limpiar colisiones
-        for (let t = 1; t <= 4; t++) {
-            let operariosEnEsteTurno = new Set();
-            
-            // Primero registramos lo inamovible de este turno concreto
-            cargas.forEach(c => {
-                if (matrizJornadaCalculada[t][c] && matrizJornadaCalculada[t][c].manual) {
-                    operariosEnEsteTurno.add(matrizJornadaCalculada[t][c].nombre);
-                }
-            });
-
-            // Ahora limpiamos o rellenamos los automáticos
-            cargas.forEach((c, idxCarga) => {
-                let celda = matrizJornadaCalculada[t][c];
-                
-                // Si la celda es automática pero contiene un operario que ya se usó hoy a mano o en otro turno validado...
-                if (!celda.manual) {
-                    if (operariosAsignadosFirmesHoy.has(celda.nombre) || operariosEnEsteTurno.has(celda.nombre)) {
-                        // ¡Colisión detectada! Buscamos un sustituto libre en todo el día
-                        let asignado = false;
-                        for (let s = 0; s < ops.length; s++) {
-                            let candidato = ops[s];
-                            if (!operariosAsignadosFirmesHoy.has(candidato) && !operariosEnEsteTurno.has(candidato)) {
-                                matrizJornadaCalculada[t][c] = {
-                                    nombre: candidato,
-                                    manual: false,
-                                    alerta: competencies[`${candidato}_X_${c}`] === false
-                                };
-                                operariosEnEsteTurno.add(candidato);
-                                operariosAsignadosFirmesHoy.add(candidato);
-                                asignado = true;
-                                break;
-                            }
-                        }
-                        // Si no hay nadie libre en absoluto, se marca vacío para que decidas tú
-                        if (!asignado) {
-                            matrizJornadaCalculada[t][c] = { nombre: "No Apto", manual: false, error: true };
-                        }
-                    } else {
-                        // Si el operario automático estaba libre, lo reservamos de forma definitiva
-                        if (celda.nombre !== "No Apto") {
-                            operariosEnEsteTurno.add(celda.nombre);
-                            operariosAsignadosFirmesHoy.add(celda.nombre);
-                        }
-                    }
-                }
-            });
-        }
-
-        // Redibujar con los resultados perfectamente filtrados y limpios
-        dibujarTablaJornada();
-        alert("🛡️ ¡Jornada validada! Se han recalculado las posiciones automáticas para evitar que ningún operario se repita hoy.");
+        // Renderizar inmediatamente la interfaz con los datos recalculados
+        dibujarEstructuraTurnosDOM();
     }
 
-    // Pinta la estructura de turnos en pantalla
-    function dibujarTablaJornada() {
+    // Construye los módulos visuales de los turnos en la pantalla
+    function dibujarEstructuraTurnosDOM() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
@@ -600,7 +587,7 @@
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarCambioCeldaDirecto(this)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarEdicionManualReactiva(this)">
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -650,8 +637,7 @@
                 }
             }
         }
-        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
-        renderizarTablaContadores();
+        localStorage.setItem('conteo_semanal_v15', JSON.stringify(conteoSemanal));
 
         let copiaTurnos = {};
         for(let t=1; t<=4; t++) {
@@ -671,8 +657,8 @@
         };
 
         historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-        alert("💾 ¡Guardado con éxito en el historial y sumado a las estadísticas!");
+        localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
+        alert("💾 ¡Jornada guardada con éxito en el historial y sumada al contador!");
     }
 
     function renderizarHistorial() {
@@ -712,7 +698,7 @@
     function borrarJornadaIndividual(id) {
         if(confirm("¿Seguro que quieres borrar este registro?")) {
             historialJornadas = historialJornadas.filter(j => j.id !== id);
-            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+            localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
             renderizarHistorial();
         }
     }
@@ -720,7 +706,7 @@
     function borrarTodoElHistorial() {
         if(confirm("¿Vaciar todo el historial?")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v14');
+            localStorage.removeItem('registro_jornadas_v15');
             renderizarHistorial();
         }
     }
@@ -728,7 +714,7 @@
     function reiniciarContadoresSemanales() {
         if(confirm("¿Reiniciar la semana?")) {
             conteoSemanal = {};
-            localStorage.removeItem('conteo_semanal_v14');
+            localStorage.removeItem('conteo_semanal_v15');
             renderizarTablaContadores();
         }
     }
