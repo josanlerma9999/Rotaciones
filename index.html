@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Interfaz Táctil</title>
+    <title>Control de Rotaciones - Scroll Horizontal Fijo</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -51,18 +51,14 @@
             font-weight: 800;
             color: #ffffff;
             letter-spacing: 0.5px;
+            line-height: 1.3;
             text-transform: uppercase;
             border-bottom: 2px solid var(--primary-light);
             padding-bottom: 5px;
             text-align: center;
             width: 100%;
+            max-width: 85%;
         }
-
-        /* CONFIGURACIÓN COMPACTA */
-        #tab-config .section-title { font-size: 0.8rem !important; font-weight: 700; }
-        #tab-config .btn-add { padding: 4px 8px !important; font-size: 0.7rem !important; border-radius: 5px; }
-        #tab-config .item-input { padding: 6px 10px !important; font-size: 0.78rem !important; border-radius: 6px; }
-        #tab-config .btn-del { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
 
         .schedule-selector {
             display: flex;
@@ -79,87 +75,121 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.85rem;
+            transition: all 0.2s;
             flex: 1;
             max-width: 140px;
         }
-        .btn-schedule.active-day { background: #1e3a8a; color: #60a5fa; border-color: #3b82f6; }
-        .btn-schedule.active-afternoon { background: #2e1065; color: #c084fc; border-color: #a855f7; }
+        .btn-schedule.active-day {
+            background: #1e3a8a;
+            color: #60a5fa;
+            border-color: #3b82f6;
+        }
+        .btn-schedule.active-afternoon {
+            background: #2e1065;
+            color: #c084fc;
+            border-color: #a855f7;
+        }
 
         .tabs-nav { 
             position: fixed; 
-            bottom: 0; left: 0; right: 0; 
+            bottom: 0; 
+            left: 0; right: 0; 
             background: #0a0a0a; 
             display: flex; 
             justify-content: space-around;
             padding: 6px 4px; 
             border-top: 1px solid #222;
             z-index: 9999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         
         .tab-btn { 
-            flex: 1; border: none; background: transparent; color: var(--text-muted); 
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; 
-            gap: 2px; font-size: 0.65rem; font-weight: 600;
+            flex: 1; 
+            border: none; 
+            background: transparent; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 2px; 
+            font-size: 0.65rem; 
+            font-weight: 600;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
+        
         .tab-btn .icon { font-size: 1.15rem; } 
-        .tab-btn.active { color: var(--primary-light); }
+        .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
-        .tab-content { display: none; width: 100%; }
-        .tab-content.active { display: flex !important; flex-direction: column; flex-grow: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
-        /* SCROLL HORIZONTAL CONFIGURAR */
+        /* ✨ SCROLL HORIZONTAL OPTIMIZADO (IZQUIERDA/DERECHA) ✨ */
         .config-grid { 
-            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; 
-            scroll-snap-type: x mandatory; padding: 5px 5px 15px 5px;
-            flex-grow: 1; touch-action: pan-x; -webkit-overflow-scrolling: touch;
+            display: flex; 
+            gap: 12px; 
+            overflow-x: auto; 
+            overflow-y: hidden; /* Prohíbe el desborde vertical de la cuadrícula */
+            scroll-behavior: smooth; 
+            scroll-snap-type: x mandatory;
+            padding: 5px 5px 15px 5px;
+            -webkit-overflow-scrolling: touch;
+            flex-grow: 1;
+            touch-action: pan-x; /* 🔒 CLAVE: Bloquea el movimiento vertical del móvil al deslizar de lado */
         }
         .config-grid::-webkit-scrollbar { display: none; }
 
         .section-box { 
             background: var(--bg-card); border-radius: 12px; padding: 14px; border: 1px solid var(--border-color);
-            flex: 0 0 calc(100% - 10px); scroll-snap-align: center; display: flex; flex-direction: column;
+            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
         }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; cursor: pointer; font-weight: bold; }
+        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
+        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        .item-list { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; overflow-y: auto; max-height: calc(100vh - 270px); }
+        .item-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            flex-grow: 1;
+            overflow-y: auto; 
+            max-height: calc(100vh - 270px); 
+            padding-right: 4px; 
+        }
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
         
-        .item-input { flex: 1; border: 1px solid var(--border-color); background: #000; color: #fff; }
-        #listaOps .item-input { color: var(--primary-light); font-weight: 700; }
+        #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
+        #listaCargas .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
+        .item-input:focus { border-color: var(--primary-light); outline: none; }
         
-        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* TABLAS POLIVALENCIA Y CONTADORES */
-        .matrix-container { 
-            overflow-x: auto; 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            width: 100%; 
-        }
-        .matrix-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 500px; 
-            table-layout: auto; 
-        }
+        /* 📋 ESTRUCTURA DE TABLAS OPTIMIZADA */
+        .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
+        .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
+        
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.75rem; 
-            padding: 10px 12px; 
+            font-size: 0.65rem; 
+            padding: 12px 6px; 
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            min-width: 100px; 
-            word-break: normal;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            width: 125px; 
         }
+        
         .matrix-table th:first-child,
         .matrix-table td:first-child {
-            min-width: 110px; 
+            width: 110px;
             text-align: left; 
             font-weight: 700; 
             background: #050505; 
@@ -169,39 +199,39 @@
             z-index: 1; 
             border-right: 2px solid var(--border-color);
         }
+
         .matrix-table td { 
-            padding: 10px 12px; 
+            padding: 12px 8px; 
             text-align: center; 
             border: 1px solid var(--border-color); 
-            font-size: 0.8rem; 
-            color: #ffffff; 
+            font-size: 0.85rem; 
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .matrix-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-light); }
+        
+        .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        /* JORNADA Y TURNOS */
+        /* 📱 SECCIÓN DE TURNOS (CON SCROLL LATERAL) */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
-        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
         .jornada-grid { 
-            display: flex; 
-            gap: 12px; 
-            overflow-x: auto; 
-            overflow-y: visible; 
-            scroll-behavior: smooth; 
-            scroll-snap-type: x mandatory; 
-            padding: 5px 5px 12px 5px;
-            touch-action: pan-x pan-y; 
+            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+            scroll-behavior: smooth; scroll-snap-type: x mandatory; padding: 5px 5px 12px 5px;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
 
         .turno-card { 
             background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; 
-            overflow: hidden; flex: 0 0 calc(100% - 10px); scroll-snap-align: center;
+            overflow: hidden; flex: 0 0 calc(100% - 10px); scroll-snap-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         
         @media (min-width: 900px) {
@@ -209,44 +239,55 @@
             .turno-card { flex: none; }
             .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); scroll-snap-type: none; overflow-x: visible; }
             .section-box { flex: none; }
+            .item-list { max-height: 65vh; }
         }
 
-        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
-        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; }
+        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
+        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
         
         .results-table { width: 100%; border-collapse: collapse; }
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
+        
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
         
         .select-op-editable {
-            background: transparent; 
-            color: var(--primary-light); 
-            border: none; 
-            font-weight: 800; 
-            font-size: 0.9rem;
-            width: 100%; 
-            cursor: pointer; 
-            outline: none; 
-            font-family: inherit; 
-            text-transform: uppercase;
-            text-align: right; 
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
+            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            -webkit-appearance: none; appearance: none;
         }
-        .select-op-editable::-ms-expand { display: none; }
         .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
-        .select-op-editable.op-manual-forced { color: #f43f5e !important; font-weight: 900; } 
 
-        /* HISTORIAL */
-        .history-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 10px; width: 100%; }
-        .history-header .section-title { font-size: 0.88rem; font-weight: 800; }
-        
-        .btn-counter-reset { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 6px 10px; font-size: 0.78rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* 👑 CABECERA EN FILA ÚNICA IMPEDIBLE 👑 */
+        .history-header { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            gap: 10px; 
+            width: 100%;
+        }
+        .history-header .section-title {
+            font-size: 0.88rem; 
+            white-space: nowrap; 
+            font-weight: 800;
+        }
+        .btn-counter-reset {
+            background: #2a1f08; 
+            color: var(--accent); 
+            border: 1px solid #78350f; 
+            padding: 6px 10px; 
+            font-size: 0.78rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0; 
+        }
+
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
         .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 4px; display: flex; justify-content: space-between; }
@@ -265,18 +306,19 @@
         <h1>Control de Rotaciones</h1>
     </div>
 
+    <!-- Pestaña Configuración (VUELVE AL SCROLL LATERAL PERFECTO) -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
                 <div class="section-header">
-                    <span class="section-title">👷 Operarios</span>
+                    <span class="section-title">👷 Operarios en turno</span>
                     <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
                 </div>
                 <div id="listaOps" class="item-list"></div>
             </div>
             <div class="section-box">
                 <div class="section-header">
-                    <span class="section-title">📦 Cargas</span>
+                    <span class="section-title">📦 Cargas de Trabajo</span>
                     <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
                 </div>
                 <div id="listaCargas" class="item-list"></div>
@@ -284,23 +326,28 @@
         </div>
     </div>
 
+    <!-- Pestaña Polivalencia -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- Pestaña Turnos -->
     <div id="tab-jornada" class="tab-content">
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
             <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
         </div>
+
         <div class="jornada-grid" id="contenedorJornada"></div>
+
         <div class="action-bar">
-            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación Base</button>
+            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
     </div>
 
+    <!-- Pestaña Contador Semanal -->
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -309,6 +356,7 @@
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
+    <!-- Pestaña Historial Guardado -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header">
             <span class="section-title">📂 Historial de Jornadas</span>
@@ -317,21 +365,27 @@
         <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
+    <!-- Navegación Inferior -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-            <span class="icon">⚙️</span><span>Configurar</span>
+            <span class="icon">⚙️</span>
+            <span>Configurar</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-            <span class="icon">🛠️</span><span>Polivalencia</span>
+            <span class="icon">🛠️</span>
+            <span>Polivalencia</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-            <span class="icon">📅</span><span>Turnos</span>
+            <span class="icon">📅</span>
+            <span>Turnos</span>
         </button>
-        <button class="tab-btn" onclick="cambiarContadorTab(this)">
-            <span class="icon">📊</span><span>Contador</span>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+            <span class="icon">📊</span>
+            <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">📂</span><span>Historial</span>
+            <span class="icon">📂</span>
+            <span>Historial</span>
         </button>
     </div>
 </div>
@@ -343,7 +397,6 @@
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
     let cambiosManualesUsuarios = {}; 
-    let matrizJornadaCalculada = {};
 
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
@@ -352,21 +405,21 @@
     const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
 
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v15')) {
-            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v15')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v14')) {
+            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v14')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v15')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v15')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v14')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v14')); } catch(e) {}
         }
-        if(localStorage.getItem('conteo_semanal_v15')) {
-            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v15')); } catch(e) {}
+        if(localStorage.getItem('conteo_semanal_v14')) {
+            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v14')); } catch(e) {}
         }
-        if(localStorage.getItem('tipo_horario_v15')) {
-            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v15');
+        if(localStorage.getItem('tipo_horario_v14')) {
+            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v14');
         }
 
-        let ops = localStorage.getItem('hist_ops_v15') ? JSON.parse(localStorage.getItem('hist_ops_v15')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v15') ? JSON.parse(localStorage.getItem('hist_cargas_v15')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v14') ? JSON.parse(localStorage.getItem('hist_ops_v14')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v14') ? JSON.parse(localStorage.getItem('hist_cargas_v14')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -383,23 +436,17 @@
         if(tabId === 'tab-historial') renderizarHistorial();
     }
 
-    function cambiarContadorTab(boton) {
-        cambiarPestaña('tab-contador', boton);
-        renderizarTablaContadores();
-    }
-
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
-        localStorage.setItem('tipo_horario_v15', tipo);
+        localStorage.setItem('tipo_horario_v14', tipo);
         cambiosManualesUsuarios = {}; 
         actualizarVisualBotonesHorario();
-        recalcularEstructuraCompletaCascada();
+        generarJornadaCompleta();
     }
 
     function actualizarVisualBotonesHorario() {
         const btnM = document.getElementById("btnHorarioManana");
         const btnT = document.getElementById("btnHorarioTarde");
-        if(!btnM || !btnT) return;
         btnM.className = "btn-schedule";
         btnT.className = "btn-schedule";
         if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
@@ -408,7 +455,6 @@
 
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
-        if(!contenedor) return;
         const row = document.createElement("div");
         row.className = "item-row";
         row.innerHTML = `
@@ -429,151 +475,134 @@
         const cargas = leerLista("listaCargas");
         const contenedorMatriz = document.getElementById("contenedorMatriz");
 
-        localStorage.setItem('hist_ops_v15', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v15', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
 
         if(ops.length === 0 || cargas.length === 0) return;
 
-        if(contenedorMatriz) {
-            let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
-            cargas.forEach(c => html += `<th>${c}</th>`);
-            html += `</tr></thead><tbody>`;
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => html += `<th>${c}</th>`);
+        html += `</tr></thead><tbody>`;
 
-            ops.forEach(op => {
-                html += `<tr><td>${op}</td>`;
-                cargas.forEach(c => {
-                    let clv = `${op}_X_${c}`;
-                    let check = (competencies[clv] !== false) ? "checked" : "";
-                    html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v15', JSON.stringify(competencies)); recalcularEstructuraCompletaCascada();"></td>`;
-                });
-                html += `</tr>`;
+        ops.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clv = `${op}_X_${c}`;
+                let check = (competencies[clv] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
-            html += `</tbody></table>`;
-            contenedorMatriz.innerHTML = html;
-        }
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedorMatriz.innerHTML = html;
 
         cambiosManualesUsuarios = {}; 
-        recalcularEstructuraCompletaCascada();
+        generarJornadaCompleta();
+        renderizarTablaContadores();
     }
 
     function cambiarCombinacion() {
         saltoInicialJornada++;
         cambiosManualesUsuarios = {}; 
-        recalcularEstructuraCompletaCascada();
+        generarJornadaCompleta();
     }
 
-    // Al modificar un valor se guarda de inmediato y se propaga en cadena al instante
-    function registrarEdicionManualReactiva(select) {
-        let t = parseInt(select.dataset.turno);
-        let c = select.dataset.carga;
-        let nuevoOp = select.value;
+    let matrizJornadaCalculada = {};
 
-        // Registrar la fijación manual firme
-        cambiosManualesUsuarios[`${t}_X_${c}`] = nuevoOp;
-        
-        // Ejecutar el motor de asignación para recalcular los turnos siguientes automáticamente
-        recalcularEstructuraCompletaCascada();
-    }
-
-    // 🔥 MOTOR DE RECALCULO AUTOMÁTICO EN CASCADA
-    function recalcularEstructuraCompletaCascada() {
+    function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
-        if (ops.length === 0 || cargas.length === 0) return;
+        const contenedor = document.getElementById("contenedorJornada");
+        contenedor.innerHTML = "";
+
+        if(ops.length === 0 || cargas.length === 0) return;
+        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        
-        // Rastreador diario total de asignaciones estables
-        let operariosAsignadosHoyFirme = new Set();
-        
-        // Registrar primero TODOS los bloqueos manuales que metiste para tenerlos en cuenta como prioridad global
-        Object.keys(cambiosManualesUsuarios).forEach(key => {
-            let val = cambiosManualesUsuarios[key];
-            if (val && val !== "No Apto") {
-                operariosAsignadosHoyFirme.add(val);
-            }
-        });
+        let historialPuestosPorOperarioDia = {}; 
+        ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
-        // Construir turno por turno en orden cronológico puro
         for (let t = 1; t <= 4; t++) {
-            matrizJornadaCalculada[t] = {};
-            let operariosEnEsteTurnoMismo = new Set();
             let desplazo = saltoInicialJornada + (t - 1);
-
-            // Fase 1: Forzar tus decisiones manuales en este turno concreto
+            matrizJornadaCalculada[t] = {};
+            
+            let operariosOcupadosEnEsteTurnoMismo = new Set();
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
                     let opManual = cambiosManualesUsuarios[claveManual];
                     if (opManual !== "No Apto") {
-                        operariosEnEsteTurnoMismo.add(opManual);
+                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
+                        historialPuestosPorOperarioDia[opManual].add(carga);
                     }
-                    matrizJornadaCalculada[t][carga] = {
-                        nombre: opManual,
-                        manual: true,
-                        alerta: opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false
+                }
+            });
+
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    matrizJornadaCalculada[t][carga] = { 
+                        nombre: opManual, 
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
                     };
                 }
             });
 
-            // Fase 2: Recalcular de forma automática las cargas libres restantes respetando el día
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; // Si ya lo editaste a mano, saltar
+                if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // Intento 1: Buscar operario apto por polivalencia, que no esté en el turno y libre hoy
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
+                    let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
-                    if (!operariosEnEsteTurnoMismo.has(candidato) && 
-                        !operariosAsignadosHoyFirme.has(candidato) && 
+                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
+                        !yaHizoEstaFaenaHoy && 
                         competencies[`${candidato}_X_${carga}`] !== false) {
                         
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: false };
-                        operariosEnEsteTurnoMismo.add(candidato);
-                        operariosAsignadosHoyFirme.add(candidato);
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
+                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                        historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
 
-                // Intento 2: Si la polivalencia estricta falla, buscar operario libre ignorando check de polivalencia (marca alerta)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
+                        let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
-                        if (!operariosEnEsteTurnoMismo.has(candidato) && !operariosAsignadosHoyFirme.has(candidato)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: true };
-                            operariosEnEsteTurnoMismo.add(candidato);
-                            operariosAsignadosHoyFirme.add(candidato);
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            historialPuestosPorOperarioDia[candidato].add(carga);
                             asignado = true;
                             break;
                         }
                     }
                 }
 
-                // Intento 3: Si no queda ningún operario libre en el banquillo del día, poner No Apto para tu intervención
                 if (!asignado) {
-                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", manual: false, error: true };
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!asignado) {
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
                 }
             });
         }
-
-        // Renderizar inmediatamente la interfaz con los datos recalculados
-        dibujarEstructuraTurnosDOM();
-    }
-
-    // Construye los módulos visuales de los turnos en la pantalla
-    function dibujarEstructuraTurnosDOM() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        const contenedor = document.getElementById("contenedorJornada");
-        if(!contenedor) return;
-
-        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
-        contenedor.innerHTML = "";
 
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
@@ -581,13 +610,13 @@
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             cargas.forEach(carga => {
-                let res = (matrizJornadaCalculada[t] && matrizJornadaCalculada[t][carga]) || {nombre: "No Apto", manual: false};
-                let claseExtra = res.manual ? "op-manual-forced" : res.alerta ? "op-alert" : res.error ? "op-error" : "";
+                let res = matrizJornadaCalculada[t][carga];
+                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarEdicionManualReactiva(this)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualYRecalcular(this)">
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -601,11 +630,50 @@
         }
     }
 
+    function registrarCambioManualYRecalcular(select) {
+        let turnoActual = parseInt(select.dataset.turno);
+        let cargaDondeEntra = select.dataset.carga;
+        let operarioQueEntra = select.value;
+
+        let operarioQueEstabaAntes = "No Apto";
+        if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][cargaDondeEntra]) {
+            operarioQueEstabaAntes = matrizJornadaCalculada[turnoActual][cargaDondeEntra].nombre;
+        }
+
+        let cargaDondeEstabaElQueEntra = null;
+        if (operarioQueEntra !== "No Apto") {
+            const cargasEnTurno = leerLista("listaCargas");
+            for (let c of cargasEnTurno) {
+                if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][c]) {
+                    if (matrizJornadaCalculada[turnoActual][c].nombre === operarioQueEntra) {
+                        cargaDondeEstabaElQueEntra = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (cargaDondeEstabaElQueEntra && cargaDondeEstabaElQueEntra !== cargaDondeEntra) {
+            cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEstabaElQueEntra}`] = operarioQueEstabaAntes;
+        }
+
+        cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEntra}`] = operarioQueEntra;
+
+        const cargasEnTurno = leerLista("listaCargas");
+        for (let t = turnoActual + 1; t <= 4; t++) {
+            cargasEnTurno.forEach(c => {
+                delete cambiosManualesUsuarios[`${t}_X_${c}`];
+            });
+        }
+
+        generarJornadaCompleta();
+    }
+
     function renderizarTablaContadores() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorContador");
-        if(!contenedor || ops.length === 0 || cargas.length === 0) return;
+        if(ops.length === 0 || cargas.length === 0) return;
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
@@ -625,19 +693,20 @@
     }
 
     function guardarEnHistorial() {
-        if(Object.keys(matrizJornadaCalculada).length === 0) return;
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
 
-        for(let t=1; t<=4; t++) {
-            for(let c in matrizJornadaCalculada[t]) {
-                let opAsignado = matrizJornadaCalculada[t][c].nombre;
-                if(opAsignado !== "No Apto") {
-                    let clv = `${opAsignado}_X_${c}`;
-                    if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-                    conteoSemanal[clv]++;
-                }
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
             }
-        }
-        localStorage.setItem('conteo_semanal_v15', JSON.stringify(conteoSemanal));
+        });
+        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+        renderizarTablaContadores();
 
         let copiaTurnos = {};
         for(let t=1; t<=4; t++) {
@@ -657,13 +726,13 @@
         };
 
         historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
-        alert("💾 ¡Jornada guardada con éxito en el historial y sumada al contador!");
+        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+        
+        alert("💾 ¡Guardado con éxito en contadores e Historial!");
     }
 
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
-        if(!contenedor) return;
         contenedor.innerHTML = "";
 
         if(historialJornadas.length === 0) {
@@ -674,14 +743,19 @@
         historialJornadas.forEach(jornada => {
             const item = document.createElement("div");
             item.className = "history-item";
+            
             let htmlTitle = `<div class="history-item-title">
                 <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
                 <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
             </div>`;
             
             let htmlContent = `<div class="history-item-content">`;
+            const horasActivas = (jornada.tipoHorario.includes("Mañana")) ? horasMañana : horasTarde;
+
             for(let t=1; t<=4; t++) {
-                htmlContent += `<div class="history-turno-block"><div class="history-turno-title">TURNO ${t}</div>`;
+                htmlContent += `<div class="history-turno-block">
+                    <div class="history-turno-title">TURNO ${t}</div>`;
+                
                 if(jornada.datos && jornada.datos[t]) {
                     for(let carga in jornada.datos[t]) {
                         htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
@@ -690,31 +764,32 @@
                 htmlContent += `</div>`;
             }
             htmlContent += `</div>`;
+            
             item.innerHTML = htmlTitle + htmlContent;
             contenedor.appendChild(item);
         });
     }
 
     function borrarJornadaIndividual(id) {
-        if(confirm("¿Seguro que quieres borrar este registro?")) {
+        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
             historialJornadas = historialJornadas.filter(j => j.id !== id);
-            localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
+            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
             renderizarHistorial();
         }
     }
 
     function borrarTodoElHistorial() {
-        if(confirm("¿Vaciar todo el historial?")) {
+        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v15');
+            localStorage.removeItem('registro_jornadas_v14');
             renderizarHistorial();
         }
     }
 
     function reiniciarContadoresSemanales() {
-        if(confirm("¿Reiniciar la semana?")) {
+        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
             conteoSemanal = {};
-            localStorage.removeItem('conteo_semanal_v15');
+            localStorage.removeItem('conteo_semanal_v14');
             renderizarTablaContadores();
         }
     }
