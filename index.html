@@ -20,15 +20,16 @@
         
         * { box-sizing: border-box; }
         
-        body { 
+                body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
             background-color: var(--bg-main); 
             color: var(--text-main); 
             padding: 12px; 
             margin: 0; 
-            padding-bottom: 85px; 
+            padding-bottom: 95px; /* <--- Este margen evita que el menú tape el contenido al bajar del todo */
             font-size: 0.9rem; 
         }
+
         
         .container { 
             max-width: 1200px; 
