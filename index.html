@@ -179,7 +179,7 @@
         .matrix-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
-        /* JORNADA Y TURNOS - SOLUCIÓN SCROLL VERTICAL LIBRE */
+        /* JORNADA Y TURNOS */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -190,11 +190,11 @@
             display: flex; 
             gap: 12px; 
             overflow-x: auto; 
-            overflow-y: visible; /* Permitimos desborde vertical */
+            overflow-y: visible; 
             scroll-behavior: smooth; 
             scroll-snap-type: x mandatory; 
             padding: 5px 5px 12px 5px;
-            touch-action: pan-x pan-y; /* Habilitamos explícitamente el scroll vertical táctil */
+            touch-action: pan-x pan-y; 
             -webkit-overflow-scrolling: touch;
         }
         .jornada-grid::-webkit-scrollbar { display: none; }
@@ -218,7 +218,6 @@
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
         
-        /* 🔥 SOLUCIÓN SELECCIÓN SIN FLECHA DESPLEGABLE 🔥 */
         .select-op-editable {
             background: transparent; 
             color: var(--primary-light); 
@@ -230,20 +229,16 @@
             outline: none; 
             font-family: inherit; 
             text-transform: uppercase;
-            text-align: right; /* Alineación limpia al lado derecho */
-            
-            /* Ocultamos la flecha nativa en todos los navegadores modernos */
+            text-align: right; 
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
         }
-        /* Ocultar flecha específica de Internet Explorer/Edge antiguo por seguridad */
-        .select-op-editable::-ms-expand {
-            display: none;
-        }
+        .select-op-editable::-ms-expand { display: none; }
         .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
+        .select-op-editable.op-manual-forced { color: #e11d48 !important; text-shadow: 0 0 5px rgba(225,29,72,0.3); } /* Indicador visual de edición manual fija */
 
         /* HISTORIAL */
         .history-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 10px; width: 100%; }
@@ -270,6 +265,7 @@
         <h1>Control de Rotaciones</h1>
     </div>
 
+    <!-- Pestaña Configuración -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
@@ -289,10 +285,12 @@
         </div>
     </div>
 
+    <!-- Pestaña Polivalencia -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- Pestaña Turnos -->
     <div id="tab-jornada" class="tab-content">
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
@@ -306,6 +304,7 @@
         </div>
     </div>
 
+    <!-- Pestaña Contador Semanal -->
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -314,6 +313,7 @@
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
+    <!-- Pestaña Historial Guardado -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header">
             <span class="section-title">📂 Historial de Jornadas</span>
@@ -322,6 +322,7 @@
         <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
+    <!-- Navegación Inferior -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
             <span class="icon">⚙️</span><span>Configurar</span>
@@ -412,7 +413,7 @@
         row.className = "item-row";
         row.innerHTML = `
             <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()">
-            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
+            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑></button>
         `;
         contenedor.appendChild(row);
     }
@@ -472,14 +473,26 @@
         
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
         matrizJornadaCalculada = {};
+        
+        // Historial global del día para evitar repeticiones automáticas generales
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
+
+        // 🔥 NUEVO: Recolectar TODOS los operarios fijados manualmente en CUALQUIER turno del día
+        let operariosFijadosManualmenteTodoElDia = new Set();
+        Object.keys(cambiosManualesUsuarios).forEach(clave => {
+            let opManual = cambiosManualesUsuarios[clave];
+            if (opManual && opManual !== "No Apto") {
+                operariosFijadosManualmenteTodoElDia.add(opManual);
+            }
+        });
 
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             let operariosOcupadosEnEsteTurnoMismo = new Set();
 
+            // 1. Aplicar las asignaciones manuales fijadas para este turno específico
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -488,35 +501,32 @@
                         operariosOcupadosEnEsteTurnoMismo.add(opManual); 
                         historialPuestosPorOperarioDia[opManual].add(carga);
                     }
-                }
-            });
-
-            cargas.forEach(carga => {
-                let claveManual = `${t}_X_${carga}`;
-                if (cambiosManualesUsuarios[claveManual]) {
-                    let opManual = cambiosManualesUsuarios[claveManual];
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
-                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false),
+                        manual: true // Marca de control manual fijo
                     };
                 }
             });
 
+            // 2. Rellenar de forma automática las cargas vacías restantes de este turno
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; 
+                if (matrizJornadaCalculada[t][carga]) return; // Saltamos si ya lo fijaste tú a mano
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
+                // Intentar asignar cumpliendo polivalencia, no repetición y que NO sea un operario fijado manualmente hoy
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
                     if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
                         !yaHizoEstaFaenaHoy && 
+                        !operariosFijadosManualmenteTodoElDia.has(candidato) && // Evitamos repetir operarios que fijaste a mano
                         competencies[`${candidato}_X_${carga}`] !== false) {
                         
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false, manual: false };
                         operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
@@ -524,13 +534,16 @@
                     }
                 }
 
+                // Segundo intento si falla la polivalencia estricta (pero manteniendo el veto al operario manual fijo)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
-                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
+                            !operariosFijadosManualmenteTodoElDia.has(candidato) && 
+                            !yaHizoEstaFaenaHoy) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, manual: false };
                             operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             historialPuestosPorOperarioDia[candidato].add(carga);
                             asignado = true;
@@ -539,12 +552,26 @@
                     }
                 }
 
+                // Tercer intento de emergencia absoluta si nos quedamos sin nadie disponible (rompiendo el veto diario global)
                 if (!asignado) {
-                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, manual: false };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!asignado) {
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true, manual: false };
                 }
             });
         }
 
+        // Renderizar en el DOM
         contenedor.innerHTML = "";
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
@@ -552,8 +579,9 @@
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             cargas.forEach(carga => {
-                let res = matrizJornadaCalculada[t][carga] || {nombre: "No Apto"};
-                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
+                let res = matrizJornadaCalculada[t][carga] || {nombre: "No Apto", manual: false};
+                // Si es manual, le aplicamos la nueva clase "op-manual-forced" para pintarlo de rojo/rosa distinguible
+                let claseExtra = res.manual ? "op-manual-forced" : res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
@@ -572,6 +600,7 @@
         }
     }
 
+    // El sistema limpia cruces en el mismo turno y recalcula la exclusión de todo el día
     function registrarCambioManualYRecalcular(select) {
         let turnoActual = parseInt(select.dataset.turno);
         let cargaDondeEntra = select.dataset.carga;
