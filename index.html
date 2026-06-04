@@ -125,17 +125,18 @@
         .tab-content { display: none; }
         .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
+        /* ✨ SCROLL HORIZONTAL OPTIMIZADO (IZQUIERDA/DERECHA) ✨ */
         .config-grid { 
             display: flex; 
             gap: 12px; 
             overflow-x: auto; 
-            overflow-y: hidden; 
+            overflow-y: hidden; /* Prohíbe el desborde vertical de la cuadrícula */
             scroll-behavior: smooth; 
             scroll-snap-type: x mandatory;
             padding: 5px 5px 15px 5px;
             -webkit-overflow-scrolling: touch;
             flex-grow: 1;
-            touch-action: pan-x; 
+            touch-action: pan-x; /* 🔒 CLAVE: Bloquea el movimiento vertical del móvil al deslizar de lado */
         }
         .config-grid::-webkit-scrollbar { display: none; }
 
@@ -167,6 +168,7 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
+        /* 📋 ESTRUCTURA DE TABLAS OPTIMIZADA */
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
         
@@ -212,32 +214,44 @@
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
         .count-number { font-weight: 800; color: var(--accent); font-size: 0.95rem; }
 
+        /* 📱 SECCIÓN DE TURNOS (CON SCROLL LATERAL) */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
-        .jornada-grid { 
-            display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
-            scroll-behavior: smooth; scroll-snap-type: x mandatory; padding: 5px 5px 12px 5px;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-x;
-        }
-        .jornada-grid::-webkit-scrollbar { display: none; }
+        /* 📱 CORRECCIÓN DE SCROLL EN SECCIÓN DE TURNOS */
+.jornada-grid { 
+    display: flex; 
+    flex-direction: column; /* Cambiado a columna para apilar hacia abajo */
+    gap: 12px; 
+    overflow-y: auto;       /* Permitir scroll vertical */
+    overflow-x: hidden;     /* Bloquear scroll horizontal innecesario */
+    padding: 5px 5px 80px 5px; /* Padding extra abajo para no tapar el menú */
+    max-height: calc(100vh - 200px); /* Límite para que el scroll funcione dentro de la pantalla */
+    -webkit-overflow-scrolling: touch;
+}
 
-        .turno-card { 
-            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; 
-            overflow: hidden; flex: 0 0 calc(100% - 10px); scroll-snap-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-        
-        @media (min-width: 900px) {
-            .jornada-grid { display: grid; grid-template-columns: repeat(4, 1fr); scroll-snap-type: none; overflow-x: visible; }
-            .turno-card { flex: none; }
-            .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); scroll-snap-type: none; overflow-x: visible; }
-            .section-box { flex: none; }
-            .item-list { max-height: 65vh; }
-        }
+.turno-card { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; 
+    overflow: hidden; 
+    flex: 0 0 auto; /* Permite que la tarjeta tenga su altura natural */
+    width: 100%;    /* Asegura que ocupe el ancho disponible */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* Ajuste para pantallas grandes (Escritorio) */
+@media (min-width: 900px) {
+    .jornada-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        overflow-y: visible;
+        max-height: none;
+    }
+}
 
         .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
         .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
@@ -255,8 +269,8 @@
         .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
-        .select-op-editable.op-manual-forced { color: #f43f5e !important; font-weight: 900; }
 
+        /* 👑 CABECERA EN FILA ÚNICA IMPEDIBLE 👑 */
         .history-header { 
             display: flex; 
             flex-direction: row; 
@@ -303,6 +317,7 @@
         <h1>Control de Rotaciones</h1>
     </div>
 
+    <!-- Pestaña Configuración (VUELVE AL SCROLL LATERAL PERFECTO) -->
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
@@ -322,10 +337,12 @@
         </div>
     </div>
 
+    <!-- Pestaña Polivalencia -->
     <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
+    <!-- Pestaña Turnos -->
     <div id="tab-jornada" class="tab-content">
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
@@ -341,6 +358,7 @@
         </div>
     </div>
 
+    <!-- Pestaña Contador Semanal -->
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -349,6 +367,7 @@
         <div class="matrix-container" id="contenedorContador"></div>
     </div>
 
+    <!-- Pestaña Historial Guardado -->
     <div id="tab-historial" class="tab-content">
         <div class="history-header">
             <span class="section-title">📂 Historial de Jornadas</span>
@@ -357,21 +376,27 @@
         <div id="contenedorHistorial" class="history-list"></div>
     </div>
 
+    <!-- Navegación Inferior -->
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-            <span class="icon">⚙️</span><span>Configurar</span>
+            <span class="icon">⚙️</span>
+            <span>Configurar</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-            <span class="icon">🛠️</span><span>Polivalencia</span>
+            <span class="icon">🛠️</span>
+            <span>Polivalencia</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-            <span class="icon">📅</span><span>Turnos</span>
+            <span class="icon">📅</span>
+            <span>Turnos</span>
         </button>
-        <button class="tab-btn" onclick="cambiarContadorTab(this)">
-            <span class="icon">📊</span><span>Contador</span>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+            <span class="icon">📊</span>
+            <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">📂</span><span>Historial</span>
+            <span class="icon">📂</span>
+            <span>Historial</span>
         </button>
     </div>
 </div>
@@ -383,7 +408,6 @@
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
     let cambiosManualesUsuarios = {}; 
-    let matrizJornadaCalculada = {};
 
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
@@ -392,7 +416,6 @@
     const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
 
     window.onload = function() {
-        // Enlazado firmemente a tus claves reales '_v14' para restaurar tu información
         if(localStorage.getItem('hist_competencias_v14')) {
             try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v14')); } catch(e) {}
         }
@@ -424,11 +447,6 @@
         if(tabId === 'tab-historial') renderizarHistorial();
     }
 
-    function cambiarContadorTab(boton) {
-        cambiarPestaña('tab-contador', boton);
-        renderizarTablaContadores();
-    }
-
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
         localStorage.setItem('tipo_horario_v14', tipo);
@@ -440,7 +458,6 @@
     function actualizarVisualBotonesHorario() {
         const btnM = document.getElementById("btnHorarioManana");
         const btnT = document.getElementById("btnHorarioTarde");
-        if(!btnM || !btnT) return;
         btnM.className = "btn-schedule";
         btnT.className = "btn-schedule";
         if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
@@ -449,7 +466,6 @@
 
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
-        if(!contenedor) return;
         const row = document.createElement("div");
         row.className = "item-row";
         row.innerHTML = `
@@ -475,24 +491,23 @@
 
         if(ops.length === 0 || cargas.length === 0) return;
 
-        if(contenedorMatriz) {
-            let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
-            cargas.forEach(c => html += `<th>${c}</th>`);
-            html += `</tr></thead><tbody>`;
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => html += `<th>${c}</th>`);
+        html += `</tr></thead><tbody>`;
 
-            ops.forEach(op => {
-                html += `<tr><td>${op}</td>`;
-                cargas.forEach(c => {
-                    let clv = `${op}_X_${c}`;
-                    let check = (competencies[clv] !== false) ? "checked" : "";
-                    html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
-                });
-                html += `</tr>`;
+        ops.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clv = `${op}_X_${c}`;
+                let check = (competencies[clv] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
-            html += `</tbody></table>`;
-            contenedorMatriz.innerHTML = html;
-        }
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedorMatriz.innerHTML = html;
 
+        cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
         renderizarTablaContadores();
     }
@@ -503,76 +518,54 @@
         generarJornadaCompleta();
     }
 
-    function registrarCambioManualYRecalcular(select) {
-        let t = parseInt(select.dataset.turno);
-        let c = select.dataset.carga;
-        let nuevoOp = select.value;
+    let matrizJornadaCalculada = {};
 
-        // Registrar la edición manual directa realizada por el usuario
-        cambiosManualesUsuarios[`${t}_X_${c}`] = nuevoOp;
-        
-        // Ejecutar el motor reactivo en cadena
-        generarJornadaCompleta();
-    }
-
-    // 🔄 MOTOR INTELIGENTE EN CASCADA: Evita repeticiones el mismo día y calcula turnos posteriores
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
-        if(!contenedor) return;
         contenedor.innerHTML = "";
 
         if(ops.length === 0 || cargas.length === 0) return;
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        
-        // Historial diario acumulado para rastrear en qué puestos ha estado cada operario a lo largo del día
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
-        // Fase previa: Registrar y bloquear todas las elecciones manuales activas en sus respectivos turnos y puestos
-        Object.keys(cambiosManualesUsuarios).forEach(key => {
-            let parts = key.split('_X_');
-            let t = parseInt(parts[0]);
-            let c = parts[1];
-            let opManual = cambiosManualesUsuarios[key];
-            
-            if (!matrizJornadaCalculada[t]) matrizJornadaCalculada[t] = {};
-            
-            if (opManual && opManual !== "No Apto") {
-                historialPuestosPorOperarioDia[opManual].add(c);
-            }
-            matrizJornadaCalculada[t][c] = { 
-                nombre: opManual, 
-                manual: true,
-                alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${c}`] === false)
-            };
-        });
-
-        // Procesar secuencialmente los 4 turnos aplicando las reglas de exclusión
         for (let t = 1; t <= 4; t++) {
-            if (!matrizJornadaCalculada[t]) matrizJornadaCalculada[t] = {};
+            let desplazo = saltoInicialJornada + (t - 1);
+            matrizJornadaCalculada[t] = {};
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
-            let desplazo = saltoInicialJornada + (t - 1);
-
-            // Mapear qué operarios ya se encuentran fijos en este turno concreto debido a una selección manual
             cargas.forEach(carga => {
-                if (matrizJornadaCalculada[t][carga] && matrizJornadaCalculada[t][carga].nombre !== "No Apto") {
-                    operariosOcupadosEnEsteTurnoMismo.add(matrizJornadaCalculada[t][carga].nombre);
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    if (opManual !== "No Apto") {
+                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
+                        historialPuestosPorOperarioDia[opManual].add(carga);
+                    }
                 }
             });
 
-            // Rellenar automáticamente los puestos vacíos del turno
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    matrizJornadaCalculada[t][carga] = { 
+                        nombre: opManual, 
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
+                    };
+                }
+            });
+
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; // Saltar si ya fue fijado manualmente
+                if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // Intento 1: Buscar operario libre en el turno, que no haya pisado este puesto hoy y sea Apto (Check verde)
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
@@ -581,7 +574,7 @@
                         !yaHizoEstaFaenaHoy && 
                         competencies[`${candidato}_X_${carga}`] !== false) {
                         
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: false };
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
                         operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
@@ -589,14 +582,13 @@
                     }
                 }
 
-                // Intento 2: Si no hay candidatos perfectos, ignorar polivalencia pero mantener la restricción de "no repetir puesto hoy" (Aviso ámbar)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: true };
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
                             operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             historialPuestosPorOperarioDia[candidato].add(carga);
                             asignado = true;
@@ -605,12 +597,11 @@
                     }
                 }
 
-                // Intento 3: Si la plantilla es muy reducida y es obligatorio repetir puesto para no dejar la carga vacía
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, manual: false, alerta: true };
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
                             operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             asignado = true;
                             break;
@@ -618,22 +609,20 @@
                     }
                 }
 
-                // Intento 4: Colapso total de operarios disponibles en el turno
                 if (!asignado) {
-                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", manual: false, error: true };
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
                 }
             });
         }
 
-        // Renderizar la cuadrícula visual de tarjetas de turnos en el DOM
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             cargas.forEach(carga => {
-                let res = matrizJornadaCalculada[t][carga] || {nombre: "No Apto"};
-                let claseExtra = res.manual ? "op-manual-forced" : res.alerta ? "op-alert" : res.error ? "op-error" : "";
+                let res = matrizJornadaCalculada[t][carga];
+                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
@@ -652,11 +641,50 @@
         }
     }
 
+    function registrarCambioManualYRecalcular(select) {
+        let turnoActual = parseInt(select.dataset.turno);
+        let cargaDondeEntra = select.dataset.carga;
+        let operarioQueEntra = select.value;
+
+        let operarioQueEstabaAntes = "No Apto";
+        if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][cargaDondeEntra]) {
+            operarioQueEstabaAntes = matrizJornadaCalculada[turnoActual][cargaDondeEntra].nombre;
+        }
+
+        let cargaDondeEstabaElQueEntra = null;
+        if (operarioQueEntra !== "No Apto") {
+            const cargasEnTurno = leerLista("listaCargas");
+            for (let c of cargasEnTurno) {
+                if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][c]) {
+                    if (matrizJornadaCalculada[turnoActual][c].nombre === operarioQueEntra) {
+                        cargaDondeEstabaElQueEntra = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (cargaDondeEstabaElQueEntra && cargaDondeEstabaElQueEntra !== cargaDondeEntra) {
+            cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEstabaElQueEntra}`] = operarioQueEstabaAntes;
+        }
+
+        cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEntra}`] = operarioQueEntra;
+
+        const cargasEnTurno = leerLista("listaCargas");
+        for (let t = turnoActual + 1; t <= 4; t++) {
+            cargasEnTurno.forEach(c => {
+                delete cambiosManualesUsuarios[`${t}_X_${c}`];
+            });
+        }
+
+        generarJornadaCompleta();
+    }
+
     function renderizarTablaContadores() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorContador");
-        if(!contenedor || ops.length === 0 || cargas.length === 0) return;
+        if(ops.length === 0 || cargas.length === 0) return;
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
@@ -676,24 +704,23 @@
     }
 
     function guardarEnHistorial() {
-        if(Object.keys(matrizJornadaCalculada).length === 0) return;
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
 
-        // Sumar asignaciones vigentes al contador estadístico semanal
-        for(let t = 1; t <= 4; t++) {
-            for(let c in matrizJornadaCalculada[t]) {
-                let opAsignado = matrizJornadaCalculada[t][c].nombre;
-                if(opAsignado !== "No Apto") {
-                    let clv = `${opAsignado}_X_${c}`;
-                    if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-                    conteoSemanal[clv]++;
-                }
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
             }
-        }
+        });
         localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
         let copiaTurnos = {};
-        for(let t = 1; t <= 4; t++) {
+        for(let t=1; t<=4; t++) {
             copiaTurnos[t] = {};
             for(let c in matrizJornadaCalculada[t]) {
                 copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
@@ -717,7 +744,6 @@
 
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
-        if(!contenedor) return;
         contenedor.innerHTML = "";
 
         if(historialJornadas.length === 0) {
@@ -735,7 +761,9 @@
             </div>`;
             
             let htmlContent = `<div class="history-item-content">`;
-            for(let t = 1; t <= 4; t++) {
+            const horasActivas = (jornada.tipoHorario.includes("Mañana")) ? horasMañana : horasTarde;
+
+            for(let t=1; t<=4; t++) {
                 htmlContent += `<div class="history-turno-block">
                     <div class="history-turno-title">TURNO ${t}</div>`;
                 
