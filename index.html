@@ -173,45 +173,46 @@
         .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
         .matrix-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
         
-                .matrix-table th { 
+                        .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.7rem; 
-            padding: 10px 8px; 
+            font-size: 0.65rem; 
+            padding: 12px 14px; /* Más espacio a los lados para que respire el texto */
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            /* ✨ Ajustes para mostrar el nombre completo ✨ */
-            white-space: normal;       /* Permite que el texto baje de línea si no cabe */
-            word-wrap: break-word;     /* Rompe palabras largas si es necesario */
-            min-width: 100px;          /* Le da un espacio mínimo cómodo a cada columna */
+            /* ✨ Fuerza a las cargas a ir hacia la derecha completas en una sola línea ✨ */
+            white-space: nowrap;       
+            overflow: visible;         
+            text-overflow: clip;       
+            width: auto; /* El ancho se adapta completamente al texto de la carga */
         }
-
         
+        .matrix-table td { 
+            padding: 12px 8px; 
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            font-size: 0.85rem; 
+            color: #ffffff;
+            /* ✨ Mantiene la coherencia con las cabeceras hacia la derecha ✨ */
+            white-space: nowrap;
+            overflow: visible;
+        }
         .matrix-table th:first-child,
         .matrix-table td:first-child {
-            width: 110px;
+            width: 120px; /* Un poco más de ancho base para los nombres de operarios */
             text-align: left; 
             font-weight: 700; 
             background: #050505; 
             color: var(--primary-light); 
             position: sticky; 
             left: 0; 
-            z-index: 1; 
+            z-index: 2; /* Subido a 2 para que las cargas pasen limpiamente por detrás al hacer scroll */
             border-right: 2px solid var(--border-color);
+            white-space: nowrap;
         }
 
-                .matrix-table td { 
-            padding: 12px 8px; 
-            text-align: center; 
-            border: 1px solid var(--border-color); 
-            font-size: 0.85rem; 
-            color: #ffffff;
-            /* ✨ Ajustes para evitar que se recorte el contenido ✨ */
-            white-space: normal;       /* Evita que se oculte el texto hacia los lados */
-            word-wrap: break-word;
-        }
 
         
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
