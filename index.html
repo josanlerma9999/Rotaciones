@@ -169,49 +169,89 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* 📋 ESTRUCTURA DE TABLAS OPTIMIZADA */
-        .matrix-container { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; }
-               /* 📋 ESTRUCTURA DE TABLAS OPTIMIZADA (SIN SOLAPAMIENTO) */
+                /* ==========================================================================
+           📋 REDISEÑO COMPLETO DE TABLAS (POLIVALENCIA Y CONTADORES)
+           ========================================================================== */
+        
+        .matrix-container { 
+            overflow-x: auto; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .matrix-table { 
-            width: 100%; 
+            width: max-content; /* Fuerza a la tabla a expandirse horizontalmente todo lo que necesite */
+            min-width: 100%;
             border-collapse: collapse; 
-            min-width: 100%; 
-            /* ✨ CAMBIO CLAVE: Cambiamos 'fixed' por 'auto' para que las columnas se estiren solas hacia la derecha */
-            table-layout: auto; 
+            table-layout: fixed; /* Cuadra todas las columnas con medidas exactas */
         }
         
+        /* 🏷️ Cabeceras de las cargas (Nombres arriba) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
-            font-size: 0.65rem; 
-            padding: 12px 16px; /* Más espacio a los lados para que no se peguen las letras */
+            font-size: 0.8rem; /* Letra más grande y legible */
+            padding: 14px 10px; 
             border: 1px solid var(--border-color); 
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            white-space: nowrap;       
-            overflow: visible;         
-            text-overflow: clip;       
-            /* ✨ CAMBIO CLAVE: Le damos un ancho mínimo por columna para que las cargas largas tengan su propio espacio */
-            width: auto; 
-            min-width: 140px; 
+            white-space: nowrap; /* Mantiene el nombre en una sola línea hacia la derecha */
+            
+            /* ✨ Ancho idéntico y equilibrado para todas las columnas de carga */
+            width: 160px; 
+            min-width: 160px;
         }
-
-          
+        
+        /* 👥 Primera columna fija: Nombres de los Operarios */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
-            width: 110px;
-            min-width: 110px; /* Asegura el tamaño en modo auto */
+            width: 120px;
+            min-width: 120px;
             text-align: left; 
             font-weight: 700; 
             background: #050505; 
             color: var(--primary-light); 
             position: sticky; 
             left: 0; 
-            z-index: 2; 
+            z-index: 10; /* Se mantiene por encima al deslizar */
             border-right: 2px solid var(--border-color);
+            padding-left: 12px;
+        }
+
+        /* 🔢 Celdas de contenido (Checks y Números de contadores) */
+        .matrix-table td { 
+            padding: 14px 8px; 
+            text-align: center; /* Alinea perfectamente al centro tanto los números como los checkbox */
+            vertical-align: middle;
+            border: 1px solid var(--border-color); 
+            font-size: 0.95rem; /* Aumentado para ver los contadores con claridad */
+            color: #ffffff;
             white-space: nowrap;
         }
+        
+        /* 📊 Estilo mejorado para los números del Contador */
+        .count-number { 
+            font-weight: 900; 
+            color: var(--accent); 
+            font-size: 1.1rem; /* Resalta el número en el centro de su tarjeta */
+            display: block;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* ☑️ Centrado e interfaz de los Checkbox en Polivalencia */
+        .matrix-table input[type="checkbox"] { 
+            width: 20px; /* Un poco más grandes para facilitar el toque táctil */
+            height: 20px; 
+            cursor: pointer; 
+            accent-color: var(--primary-light);
+            margin: 0 auto;
+            display: block;
+        }
+
 
         
         .matrix-table input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-light); }
