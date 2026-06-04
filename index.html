@@ -196,8 +196,7 @@
             max-height: 46px !important;
         }
         
-        /* Cabeceras de cargas (Texto horizontal impecable) */
-                /* Cabeceras de cargas (Permite dos líneas limpias) */
+        /* Cabeceras de cargas (Permite dos líneas limpias) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
@@ -321,6 +320,8 @@
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
+        /* Estilo para el nuevo botón de cálculo inteligente */
+        .btn-calculate { background: #7c2d12; color: #fdba74; border: 1px solid #ea580c; }
 
         /* 📱 SECCIÓN DE TURNOS (CON SCROLL VERTICAL NATURAL) */
         .jornada-grid { 
@@ -456,6 +457,7 @@
         <div class="jornada-grid" id="contenedorJornada"></div>
 
         <div class="action-bar">
+            <button class="btn-main btn-calculate" onclick="calcularSiguientesTurnosInteligente()">⚡ Calcular Siguientes</button>
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
@@ -728,7 +730,7 @@
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualYRecalcular(this)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualLocal(this)">
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -742,43 +744,35 @@
         }
     }
 
-    function registrarCambioManualYRecalcular(select) {
+    // 👷 NUEVA FUNCIÓN: Permite cambiar lo que quieras en pantalla sin alterar los turnos inferiores automáticamente
+    function registrarCambioManualLocal(select) {
         let turnoActual = parseInt(select.dataset.turno);
         let cargaDondeEntra = select.dataset.carga;
         let operarioQueEntra = select.value;
 
-        let operarioQueEstabaAntes = "No Apto";
-        if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][cargaDondeEntra]) {
-            operarioQueEstabaAntes = matrizJornadaCalculada[turnoActual][cargaDondeEntra].nombre;
-        }
-
-        let cargaDondeEstabaElQueEntra = null;
-        if (operarioQueEntra !== "No Apto") {
-            const cargasEnTurno = leerLista("listaCargas");
-            for (let c of cargasEnTurno) {
-                if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][c]) {
-                    if (matrizJornadaCalculada[turnoActual][c].nombre === operarioQueEntra) {
-                        cargaDondeEstabaElQueEntra = c;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (cargaDondeEstabaElQueEntra && cargaDondeEstabaElQueEntra !== cargaDondeEntra) {
-            cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEstabaElQueEntra}`] = operarioQueEstabaAntes;
-        }
-
         cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEntra}`] = operarioQueEntra;
-
-        const cargasEnTurno = leerLista("listaCargas");
-        for (let t = turnoActual + 1; t <= 4; t++) {
-            cargasEnTurno.forEach(c => {
-                delete cambiosManualesUsuarios[`${t}_X_${c}`];
-            });
+        
+        // Aplica color de alerta de polivalencia si es necesario directamente en el selector cambiado
+        if(operarioQueEntra !== "No Apto" && competencies[`${operarioQueEntra}_X_${cargaDondeEntra}`] === false) {
+            select.classList.add("op-alert");
+        } else if(operarioQueEntra === "No Apto") {
+            select.classList.add("op-error");
+        } else {
+            select.classList.remove("op-alert", "op-error");
         }
+    }
+
+    // ⚡ NUEVA FUNCIÓN: Bloquea todas tus modificaciones actuales en la interfaz y calcula predictivamente el resto
+    function calcularSiguientesTurnosInteligente() {
+        const selectores = document.querySelectorAll(".select-op-editable");
+        selectores.forEach(select => {
+            let t = select.dataset.turno;
+            let c = select.dataset.carga;
+            cambiosManualesUsuarios[`${t}_X_${c}`] = select.value;
+        });
 
         generarJornadaCompleta();
+        alert("⚡ ¡Turnos calculados de forma óptima sin repetir puestos!");
     }
 
     function renderizarTablaContadores() {
@@ -824,7 +818,8 @@
         for(let t=1; t<=4; t++) {
             copiaTurnos[t] = {};
             for(let c in matrizJornadaCalculada[t]) {
-                copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
+                let sel = document.querySelector(`.select-op-editable[data-turno="${t}"][data-carga="${c}"]`);
+                copiaTurnos[t][c] = sel ? sel.value : matrizJornadaCalculada[t][c].nombre;
             }
         }
 
