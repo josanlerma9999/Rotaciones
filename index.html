@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Scroll Horizontal Fijo</title>
+    <title>Control de Rotaciones - Edición Manual</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -21,7 +21,7 @@
         * { box-sizing: border-box; }
         
         html {
-            font-size: 14px; /* 🌌 Reduce la escala base de toda la app un pelín */
+            font-size: 14px; 
         }
         
         body { 
@@ -31,7 +31,7 @@
             padding: 12px; 
             margin: 0; 
             padding-bottom: 95px; 
-            font-size: 0.85rem; /* Un pelín más pequeño */
+            font-size: 0.85rem; 
         }
         
         .container { 
@@ -171,9 +171,6 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* ==========================================================================
-           📋 REDISEÑO COMPACTO Y BLINDADO DE TABLAS (POLIVALENCIA Y CONTADORES)
-           ========================================================================= */
         .matrix-container { 
             overflow-x: auto; 
             background: var(--bg-card); 
@@ -190,13 +187,11 @@
             table-layout: fixed; 
         }
 
-        /* Fuerza un alto simétrico y más fino a todas las filas */
         .matrix-table tr {
             height: 46px !important;
             max-height: 46px !important;
         }
         
-        /* Cabeceras de cargas (Permite dos líneas limpias) */
         .matrix-table th { 
             background: #111827; 
             color: var(--text-muted); 
@@ -207,20 +202,17 @@
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
-            
             white-space: normal !important; 
             word-break: break-word;
             line-height: 1.1;
             display: table-cell;
             vertical-align: middle;
-            
             width: 150px !important; 
             min-width: 150px !important;
             max-width: 150px !important;
             box-sizing: border-box;
         }
 
-        /* Operarios fijos (Evita desdoblamientos y estiramientos) */
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             width: 120px !important;
@@ -245,7 +237,6 @@
             font-size: 0.8rem;
         }
 
-        /* Celdas generales congeladas en tamaño */
         .matrix-table td { 
             padding: 0 8px; 
             text-align: center; 
@@ -263,7 +254,6 @@
             vertical-align: middle;
         }
         
-        /* Números del Contador estilizados */
         .count-number { 
             font-weight: 900; 
             color: var(--accent) !important; 
@@ -273,7 +263,6 @@
             width: 100%;
         }
 
-        /* Cuadrados de selección personalizados y más compactos */
         .matrix-table input[type="checkbox"] { 
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -312,14 +301,13 @@
             transform: rotate(45deg);
         }
 
-        /* Botoneras y acciones */
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
-        /* 📱 SECCIÓN DE TURNOS (CON SCROLL VERTICAL NATURAL) */
+        /* 📱 SECCIÓN DE TURNOS */
         .jornada-grid { 
             display: flex; 
             flex-direction: column; 
@@ -339,6 +327,8 @@
             flex: 0 0 auto; 
             width: 100%;    
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
         }
 
         @media (min-width: 900px) {
@@ -367,10 +357,25 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        /* 👑 MENÚ INFERIOR UN PELÍN MÁS COMPACTO 👑 */
-        .nav-item i, .nav-item svg, .nav-item img, .tab-btn .icon { 
-            font-size: 1.1rem !important; 
+        /* Botón guardar por tarjeta de turno */
+        .btn-save-turno {
+            background: #1e3a8a;
+            color: #60a5fa;
+            border: none;
+            border-top: 1px solid var(--border-color);
+            padding: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+            text-transform: uppercase;
         }
+        .btn-save-turno:hover {
+            background: #1d4ed8;
+            color: #fff;
+        }
+
         .tab-btn span { 
             font-size: 0.62rem !important; 
         }
@@ -636,6 +641,8 @@
             matrizJornadaCalculada[t] = {};
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
+            
+            // Pasada 1: Cargar lo guardado manualmente de forma estricta (sin pisarse)
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -658,6 +665,7 @@
                 }
             });
 
+            // Pasada 2: Rellenar huecos vacíos de forma automática respetando las reglas
             cargas.forEach((carga, i) => {
                 if (matrizJornadaCalculada[t][carga]) return; 
 
@@ -725,7 +733,7 @@
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualYRecalcular(this)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="registrarCambioManualPasivo(this)">
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -734,50 +742,48 @@
             });
 
             html += `</table>`;
+            
+            // Añadir el botón de guardar y calcular solo para los turnos del 1 al 3
+            if (t < 4) {
+                html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar y Calcular T${t+1} a T4</button>`;
+            }
+            
             card.innerHTML = html;
             contenedor.appendChild(card);
         }
     }
 
-    // 🔄 RECALCULO AUTOMÁTICO EN CADENA DESDE EL TURNO SELECCIONADO
-    function registrarCambioManualYRecalcular(select) {
+    // ✍️ EDICIÓN PASIVA: Al cambiar el selector, solo se guarda en la memoria provisional de ese turno. Nadie más se mueve.
+    function registrarCambioManualPasivo(select) {
         let turnoActual = parseInt(select.dataset.turno);
-        let cargaDondeEntra = select.dataset.carga;
-        let operarioQueEntra = select.value;
+        let carga = select.dataset.carga;
+        let operario = select.value;
 
-        let operarioQueEstabaAntes = "No Apto";
-        if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][cargaDondeEntra]) {
-            operarioQueEstabaAntes = matrizJornadaCalculada[turnoActual][cargaDondeEntra].nombre;
-        }
+        cambiosManualesUsuarios[`${turnoActual}_X_${carga}`] = operario;
+    }
 
-        let cargaDondeEstabaElQueEntra = null;
-        if (operarioQueEntra !== "No Apto") {
-            const cargasEnTurno = leerLista("listaCargas");
-            for (let c of cargasEnTurno) {
-                if (matrizJornadaCalculada[turnoActual] && matrizJornadaCalculada[turnoActual][c]) {
-                    if (matrizJornadaCalculada[turnoActual][c].nombre === operarioQueEntra) {
-                        cargaDondeEstabaElQueEntra = c;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (cargaDondeEstabaElQueEntra && cargaDondeEstabaElQueEntra !== cargaDondeEntra) {
-            cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEstabaElQueEntra}`] = operarioQueEstabaAntes;
-        }
-
-        cambiosManualesUsuarios[`${turnoActual}_X_${cargaDondeEntra}`] = operarioQueEntra;
-
-        // 🧠 CLAVE: Detecta qué turno has editado y limpia automáticamente todas las decisiones manuales de los turnos SIGUIENTES para recalcularlos limpiamente
+    // ⚡ BOTÓN EXPLÍCITO: Bloquea tu edición actual, limpia los turnos siguientes y los recalcula sin repetir operarios.
+    function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
-        for (let t = turnoActual + 1; t <= 4; t++) {
+
+        // 1. Leer los selectores actuales del DOM del turno editado y asegurar que quedan guardados fixed
+        cargasEnTurno.forEach(c => {
+            let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
+            if (selector) {
+                cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
+            }
+        });
+
+        // 2. Limpiar de la memoria los turnos siguientes para que el motor inteligente los recalcule desde cero
+        for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => {
                 delete cambiosManualesUsuarios[`${t}_X_${c}`];
             });
         }
 
+        // 3. Volver a generar la jornada aplicando la lógica estricta antirepetición
         generarJornadaCompleta();
+        alert(`✅ Turno ${turnoEditado} fijado a tu gusto. Turnos siguientes recalculados sin repetir puestos.`);
     }
 
     function renderizarTablaContadores() {
@@ -861,7 +867,6 @@
             </div>`;
             
             let htmlContent = `<div class="history-item-content">`;
-            const horasActivas = (jornada.tipoHorario.includes("Mañana")) ? horasMañana : horasTarde;
 
             for(let t=1; t<=4; t++) {
                 htmlContent += `<div class="history-turno-block">
