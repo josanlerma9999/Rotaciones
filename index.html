@@ -20,9 +20,7 @@
         
         * { box-sizing: border-box; }
         
-        html {
-            font-size: 14px; 
-        }
+        html { font-size: 14px; }
         
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -123,9 +121,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        .tab-btn .icon { 
-            font-size: 1.45rem !important; 
-        } 
+        .tab-btn .icon { font-size: 1.45rem !important; } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -189,10 +185,7 @@
             table-layout: fixed; 
         }
 
-        .matrix-table tr {
-            height: 46px !important;
-            max-height: 46px !important;
-        }
+        .matrix-table tr { height: 46px !important; max-height: 46px !important; }
         
         .matrix-table th { 
             background: #111827; 
@@ -375,10 +368,7 @@
             justify-content: center;
             gap: 6px;
         }
-        .btn-save-turno:hover {
-            background: #1e3a8a;
-            color: #ffffff;
-        }
+        .btn-save-turno:hover { background: #1e3a8a; color: #ffffff; }
 
         .history-header { 
             display: flex; 
@@ -389,11 +379,7 @@
             gap: 10px; 
             width: 100%;
         }
-        .history-header .section-title {
-            font-size: 0.88rem; 
-            white-space: nowrap; 
-            font-weight: 800;
-        }
+        .history-header .section-title { font-size: 0.88rem; white-space: nowrap; font-weight: 800; }
         .btn-counter-reset {
             background: #2a1f08; 
             color: var(--accent); 
@@ -498,7 +484,6 @@
             <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-
             <span class="icon">📂</span>
             <span>Historial</span>
         </button>
@@ -603,7 +588,6 @@
             html += `<tr><td>${op}</td>`;
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
-                // Corregido: Por defecto todo el mundo está checked (true) a menos que esté explícitamente guardado como false
                 let check = (competencies[clv] !== false) ? "checked" : "";
                 html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
@@ -644,7 +628,7 @@
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             
-            // Pasada 1: Cargar selecciones manuales guardadas
+            // OPTIMIZADO: Cargar selecciones manuales guardadas en una sola pasada limpia
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -653,16 +637,10 @@
                         operariosOcupadosEnEsteTurnoMismo.add(opManual); 
                         historialPuestosPorOperarioDia[opManual].add(carga);
                     }
-                }
-            });
-
-            cargas.forEach(carga => {
-                let claveManual = `${t}_X_${carga}`;
-                if (cambiosManualesUsuarios[claveManual]) {
-                    let opManual = cambiosManualesUsuarios[claveManual];
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
-                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false),
+                        error: (opManual === "No Apto")
                     };
                 }
             });
@@ -674,17 +652,14 @@
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // FILTRADO DE POLIVALENCIA TOTAL: Solo entra si NO está desmarcado como false
+                // FILTRADO DE POLIVALENCIA TOTAL
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
                     let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
 
-                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
-                        !yaHizoEstaFaenaHoy && 
-                        esApto) {
-                        
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
+                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy && esApto) {
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false, error: false };
                         operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
@@ -692,14 +667,14 @@
                     }
                 }
 
-                // Plan B: Si no hay operarios aptos libres, coge un libre sin repetir faena (Muestra Alerta Naranja)
+                // Plan B: Forzar libre sin repetir faena (Alerta Naranja)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
                             operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             historialPuestosPorOperarioDia[candidato].add(carga);
                             asignado = true;
@@ -708,12 +683,12 @@
                     }
                 }
 
-                // Plan C: Emergencia máxima por falta de personal
+                // Plan C: Falta crítica de personal
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
                             operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             asignado = true;
                             break;
@@ -722,7 +697,7 @@
                 }
 
                 if (!asignado) {
-                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
             });
         }
@@ -733,7 +708,7 @@
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             cargas.forEach(carga => {
-                let res = matrizJornadaCalculada[t][carga];
+                let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true }; // BLINDAJE CONTRA UNDEFINED
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
