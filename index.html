@@ -497,7 +497,7 @@
             <span class="icon">📊</span>
             <span>Contador</span>
         </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
+        <button class="tab-btn" onclick="charPestaña('tab-historial', this)">
             <span class="icon">📂</span>
             <span>Historial</span>
         </button>
@@ -602,6 +602,7 @@
             html += `<tr><td>${op}</td>`;
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
+                // Corregido: Por defecto todo el mundo está checked (true) a menos que esté explícitamente guardado como false
                 let check = (competencies[clv] !== false) ? "checked" : "";
                 html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
@@ -624,143 +625,139 @@
     let matrizJornadaCalculada = {};
 
     function generarJornadaCompleta() {
-    const ops = leerLista("listaOps");
-    const cargas = leerLista("listaCargas");
-    const contenedor = document.getElementById("contenedorJornada");
-    contenedor.innerHTML = "";
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorJornada");
+        contenedor.innerHTML = "";
 
-    if(ops.length === 0 || cargas.length === 0) return;
-    const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
+        if(ops.length === 0 || cargas.length === 0) return;
+        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
-    matrizJornadaCalculada = {};
-    let historialPuestosPorOperarioDia = {}; 
-    ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
+        matrizJornadaCalculada = {};
+        let historialPuestosPorOperarioDia = {}; 
+        ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
-    for (let t = 1; t <= 4; t++) {
-        let desplazo = saltoInicialJornada + (t - 1);
-        matrizJornadaCalculada[t] = {};
-        
-        let operariosOcupadosEnEsteTurnoMismo = new Set();
-        
-        // Pasada 1: Cargar lo editado manualmente por el usuario
-        cargas.forEach(carga => {
-            let claveManual = `${t}_X_${carga}`;
-            if (cambiosManualesUsuarios[claveManual]) {
-                let opManual = cambiosManualesUsuarios[claveManual];
-                if (opManual !== "No Apto") {
-                    operariosOcupadosEnEsteTurnoMismo.add(opManual); 
-                    historialPuestosPorOperarioDia[opManual].add(carga);
+        for (let t = 1; t <= 4; t++) {
+            let desplazo = saltoInicialJornada + (t - 1);
+            matrizJornadaCalculada[t] = {};
+            
+            let operariosOcupadosEnEsteTurnoMismo = new Set();
+            
+            // Pasada 1: Cargar selecciones manuales guardadas
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    if (opManual !== "No Apto") {
+                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
+                        historialPuestosPorOperarioDia[opManual].add(carga);
+                    }
                 }
-            }
-        });
+            });
 
-        cargas.forEach(carga => {
-            let claveManual = `${t}_X_${carga}`;
-            if (cambiosManualesUsuarios[claveManual]) {
-                let opManual = cambiosManualesUsuarios[claveManual];
-                // Si es manual, verificamos si tiene competencia real para saber si pintar alerta
-                let tieneCompetencia = (competencies[`${opManual}_X_${carga}`] === true);
-                matrizJornadaCalculada[t][carga] = { 
-                    nombre: opManual, 
-                    alerta: (opManual !== "No Apto" && !tieneCompetencia)
-                };
-            }
-        });
-
-        // Pasada 2: Rellenar huecos automáticos con FILTRADO ESTRICTO de Polivalencia
-        cargas.forEach((carga, i) => {
-            if (matrizJornadaCalculada[t][carga]) return; 
-
-            let idxBase = (i + desplazo) % ops.length;
-            let asignado = false;
-
-            // COMPROBACIÓN ESTRICTA: Solo entra si en la matriz tiene un TRUE (Check azul)
-            for (let s = 0; s < ops.length; s++) {
-                let candidato = ops[(idxBase + s) % ops.length];
-                let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
-                let sabeHacerlo = (competencies[`${candidato}_X_${carga}`] === true);
-
-                if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
-                    !yaHizoEstaFaenaHoy && 
-                    sabeHacerlo) {
-                    
-                    matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
-                    operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                    historialPuestosPorOperarioDia[candidato].add(carga);
-                    asignado = true;
-                    break;
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    matrizJornadaCalculada[t][carga] = { 
+                        nombre: opManual, 
+                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
+                    };
                 }
-            }
+            });
 
-            // Plan B: Si nadie apto está libre, busca un libre sin repetir carga (Pinta Alerta Naranja)
-            if (!asignado) {
+            // Pasada 2: Rellenar huecos automáticos
+            cargas.forEach((carga, i) => {
+                if (matrizJornadaCalculada[t][carga]) return; 
+
+                let idxBase = (i + desplazo) % ops.length;
+                let asignado = false;
+
+                // FILTRADO DE POLIVALENCIA TOTAL: Solo entra si NO está desmarcado como false
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                    let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
 
-                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
+                        !yaHizoEstaFaenaHoy && 
+                        esApto) {
+                        
+                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
                         operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
-            }
 
-            // Emergencia absoluta
-            if (!asignado) {
-                for (let s = 0; s < ops.length; s++) {
-                    let candidato = ops[(idxBase + s) % ops.length];
-                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
-                        matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
-                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                        asignado = true;
-                        break;
+                // Plan B: Si no hay operarios aptos libres, coge un libre sin repetir faena (Muestra Alerta Naranja)
+                if (!asignado) {
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            historialPuestosPorOperarioDia[candidato].add(carga);
+                            asignado = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!asignado) {
-                matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
-            }
-        });
-    }
+                // Plan C: Emergencia máxima por falta de personal
+                if (!asignado) {
+                    for (let s = 0; s < ops.length; s++) {
+                        let candidato = ops[(idxBase + s) % ops.length];
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                            matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            asignado = true;
+                            break;
+                        }
+                    }
+                }
 
-    // Renderizado de las tarjetas en el HTML
-    for (let t = 1; t <= 4; t++) {
-        const card = document.createElement("div");
-        card.className = "turno-card";
-        let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
-
-        cargas.forEach(carga => {
-            let res = matrizJornadaCalculada[t][carga];
-            let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
-
-            html += `<tr>
-                <td class="carga-title">${carga}</td>
-                <td>
-                    <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}">
-                        ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
-                        <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
-                    </select>
-                </td>
-            </tr>`;
-        });
-
-        html += `</table>`;
-        
-        if (t < 4) {
-            html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
-        } else {
-            html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
+                if (!asignado) {
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
+                }
+            });
         }
-        
-        card.innerHTML = html;
-        contenedor.appendChild(card);
-    }
-}
 
+        for (let t = 1; t <= 4; t++) {
+            const card = document.createElement("div");
+            card.className = "turno-card";
+            let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
+
+            cargas.forEach(carga => {
+                let res = matrizJornadaCalculada[t][carga];
+                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
+
+                html += `<tr>
+                    <td class="carga-title">${carga}</td>
+                    <td>
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}">
+                            ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
+                            <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
+                        </select>
+                    </td>
+                </tr>`;
+            });
+
+            html += `</table>`;
+            
+            if (t < 4) {
+                html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
+            } else {
+                html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
+            }
+            
+            card.innerHTML = html;
+            contenedor.appendChild(card);
+        }
+    }
 
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
