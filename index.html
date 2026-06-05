@@ -30,7 +30,7 @@
             color: var(--text-main); 
             padding: 12px; 
             margin: 0; 
-            padding-bottom: 105px; /* Un pelín más de espacio por los iconos grandes */
+            padding-bottom: 105px; 
             font-size: 0.85rem; 
         }
         
@@ -94,7 +94,6 @@
             border-color: #a855f7;
         }
 
-        /* 👑 MENÚ INFERIOR CON ICONOS MÁS GRANDES 👑 */
         .tabs-nav { 
             position: fixed; 
             bottom: 0; 
@@ -125,7 +124,7 @@
         }
         
         .tab-btn .icon { 
-            font-size: 1.45rem !important; /* Iconos notablemente más grandes y legibles */
+            font-size: 1.45rem !important; 
         } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
@@ -310,7 +309,6 @@
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
-        /* 📱 SECCIÓN DE TURNOS */
         .jornada-grid { 
             display: flex; 
             flex-direction: column; 
@@ -360,7 +358,6 @@
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
-        /* Botón guardar por tarjeta de turno elegante */
         .btn-save-turno {
             background: #111827;
             color: #60a5fa;
@@ -645,7 +642,7 @@
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             
-            // Pasada 1: Cargar memorias manuales fijadas de forma estricta
+            // Pasada 1: Cargar lo editado manualmente por ti en la interfaz
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -668,13 +665,14 @@
                 }
             });
 
-            // Pasada 2: Rellenar huecos automáticos respetando las reglas antirepetición
+            // Pasada 2: Rellenar huecos de los turnos automáticos evaluando la polivalencia de la matriz
             cargas.forEach((carga, i) => {
                 if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
+                // FILTRADO ESTRICTO: Buscar operario disponible que SÍ sepa hacer la carga (Competencia activa)
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
@@ -691,6 +689,7 @@
                     }
                 }
 
+                // Si no hay operarios aptos libres, busca un libre sin repetir carga, pero marcará ALERTA visual
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -706,6 +705,7 @@
                     }
                 }
 
+                // Caso de emergencia absoluta: Asigna al primero disponible del turno actual
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -746,7 +746,6 @@
 
             html += `</table>`;
             
-            // Botón de acción explícita para guardar y propagar el cálculo inteligente a los siguientes turnos
             if (t < 4) {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
             } else {
@@ -758,11 +757,9 @@
         }
     }
 
-    // ⚡ BOTÓN EXPLÍCITO: Lee los selectores del turno X, los guarda, limpia los siguientes y los fuerza a cuadrar
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
 
-        // 1. Recoger y fijar lo que el usuario ha seleccionado en los desplegables de este turno
         cargasEnTurno.forEach(c => {
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
             if (selector) {
@@ -770,18 +767,15 @@
             }
         });
 
-        // 2. Limpiar las memorias de los turnos posteriores para que el generador busque nuevas combinaciones limpias
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => {
                 delete cambiosManualesUsuarios[`${t}_X_${c}`];
             });
         }
 
-        // 3. Re-renderizar la jornada completa aplicando los bloqueos nuevos
         generarJornadaCompleta();
     }
 
-    // Para el Turno 4 solo hace falta guardar su propio estado sin disparar recálculos
     function guardarTurnoFinal(turnoFinal) {
         const cargasEnTurno = leerLista("listaCargas");
         cargasEnTurno.forEach(c => {
