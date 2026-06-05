@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Polivalencia Inteligente</title>
+    <title>Control de Rotaciones - Edición Manual Avanzada</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -20,7 +20,9 @@
         
         * { box-sizing: border-box; }
         
-        html { font-size: 14px; }
+        html {
+            font-size: 14px; 
+        }
         
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -28,7 +30,7 @@
             color: var(--text-main); 
             padding: 12px; 
             margin: 0; 
-            padding-bottom: 110px; 
+            padding-bottom: 105px; /* Un pelín más de espacio por los iconos grandes */
             font-size: 0.85rem; 
         }
         
@@ -92,7 +94,7 @@
             border-color: #a855f7;
         }
 
-        /* 👑 MENÚ INFERIOR CON ICONOS GRANDES */
+        /* 👑 MENÚ INFERIOR CON ICONOS MÁS GRANDES 👑 */
         .tabs-nav { 
             position: fixed; 
             bottom: 0; 
@@ -100,8 +102,8 @@
             background: #0a0a0a; 
             display: flex; 
             justify-content: space-around;
-            padding: 10px 4px; 
-            border-top: 2px solid #222;
+            padding: 8px 4px; 
+            border-top: 1px solid #222;
             z-index: 9999;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
@@ -116,14 +118,14 @@
             flex-direction: column; 
             align-items: center; 
             gap: 4px; 
-            font-size: 0.7rem; 
+            font-size: 0.68rem; 
             font-weight: 700;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         
         .tab-btn .icon { 
-            font-size: 1.6rem !important; 
+            font-size: 1.45rem !important; /* Iconos notablemente más grandes y legibles */
         } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
@@ -188,7 +190,10 @@
             table-layout: fixed; 
         }
 
-        .matrix-table tr { height: 46px !important; max-height: 46px !important; }
+        .matrix-table tr {
+            height: 46px !important;
+            max-height: 46px !important;
+        }
         
         .matrix-table th { 
             background: #111827; 
@@ -200,10 +205,15 @@
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
+            white-space: normal !important; 
+            word-break: break-word;
+            line-height: 1.1;
+            display: table-cell;
             vertical-align: middle;
             width: 150px !important; 
             min-width: 150px !important;
             max-width: 150px !important;
+            box-sizing: border-box;
         }
 
         .matrix-table th:first-child,
@@ -212,6 +222,7 @@
             min-width: 120px !important;
             max-width: 120px !important;
             height: 46px !important;
+            max-height: 46px !important;
             text-align: left; 
             font-weight: 700; 
             background: #050505 !important; 
@@ -224,6 +235,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: table-cell; 
             vertical-align: middle;
             font-size: 0.8rem;
         }
@@ -234,68 +246,170 @@
             border: 1px solid var(--border-color); 
             font-size: 0.85rem; 
             color: #ffffff;
+            white-space: nowrap;
+            box-sizing: border-box;
             height: 46px !important;
+            max-height: 46px !important;
             width: 150px;
             min-width: 150px;
             max-width: 150px;
+            display: table-cell;
             vertical-align: middle;
         }
         
-        .count-number { font-weight: 900; color: var(--accent) !important; font-size: 1rem !important; }
+        .count-number { 
+            font-weight: 900; 
+            color: var(--accent) !important; 
+            font-size: 1rem !important; 
+            text-align: center;
+            display: inline-block;
+            width: 100%;
+        }
 
         .matrix-table input[type="checkbox"] { 
-            -webkit-appearance: none; appearance: none;
-            background-color: #1f2937; margin: 0 auto; display: block;
-            width: 22px; height: 22px; border: 2px solid var(--border-color); border-radius: 6px; cursor: pointer;
-            position: relative; transition: background-color 0.2s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #1f2937; 
+            margin: 0 auto !important; 
+            display: block !important;
+            width: 22px !important;  
+            height: 22px !important; 
+            min-width: 22px !important; 
+            min-height: 22px !important;
+            max-width: 22px !important;
+            max-height: 22px !important;
+            border: 2px solid var(--border-color) !important; 
+            border-radius: 6px !important; 
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
         }
-        .matrix-table input[type="checkbox"]:checked { background-color: var(--primary-light); border-color: var(--primary-light); }
+
+        .matrix-table input[type="checkbox"]:checked {
+            background-color: var(--primary-light) !important; 
+            border-color: var(--primary-light) !important;
+        }
+
         .matrix-table input[type="checkbox"]:checked::after {
-            content: ''; position: absolute; left: 6px; top: 1px; width: 4px; height: 9px;
-            border: solid #000000; border-width: 0 3px 3px 0; transform: rotate(45deg);
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 1px;
+            width: 4px;
+            height: 9px;
+            border: solid #000000; 
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
         }
 
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
-        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
+        /* 📱 SECCIÓN DE TURNOS */
         .jornada-grid { 
-            display: flex; flex-direction: column; gap: 12px; 
-            overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; 
-            max-height: calc(100vh - 200px); -webkit-overflow-scrolling: touch;
-        }
-        .turno-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        
-        @media (min-width: 900px) {
-            .jornada-grid { display: grid; grid-template-columns: repeat(4, 1fr); overflow-y: visible; max-height: none; }
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto;       
+            overflow-x: hidden;     
+            padding: 5px 5px 80px 5px; 
+            max-height: calc(100vh - 200px); 
+            -webkit-overflow-scrolling: touch;
         }
 
-        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); }
-        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; opacity: 0.8; }
+        .turno-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            flex: 0 0 auto; 
+            width: 100%;    
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 900px) {
+            .jornada-grid { 
+                display: grid; 
+                grid-template-columns: repeat(4, 1fr); 
+                overflow-y: visible;
+                max-height: none;
+            }
+        }
+
+        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
+        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
         
         .results-table { width: 100%; border-collapse: collapse; }
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
+        
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
         
         .select-op-editable {
-            background: #000; color: var(--primary-light); border: 2px solid #374151; font-weight: 800; font-size: 0.9rem;
-            width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; outline: none; text-transform: uppercase;
+            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
+            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            -webkit-appearance: none; appearance: none;
         }
-        /* ⚠️ Borde naranja llamativo si el operario no tiene esa polivalencia marcada */
-        .select-op-editable.op-alert { border-color: var(--accent) !important; color: var(--accent); }
-        .select-op-editable.op-error { border-color: var(--danger) !important; color: var(--danger); }
+        .select-op-editable option { background: #111827; color: #fff; }
+        .select-op-editable.op-alert { color: var(--accent); }
+        .select-op-editable.op-error { color: var(--danger); }
 
+        /* Botón guardar por tarjeta de turno elegante */
         .btn-save-turno {
-            background: #111827; color: #60a5fa; border: none; border-top: 1px solid var(--border-color);
-            padding: 12px; width: 100%; font-size: 0.8rem; font-weight: 800; cursor: pointer; text-transform: uppercase;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: #111827;
+            color: #60a5fa;
+            border: none;
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-        .btn-save-turno:hover { background: #1e3a8a; color: #ffffff; }
+        .btn-save-turno:hover {
+            background: #1e3a8a;
+            color: #ffffff;
+        }
 
-        .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; width: 100%; }
-        .btn-counter-reset { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 6px 10px; font-size: 0.78rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .history-header { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            gap: 10px; 
+            width: 100%;
+        }
+        .history-header .section-title {
+            font-size: 0.88rem; 
+            white-space: nowrap; 
+            font-weight: 800;
+        }
+        .btn-counter-reset {
+            background: #2a1f08; 
+            color: var(--accent); 
+            border: 1px solid #78350f; 
+            padding: 6px 10px; 
+            font-size: 0.78rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0; 
+        }
+
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
@@ -371,19 +485,24 @@
 
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-            <span class="icon">⚙️</span><span>Configurar</span>
+            <span class="icon">⚙️</span>
+            <span>Configurar</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-            <span class="icon">🛠️</span><span>Polivalencia</span>
+            <span class="icon">🛠️</span>
+            <span>Polivalencia</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-            <span class="icon">📅</span><span>Turnos</span>
+            <span class="icon">📅</span>
+            <span>Turnos</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
-            <span class="icon">📊</span><span>Contador</span>
+            <span class="icon">📊</span>
+            <span>Contador</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">📂</span><span>Historial</span>
+            <span class="icon">📂</span>
+            <span>Historial</span>
         </button>
     </div>
 </div>
@@ -395,7 +514,6 @@
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
     let cambiosManualesUsuarios = {}; 
-    let matrizJornadaCalculada = {};
 
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
@@ -446,7 +564,6 @@
     function actualizarVisualBotonesHorario() {
         const btnM = document.getElementById("btnHorarioManana");
         const btnT = document.getElementById("btnHorarioTarde");
-        if(!btnM || !btnT) return;
         btnM.className = "btn-schedule";
         btnT.className = "btn-schedule";
         if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
@@ -507,12 +624,12 @@
         generarJornadaCompleta();
     }
 
-    /* 🧠 MOTOR DE ASIGNACIÓN INTELIGENTE CON FILTRADO DE POLIVALENCIA */
+    let matrizJornadaCalculada = {};
+
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
-        if (!contenedor) return;
         contenedor.innerHTML = "";
 
         if(ops.length === 0 || cargas.length === 0) return;
@@ -525,17 +642,25 @@
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
-            let operariosUsadosEnEsteTurno = new Set();
             
-            // Pasada 1: Cargar memorias manuales fijadas por el usuario
+            let operariosOcupadosEnEsteTurnoMismo = new Set();
+            
+            // Pasada 1: Cargar memorias manuales fijadas de forma estricta
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
                     let opManual = cambiosManualesUsuarios[claveManual];
                     if (opManual !== "No Apto") {
-                        operariosUsadosEnEsteTurno.add(opManual); 
+                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
                         historialPuestosPorOperarioDia[opManual].add(carga);
                     }
+                }
+            });
+
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
                         alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false)
@@ -543,39 +668,37 @@
                 }
             });
 
-            // Pasada 2: Rellenar huecos automáticos respetando POLIVALENCIA ESTRICTA y antirepetición
+            // Pasada 2: Rellenar huecos automáticos respetando las reglas antirepetición
             cargas.forEach((carga, i) => {
                 if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // REGLA DE ORO: Buscar un operario que SEPA HACERLA (Apto en matriz) y que no repita faena ni turno
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
-                    if (!operariosUsadosEnEsteTurno.has(candidato) && 
+                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && 
                         !yaHizoEstaFaenaHoy && 
                         competencies[`${candidato}_X_${carga}`] !== false) {
                         
                         matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false };
-                        operariosUsadosEnEsteTurno.add(candidato);
+                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
                         historialPuestosPorOperarioDia[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
 
-                // Si no queda nadie libre que cumpla todo, buscamos uno libre que no repita hoy aunque NO tenga la polivalencia (marca Alerta)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
                         let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
 
-                        if (!operariosUsadosEnEsteTurno.has(candidato) && !yaHizoEstaFaenaHoy) {
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
-                            operariosUsadosEnEsteTurno.add(candidato);
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             historialPuestosPorOperarioDia[candidato].add(carga);
                             asignado = true;
                             break;
@@ -583,27 +706,24 @@
                     }
                 }
 
-                // Último recurso de emergencia total: Meter a cualquiera libre en el turno
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
-                        if (!operariosUsadosEnEsteTurno.has(candidato)) {
+                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true };
-                            operariosUsadosEnEsteTurno.add(candidato);
+                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
                             asignado = true;
                             break;
                         }
                     }
                 }
 
-                // Si físicamente no hay operarios suficientes
                 if (!asignado) {
                     matrizJornadaCalculada[t][carga] = { nombre: "No Apto", error: true };
                 }
             });
         }
 
-        // Renderizado físico de los bloques de turnos en el HTML
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -611,7 +731,7 @@
 
             cargas.forEach(carga => {
                 let res = matrizJornadaCalculada[t][carga];
-                let claseExtra = res.error ? "op-error" : res.alerta ? "op-alert" : "";
+                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
@@ -626,6 +746,7 @@
 
             html += `</table>`;
             
+            // Botón de acción explícita para guardar y propagar el cálculo inteligente a los siguientes turnos
             if (t < 4) {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
             } else {
@@ -637,9 +758,11 @@
         }
     }
 
+    // ⚡ BOTÓN EXPLÍCITO: Lee los selectores del turno X, los guarda, limpia los siguientes y los fuerza a cuadrar
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
 
+        // 1. Recoger y fijar lo que el usuario ha seleccionado en los desplegables de este turno
         cargasEnTurno.forEach(c => {
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
             if (selector) {
@@ -647,16 +770,18 @@
             }
         });
 
-        // Limpiar los turnos posteriores para que se calculen de forma limpia con la polivalencia adecuada
+        // 2. Limpiar las memorias de los turnos posteriores para que el generador busque nuevas combinaciones limpias
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => {
                 delete cambiosManualesUsuarios[`${t}_X_${c}`];
             });
         }
 
+        // 3. Re-renderizar la jornada completa aplicando los bloqueos nuevos
         generarJornadaCompleta();
     }
 
+    // Para el Turno 4 solo hace falta guardar su propio estado sin disparar recálculos
     function guardarTurnoFinal(turnoFinal) {
         const cargasEnTurno = leerLista("listaCargas");
         cargasEnTurno.forEach(c => {
@@ -672,7 +797,7 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorContador");
-        if(!contenedor || ops.length === 0 || cargas.length === 0) return;
+        if(ops.length === 0 || cargas.length === 0) return;
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
@@ -732,7 +857,6 @@
 
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
-        if(!contenedor) return;
         contenedor.innerHTML = "";
 
         if(historialJornadas.length === 0) {
