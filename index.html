@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Edición Manual Avanzada</title>
+    <title>Control de Rotaciones - 12x12 Dinámico</title>
     <style>
         :root { 
             --bg-main: #000000;       
@@ -19,7 +19,6 @@
         }
         
         * { box-sizing: border-box; }
-        
         html { font-size: 14px; }
         
         body { 
@@ -163,17 +162,14 @@
             padding-right: 2px; 
         }
         
-        /* CORREGIDO: Ajuste del contenedor de fila para evitar desbordamientos */
         .item-row { display: flex; gap: 6px; align-items: center; width: 100%; box-sizing: border-box; }
         
-        /* CORREGIDO: min-width: 0 permite que el input se encoja perfectamente en pantallas estrechas */
         #listaOps .item-input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
         #listaCargas .item-input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
         .item-input:focus { border-color: var(--primary-light); outline: none; }
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* NUEVO: Contenedor vertical optimizado para apilar los botones de ordenación */
         .order-actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
         .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 4px; cursor: pointer; width: 32px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; transition: background 0.2s; }
         .btn-order:hover { background: #374151; }
@@ -418,21 +414,21 @@
 
 <div class="container">
     <div class="main-header">
-        <h1>Control de Rotaciones</h1>
+        <h1>Control de Rotaciones (12x12)</h1>
     </div>
 
     <div id="tab-config" class="tab-content active">
         <div class="config-grid" id="contenedorConfig">
             <div class="section-box">
                 <div class="section-header">
-                    <span class="section-title">👷 Operarios en turno</span>
+                    <span class="section-title">👷 Operarios en turno (12)</span>
                     <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
                 </div>
                 <div id="listaOps" class="item-list"></div>
             </div>
             <div class="section-box">
                 <div class="section-header">
-                    <span class="section-title">📦 Cargas de Trabajo</span>
+                    <span class="section-title">📦 Cargas de Trabajo (12)</span>
                     <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
                 </div>
                 <div id="listaCargas" class="item-list"></div>
@@ -510,25 +506,26 @@
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
 
-    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
-    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
+    // AJUSTADO A 12 OPERARIOS Y 12 CARGAS POR DEFECTO
+    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8", "Operario 9", "Operario 10", "Operario 11", "Operario 12"];
+    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
-        if(localStorage.getItem('hist_competencias_v14')) {
-            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v14')); } catch(e) {}
+        if(localStorage.getItem('hist_competencias_v15')) {
+            try { competencies = JSON.parse(localStorage.getItem('hist_competencias_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('registro_jornadas_v14')) {
-            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v14')); } catch(e) {}
+        if(localStorage.getItem('registro_jornadas_v15')) {
+            try { historialJornadas = JSON.parse(localStorage.getItem('registro_jornadas_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('conteo_semanal_v14')) {
-            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v14')); } catch(e) {}
+        if(localStorage.getItem('conteo_semanal_v15')) {
+            try { conteoSemanal = JSON.parse(localStorage.getItem('conteo_semanal_v15')); } catch(e) {}
         }
-        if(localStorage.getItem('tipo_horario_v14')) {
-            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v14');
+        if(localStorage.getItem('tipo_horario_v15')) {
+            tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v15');
         }
 
-        let ops = localStorage.getItem('hist_ops_v14') ? JSON.parse(localStorage.getItem('hist_ops_v14')) : defaultOps;
-        let cargas = localStorage.getItem('hist_cargas_v14') ? JSON.parse(localStorage.getItem('hist_cargas_v14')) : defaultCargas;
+        let ops = localStorage.getItem('hist_ops_v15') ? JSON.parse(localStorage.getItem('hist_ops_v15')) : defaultOps;
+        let cargas = localStorage.getItem('hist_cargas_v15') ? JSON.parse(localStorage.getItem('hist_cargas_v15')) : defaultCargas;
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -547,7 +544,7 @@
 
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
-        localStorage.setItem('tipo_horario_v14', tipo);
+        localStorage.setItem('tipo_horario_v15', tipo);
         cambiosManualesUsuarios = {}; 
         actualizarVisualBotonesHorario();
         generarJornadaCompleta();
@@ -562,7 +559,6 @@
         else btnT.classList.add("active-afternoon");
     }
 
-    // CORREGIDO: Empaqueta los botones de orden en un div vertical ".order-actions"
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
         const row = document.createElement("div");
@@ -586,7 +582,6 @@
         contenedor.appendChild(row);
     }
 
-    // CORREGIDO: Ahora utiliza .closest() para encontrar la fila real sin importar el anidamiento estructural
     function moverFila(boton, direccion) {
         const filaActual = boton.closest('.item-row');
         const contenedor = filaActual.parentElement;
@@ -616,8 +611,8 @@
         const cargas = leerLista("listaCargas");
         const contenedorMatriz = document.getElementById("contenedorMatriz");
 
-        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
+        localStorage.setItem('hist_ops_v15', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v15', JSON.stringify(cargas));
 
         if(ops.length === 0 || cargas.length === 0) return;
 
@@ -630,7 +625,7 @@
             cargas.forEach(c => {
                 let clv = `${op}_X_${c}`;
                 let check = (competencies[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v15', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
             });
             html += `</tr>`;
         });
@@ -650,6 +645,7 @@
 
     let matrizJornadaCalculada = {};
 
+    // NUEVO MOTOR: Optimizado para 12x12 sin descansos y recalculación por arrastre de puestos
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -660,22 +656,25 @@
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        let historialPuestosPorOperarioDia = {}; 
-        ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
+        
+        // Historial dinámico para saber qué cargas lleva cada operario en el transcurso del día
+        let historialCargasPorOperarioDia = {}; 
+        ops.forEach(o => historialCargasPorOperarioDia[o] = new Set());
 
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             
-            let operariosOcupadosEnEsteTurnoMismo = new Set();
+            let operariosOcupadosEnEsteTurno = new Set();
             
+            // 1. Cargar bloqueos de celdas manuales modificadas por el usuario
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
                     let opManual = cambiosManualesUsuarios[claveManual];
                     if (opManual !== "No Apto") {
-                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
-                        historialPuestosPorOperarioDia[opManual].add(carga);
+                        operariosOcupadosEnEsteTurno.add(opManual); 
+                        historialCargasPorOperarioDia[opManual].add(carga);
                     }
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
@@ -685,47 +684,62 @@
                 }
             });
 
+            // 2. Rellenar automáticamente los puestos libres restantes de este turno
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; 
+                if (matrizJornadaCalculada[t][carga]) return; // Saltarse si el usuario ya fijó un operario aquí
 
                 let idxBase = (i + desplazo) % ops.length;
+                
+                // Generar sublista circular de candidatos según la combinación base
+                let candidatosOrdenados = [];
+                for (let s = 0; s < ops.length; s++) {
+                    candidatosOrdenados.push(ops[(idxBase + s) % ops.length]);
+                }
+
+                // NUEVO CRITERIO: Priorizar de forma estricta a los que no hayan estado en esta carga hoy
+                candidatosOrdenados.sort((a, b) => {
+                    let yaHizoCargaA = historialCargasPorOperarioDia[a].has(carga) ? 1 : 0;
+                    let yaHizoCargaB = historialCargasPorOperarioDia[b].has(carga) ? 1 : 0;
+                    return yaHizoCargaA - yaHizoCargaB; // Pone primero (0) a los que no han estado nunca en esta carga
+                });
+
                 let asignado = false;
 
-                for (let s = 0; s < ops.length; s++) {
-                    let candidato = ops[(idxBase + s) % ops.length];
-                    let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                // Fase A: Asignación limpia y perfecta (Apto, libre en este turno y no repite carga hoy)
+                for (let candidato of candidatosOrdenados) {
+                    let yaEstuvoEnEstaCargaHoy = historialCargasPorOperarioDia[candidato].has(carga);
                     let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
 
-                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy && esApto) {
+                    if (!operariosOcupadosEnEsteTurno.has(candidato) && !yaEstuvoEnEstaCargaHoy && esApto) {
                         matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false, error: false };
-                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                        historialPuestosPorOperarioDia[candidato].add(carga);
+                        operariosOcupadosEnEsteTurno.add(candidato);
+                        historialCargasPorOperarioDia[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
 
+                // Fase B: Forzar omitiendo polivalencia (Salta Alerta, pero evita repetir carga a toda costa)
                 if (!asignado) {
-                    for (let s = 0; s < ops.length; s++) {
-                        let candidato = ops[(idxBase + s) % ops.length];
-                        let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                    for (let candidato of candidatosOrdenados) {
+                        let yaEstuvoEnEstaCargaHoy = historialCargasPorOperarioDia[candidato].has(carga);
 
-                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
+                        if (!operariosOcupadosEnEsteTurno.has(candidato) && !yaEstuvoEnEstaCargaHoy) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                            historialPuestosPorOperarioDia[candidato].add(carga);
+                            operariosOcupadosEnEsteTurno.add(candidato);
+                            historialCargasPorOperarioDia[candidato].add(carga);
                             asignado = true;
                             break;
                         }
                     }
                 }
 
+                // Fase C: Forzar repetición obligada de carga (Último recurso matemático si no quedan más libres)
                 if (!asignado) {
-                    for (let s = 0; s < ops.length; s++) {
-                        let candidato = ops[(idxBase + s) % ops.length];
-                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                    for (let candidato of candidatosOrdenados) {
+                        if (!operariosOcupadosEnEsteTurno.has(candidato)) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            operariosOcupadosEnEsteTurno.add(candidato);
                             asignado = true;
                             break;
                         }
@@ -738,6 +752,7 @@
             });
         }
 
+        // Inyección y construcción visual de las tarjetas de turnos
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -774,6 +789,7 @@
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
 
+        // Almacenar las modificaciones elegidas por el usuario en el turno actual
         cargasEnTurno.forEach(c => {
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
             if (selector) {
@@ -781,6 +797,7 @@
             }
         });
 
+        // RECALCULO ACTIVO: Eliminar bloqueos antiguos de los turnos siguientes para obligarlos a reordenarse
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => {
                 delete cambiosManualesUsuarios[`${t}_X_${c}`];
@@ -837,7 +854,7 @@
                 conteoSemanal[clv]++;
             }
         });
-        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+        localStorage.setItem('conteo_semanal_v15', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
         let copiaTurnos = {};
@@ -858,7 +875,7 @@
         };
 
         historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+        localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
         
         alert("💾 ¡Guardado con éxito en contadores e Historial!");
     }
@@ -904,7 +921,7 @@
     function borrarJornadaIndividual(id) {
         if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
             historialJornadas = historialJornadas.filter(j => j.id !== id);
-            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+            localStorage.setItem('registro_jornadas_v15', JSON.stringify(historialJornadas));
             renderizarHistorial();
         }
     }
@@ -912,7 +929,7 @@
     function borrarTodoElHistorial() {
         if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
             historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v14');
+            localStorage.removeItem('registro_jornadas_v15');
             renderizarHistorial();
         }
     }
@@ -920,7 +937,7 @@
     function reiniciarContadoresSemanales() {
         if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
             conteoSemanal = {};
-            localStorage.removeItem('conteo_semanal_v14');
+            localStorage.removeItem('conteo_semanal_v15');
             renderizarTablaContadores();
         }
     }
