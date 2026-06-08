@@ -169,6 +169,10 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
+        /* NUEVO: Estilos estéticos para los botones de ordenación */
+        .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 6px; cursor: pointer; width: 30px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: background 0.2s; }
+        .btn-order:hover { background: #374151; }
+
         .matrix-container { 
             overflow-x: auto; 
             background: var(--bg-card); 
@@ -553,15 +557,45 @@
         else btnT.classList.add("active-afternoon");
     }
 
+    // MODIFICADO: Agrega los botones de subir y bajar solo a las cargas de trabajo
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
         const row = document.createElement("div");
         row.className = "item-row";
+        
+        let htmlBotonesOrden = "";
+        if (tipo === 'Carga') {
+            htmlBotonesOrden = `
+                <button class="btn-order" onclick="moverFila(this, 'subir')" title="Subir prioridad">🔼</button>
+                <button class="btn-order" onclick="moverFila(this, 'bajar')" title="Bajar prioridad">🔽</button>
+            `;
+        }
+
         row.innerHTML = `
+            ${htmlBotonesOrden}
             <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()">
             <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
         `;
         contenedor.appendChild(row);
+    }
+
+    // NUEVO: Función nativa para reordenar los elementos en el DOM y lanzar el recálculo
+    function moverFila(boton, direccion) {
+        const filaActual = boton.parentElement;
+        const contenedor = filaActual.parentElement;
+        
+        if (direccion === 'subir') {
+            const filaAnterior = filaActual.previousElementSibling;
+            if (filaAnterior) {
+                contenedor.insertBefore(filaActual, filaAnterior);
+            }
+        } else if (direccion === 'bajar') {
+            const filaSiguiente = filaActual.nextElementSibling;
+            if (filaSiguiente) {
+                contenedor.insertBefore(filaSiguiente, filaActual);
+            }
+        }
+        procesarCambios();
     }
 
     function leerLista(contenedorId) {
@@ -609,7 +643,7 @@
 
     let matrizJornadaCalculada = {};
 
-        function generarJornadaCompleta() {
+    function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
