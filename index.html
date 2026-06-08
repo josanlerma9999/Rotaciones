@@ -438,7 +438,7 @@
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-vista-op', this)">
             <span class="icon">👤</span>
-            <span>Vista Op.</span>
+            <span>Vista</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
             <span class="icon">📊</span>
@@ -463,7 +463,7 @@
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
 
-    // DATOS REALES E INTEGROS DE TU APLICACIÓN ORIGINAL
+    // TUS 12 OPERARIOS Y 12 CARGAS REALES RESTAURADOS AL 100%
     const defaultOps = ["JOEL", "YLENIA", "MÓNICA", "ROBERTO", "RAMCEL", "IBAN", "ZAKI", "NARDY", "CESAR", "CRISTIAN", "MARIO", "SERGIO"];
     const defaultCargas = ["Montante A Inf Izq", "Montaje Batería", "Bandeja batería", "Manipulador Alfombra", "Manguitos", "Conexiones Batería", "Acondicionado Conexiones", "Acondicionado Alfombra Izq", "Acondicionado Alfombra Der", "Listón", "Masa Convertidor", "Montante A Inf Der"];
 
@@ -760,7 +760,6 @@
         generarJornadaCompleta();
     }
 
-    // LÓGICA DE LA VISTA INDIVIDUAL (NUEVA EXCLUSIVA)
     function actualizarDesplegableOperariosIndividual() {
         const select = document.getElementById("selectVistaOpIndividual");
         const ops = leerLista("listaOps");
@@ -771,6 +770,10 @@
             select.value = opSeleccionadoPreviamente;
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        actualizarDesplegableOperariosIndividual();
+    });
 
     function renderizarVistaIndividualOperario() {
         const select = document.getElementById("selectVistaOpIndividual");
