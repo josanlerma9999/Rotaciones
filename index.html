@@ -609,7 +609,7 @@
 
     let matrizJornadaCalculada = {};
 
-    function generarJornadaCompleta() {
+        function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
@@ -622,13 +622,14 @@
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
+        // PROCESADO SECUENCIAL: Turno por Turno para que el impacto manual se arrastre correctamente
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             
-            // OPTIMIZADO: Cargar selecciones manuales guardadas en una sola pasada limpia
+            // Pasada 1 del Turno 't': Bloquear y registrar los cambios manuales existentes
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -645,9 +646,9 @@
                 }
             });
 
-            // Pasada 2: Rellenar huecos automáticos
+            // Pasada 2 del Turno 't': Rellenar automáticos en base al estado REAL actual de este turno
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; 
+                if (matrizJornadaCalculada[t][carga]) return; // Si ya fue asignado manualmente, saltar
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
@@ -702,13 +703,14 @@
             });
         }
 
+        // Renderizado del HTML en base a la matriz limpia y recalculada en cadena
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             cargas.forEach(carga => {
-                let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true }; // BLINDAJE CONTRA UNDEFINED
+                let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true };
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
                 html += `<tr>
