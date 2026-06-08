@@ -114,13 +114,13 @@
             flex-direction: column; 
             align-items: center; 
             gap: 4px; 
-            font-size: 0.65rem; 
+            font-size: 0.68rem; 
             font-weight: 700;
             transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .tab-btn .icon { font-size: 1.3rem !important; } 
+        .tab-btn .icon { font-size: 1.45rem !important; } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
         .tab-content { display: none; }
@@ -172,6 +172,7 @@
 
         .order-actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
         .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 4px; cursor: pointer; width: 32px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; transition: background 0.2s; }
+        .btn-order:hover { background: #374151; }
 
         .matrix-container { 
             overflow-x: auto; 
@@ -201,10 +202,15 @@
             font-weight: 800; 
             text-transform: uppercase; 
             text-align: center;
+            white-space: normal !important; 
+            word-break: break-word;
+            line-height: 1.1;
+            display: table-cell;
             vertical-align: middle;
             width: 150px !important; 
             min-width: 150px !important;
             max-width: 150px !important;
+            box-sizing: border-box;
         }
 
         .matrix-table th:first-child,
@@ -212,6 +218,8 @@
             width: 120px !important;
             min-width: 120px !important;
             max-width: 120px !important;
+            height: 46px !important;
+            max-height: 46px !important;
             text-align: left; 
             font-weight: 700; 
             background: #050505 !important; 
@@ -221,8 +229,10 @@
             z-index: 10; 
             border-right: 2px solid var(--border-color);
             padding-left: 12px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: table-cell; 
             vertical-align: middle;
             font-size: 0.8rem;
         }
@@ -233,32 +243,66 @@
             border: 1px solid var(--border-color); 
             font-size: 0.85rem; 
             color: #ffffff;
-            vertical-align: middle;
+            white-space: nowrap;
+            box-sizing: border-box;
             height: 46px !important;
+            max-height: 46px !important;
             width: 150px;
+            min-width: 150px;
+            max-width: 150px;
+            display: table-cell;
+            vertical-align: middle;
         }
         
         .count-number { 
             font-weight: 900; 
             color: var(--accent) !important; 
             font-size: 1rem !important; 
+            text-align: center;
+            display: inline-block;
+            width: 100%;
         }
 
         .matrix-table input[type="checkbox"] { 
-            -webkit-appearance: none; appearance: none;
-            background-color: #1f2937; margin: 0 auto; display: block;
-            width: 22px; height: 22px; border: 2px solid var(--border-color); 
-            border-radius: 6px; cursor: pointer; position: relative;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #1f2937; 
+            margin: 0 auto !important; 
+            display: block !important;
+            width: 22px !important;  
+            height: 22px !important; 
+            min-width: 22px !important; 
+            min-height: 22px !important;
+            max-width: 22px !important;
+            max-height: 22px !important;
+            border: 2px solid var(--border-color) !important; 
+            border-radius: 6px !important; 
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
         }
 
-        .matrix-table input[type="checkbox"]:checked { background-color: var(--primary-light); border-color: var(--primary-light); }
+        .matrix-table input[type="checkbox"]:checked {
+            background-color: var(--primary-light) !important; 
+            border-color: var(--primary-light) !important;
+        }
+
         .matrix-table input[type="checkbox"]:checked::after {
-            content: ''; position: absolute; left: 6px; top: 1px; width: 4px; height: 9px;
-            border: solid #000; border-width: 0 3px 3px 0; transform: rotate(45deg);
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 1px;
+            width: 4px;
+            height: 9px;
+            border: solid #000000; 
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
         }
 
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
-        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
@@ -268,8 +312,10 @@
             flex-direction: column; 
             gap: 12px; 
             overflow-y: auto;       
+            overflow-x: hidden;     
             padding: 5px 5px 80px 5px; 
             max-height: calc(100vh - 200px); 
+            -webkit-overflow-scrolling: touch;
         }
 
         .turno-card { 
@@ -277,13 +323,20 @@
             border: 1px solid var(--border-color); 
             border-radius: 12px; 
             overflow: hidden; 
+            flex: 0 0 auto; 
+            width: 100%;    
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
         }
 
         @media (min-width: 900px) {
-            .jornada-grid { display: grid; grid-template-columns: repeat(4, 1fr); max-height: none; overflow-y: visible;}
+            .jornada-grid { 
+                display: grid; 
+                grid-template-columns: repeat(4, 1fr); 
+                overflow-y: visible;
+                max-height: none;
+            }
         }
 
         .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
@@ -292,98 +345,92 @@
         .results-table { width: 100%; border-collapse: collapse; }
         .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         
-        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
         
         .select-op-editable {
             background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
-            width: 100%; cursor: pointer; outline: none; text-transform: uppercase;
+            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            -webkit-appearance: none; appearance: none;
         }
         .select-op-editable option { background: #111827; color: #fff; }
         .select-op-editable.op-alert { color: var(--accent); }
         .select-op-editable.op-error { color: var(--danger); }
 
         .btn-save-turno {
-            background: #111827; color: #60a5fa; border: none; border-top: 1px solid var(--border-color);
-            padding: 12px; font-size: 0.8rem; font-weight: 800; cursor: pointer; text-align: center;
-            text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-
-        /* DISEÑO EXCLUSIVO PARA LA NUEVA PESTAÑA VISTA OPERARIO */
-        .search-box-op {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .search-box-op label {
-            font-weight: 800;
-            color: var(--primary-light);
-            font-size: 0.9rem;
-        }
-        .select-search-op {
-            background: #000;
-            color: #fff;
-            border: 1px solid var(--border-color);
+            background: #111827;
+            color: #60a5fa;
+            border: none;
+            border-top: 1px solid var(--border-color);
             padding: 12px;
-            font-size: 1rem;
-            border-radius: 8px;
-            font-weight: 700;
-            width: 100%;
-            outline: none;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-save-turno:hover { background: #1e3a8a; color: #ffffff; }
+
+        /* DISEÑO EXCLUSIVO PARA LA PESTAÑA VISTA OPERARIO */
+        .search-box-op {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 15px; border-radius: 12px; margin-bottom: 15px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .search-box-op label { font-weight: 800; color: var(--primary-light); font-size: 0.9rem; }
+        .select-search-op {
+            background: #000; color: #fff; border: 1px solid var(--border-color);
+            padding: 12px; font-size: 1rem; border-radius: 8px; font-weight: 700;
+            width: 100%; outline: none;
         }
         .single-op-card {
-            background: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.7);
-            margin-top: 10px;
+            background: var(--bg-card); border: 2px solid var(--primary);
+            border-radius: 12px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.7); margin-top: 10px;
         }
         .single-op-header {
-            background: var(--primary);
-            color: #fff;
-            padding: 12px;
-            text-align: center;
-            font-weight: 900;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            background: var(--primary); color: #fff; padding: 12px; text-align: center;
+            font-weight: 900; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .single-op-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; border-bottom: 1px solid var(--border-color);
         }
         .single-op-row:last-child { border-bottom: none; }
-        .single-op-turno-label {
-            font-weight: 800;
-            color: var(--accent);
-            font-size: 0.85rem;
-        }
+        .single-op-turno-label { font-weight: 800; color: var(--accent); font-size: 0.85rem; }
         .single-op-turno-label span {
-            display: block;
-            color: var(--text-muted);
-            font-size: 0.72rem;
-            font-weight: 600;
-            margin-top: 2px;
+            display: block; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; margin-top: 2px;
         }
         .single-op-carga-value {
-            font-weight: 800;
-            color: #ffffff;
-            font-size: 0.95rem;
-            text-align: right;
-            max-width: 60%;
+            font-weight: 800; color: #ffffff; font-size: 0.95rem; text-align: right; max-width: 60%;
         }
 
-        .history-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 10px; width: 100%; }
+        .history-header { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            gap: 10px; 
+            width: 100%;
+        }
         .history-header .section-title { font-size: 0.88rem; white-space: nowrap; font-weight: 800; }
-        .btn-counter-reset { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 6px 10px; font-size: 0.78rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-counter-reset {
+            background: #2a1f08; 
+            color: var(--accent); 
+            border: 1px solid #78350f; 
+            padding: 6px 10px; 
+            font-size: 0.78rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0; 
+        }
+
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
@@ -445,7 +492,7 @@
         <div class="search-box-op">
             <label for="selectBusquedaOp">🔍 Selecciona un Operario para ver sus 4 turnos:</label>
             <select id="selectBusquedaOp" class="select-search-op" onchange="actualizarTarjetaIndividualOperario()">
-                </select>
+            </select>
         </div>
         <div id="contenedorTarjetaIndividual"></div>
     </div>
@@ -481,7 +528,7 @@
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-vista-op', this)">
             <span class="icon">📋</span>
-            <span>Vista Operario</span>
+            <span>Vista Op.</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
             <span class="icon">📊</span>
@@ -501,14 +548,13 @@
     let conteoSemanal = {}; 
     let tipoHorarioSeleccionado = "manana"; 
     let cambiosManualesUsuarios = {}; 
-    let matrizJornadaCalculada = {};
 
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
 
-    // Nombres extraídos directamente de tus capturas reales
-    const defaultOps = ["JOEL", "YLENIA", "MÓNICA", "ROBERTO", "RAMCEL", "IBAN", "ZAKI", "NARDY", "CESAR", "CRISTIAN", "MARIO", "SERGIO"];
-    const defaultCargas = ["Manipulador Alfombra", "Acondicionado Alfombra Izq", "Acondicionado Alfombra Der", "Bandeja batería", "Listón", "Manguitos", "Masa Convertidor", "Montante A Inf Izq", "Acondicionado Conexiones", "Conexiones Batería", "Montaje Batería", "Montante A Inf Der"];
+    // TUS VARIABLES POR DEFECTO ORIGINALES
+    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8", "Operario 9", "Operario 10", "Operario 11", "Operario 12"];
+    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4", "Carga 5", "Carga 6", "Carga 7", "Carga 8", "Carga 9", "Carga 10", "Carga 11", "Carga 12"];
 
     window.onload = function() {
         if(localStorage.getItem('hist_competencias_v15')) {
@@ -539,7 +585,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
-        
+        // SINCRONIZAMOS AL ENTRAR A LA VISTA OPERARIO
         if(tabId === 'tab-vista-op') sincronizarSelectorOperarios();
         if(tabId === 'tab-historial') renderizarHistorial();
     }
@@ -590,10 +636,14 @@
         
         if (direccion === 'subir') {
             const filaAnterior = filaActual.previousElementSibling;
-            if (filaAnterior) contenedor.insertBefore(filaActual, filaAnterior);
+            if (filaAnterior) {
+                contenedor.insertBefore(filaActual, filaAnterior);
+            }
         } else if (direccion === 'bajar') {
             const filaSiguiente = filaActual.nextElementSibling;
-            if (filaSiguiente) contenedor.insertBefore(filaSiguiente, filaActual);
+            if (filaSiguiente) {
+                contenedor.insertBefore(filaSiguiente, filaActual);
+            }
         }
         procesarCambios();
     }
@@ -641,6 +691,9 @@
         generarJornadaCompleta();
     }
 
+    let matrizJornadaCalculada = {};
+
+    // TU MOTOR ORIGINAL INTACTO
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -651,12 +704,14 @@
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
+        
         let historialCargasPorOperarioDia = {}; 
         ops.forEach(o => historialCargasPorOperarioDia[o] = new Set());
 
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
+            
             let operariosOcupadosEnEsteTurno = new Set();
             
             cargas.forEach(carga => {
@@ -676,9 +731,10 @@
             });
 
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return;
+                if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
+                
                 let candidatosOrdenados = [];
                 for (let s = 0; s < ops.length; s++) {
                     candidatosOrdenados.push(ops[(idxBase + s) % ops.length]);
@@ -687,7 +743,7 @@
                 candidatosOrdenados.sort((a, b) => {
                     let yaHizoCargaA = historialCargasPorOperarioDia[a].has(carga) ? 1 : 0;
                     let yaHizoCargaB = historialCargasPorOperarioDia[b].has(carga) ? 1 : 0;
-                    return yaHizoCargaA - yaHizoCargaB;
+                    return yaHizoCargaA - yaHizoCargaB; 
                 });
 
                 let asignado = false;
@@ -708,6 +764,7 @@
                 if (!asignado) {
                     for (let candidato of candidatosOrdenados) {
                         let yaEstuvoEnEstaCargaHoy = historialCargasPorOperarioDia[candidato].has(carga);
+
                         if (!operariosOcupadosEnEsteTurno.has(candidato) && !yaEstuvoEnEstaCargaHoy) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
                             operariosOcupadosEnEsteTurno.add(candidato);
@@ -744,6 +801,7 @@
                 let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true };
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
+                // AÑADIDO: el onchange para guardar el cambio manual si lo haces desde el desplegable
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
@@ -767,26 +825,33 @@
             contenedor.appendChild(card);
         }
 
-        // Si la pestaña individual está activa, la refresca también
-        if(document.getElementById("tab-vista-op").classList.contains("active")) {
+        // Refresco de la vista individual al recalcular
+        if(document.getElementById("tab-vista-op") && document.getElementById("tab-vista-op").classList.contains("active")) {
             actualizarTarjetaIndividualOperario();
         }
     }
 
+    // NUEVA FUNCIÓN NECESARIA
     function guardarCambioManualInmediato(turno, carga, valor) {
         cambiosManualesUsuarios[`${turno}_X_${carga}`] = valor;
     }
 
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
+
         cargasEnTurno.forEach(c => {
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
-            if (selector) cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
+            if (selector) {
+                cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
+            }
         });
 
         for (let t = turnoEditado + 1; t <= 4; t++) {
-            cargasEnTurno.forEach(c => { delete cambiosManualesUsuarios[`${t}_X_${c}`]; });
+            cargasEnTurno.forEach(c => {
+                delete cambiosManualesUsuarios[`${t}_X_${c}`];
+            });
         }
+
         generarJornadaCompleta();
     }
 
@@ -794,12 +859,14 @@
         const cargasEnTurno = leerLista("listaCargas");
         cargasEnTurno.forEach(c => {
             let selector = document.querySelector(`select[data-turno="${turnoFinal}"][data-carga="${c}"]`);
-            if (selector) cambiosManualesUsuarios[`${turnoFinal}_X_${c}`] = selector.value;
+            if (selector) {
+                cambiosManualesUsuarios[`${turnoFinal}_X_${c}`] = selector.value;
+            }
         });
         generarJornadaCompleta();
     }
 
-    /* LOGICA COMPLEMENTARIA PARA LA NUEVA PESTAÑA VISTA OPERARIO */
+    // --- NUEVAS FUNCIONES PARA VISTA OPERARIO ---
     function sincronizarSelectorOperarios() {
         const ops = leerLista("listaOps");
         const selector = document.getElementById("selectBusquedaOp");
@@ -852,6 +919,7 @@
         htmlCard += `</div>`;
         contenedor.innerHTML = htmlCard;
     }
+    // --------------------------------------------
 
     function renderizarTablaContadores() {
         const ops = leerLista("listaOps");
@@ -877,24 +945,18 @@
     }
 
     function guardarEnHistorial() {
-        generarJornadaCompleta(); // Asegurar datos frescos
-        
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
 
-        for(let t=1; t<=4; t++) {
-            if(matrizJornadaCalculada[t]) {
-                for(let c in matrizJornadaCalculada[t]) {
-                    let opAsignado = matrizJornadaCalculada[t][c].nombre;
-                    if(opAsignado && opAsignado !== "No Apto") {
-                        let clv = `${opAsignado}_X_${c}`;
-                        if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-                        conteoSemanal[clv]++;
-                    }
-                }
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
             }
-        }
-        
+        });
         localStorage.setItem('conteo_semanal_v15', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
@@ -968,7 +1030,7 @@
     }
 
     function borrarTodoElHistorial() {
-        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas?")) {
+        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
             historialJornadas = [];
             localStorage.removeItem('registro_jornadas_v15');
             renderizarHistorial();
