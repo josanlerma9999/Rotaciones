@@ -299,6 +299,13 @@
             border-width: 0 3px 3px 0;
             transform: rotate(45deg);
         }
+<div class="section-box" style="margin-top: 20px; margin-bottom: 20px; flex: 1 0 auto; scroll-snap-align: none;">
+    <div class="section-header">
+        <span class="section-title">📋 Resumen Individual por Operario</span>
+    </div>
+    <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;">
+        </div>
+</div>
 
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
@@ -766,10 +773,13 @@
                 html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
             }
             
-            card.innerHTML = html;
+                        card.innerHTML = html;
             contenedor.appendChild(card);
         }
+        // Lo pones justo aquí:
+        actualizarResumenIndividual();
     }
+
 
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
@@ -924,6 +934,64 @@
             renderizarTablaContadores();
         }
     }
+    function actualizarResumenIndividual() {
+    const ops = leerLista("listaOps");
+    const cargas = leerLista("listaCargas");
+    const contenedor = document.getElementById("contenedorResumenOperarios");
+    
+    if (!contenedor) return;
+    contenedor.innerHTML = "";
+
+    if (ops.length === 0 || cargas.length === 0) return;
+
+    // Estructura temporal para agrupar qué hace cada uno en cada turno
+    let asignacionesPorOp = {};
+    ops.forEach(op => {
+        asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
+    });
+
+    // Mapeamos lo que hay en la matriz calculada en tiempo real
+    for (let t = 1; t <= 4; t++) {
+        if (matrizJornadaCalculada[t]) {
+            cargas.forEach(carga => {
+                let res = matrizJornadaCalculada[t][carga];
+                if (res && res.nombre && asignacionesPorOp[res.nombre]) {
+                    asignacionesPorOp[res.nombre][t] = carga;
+                }
+            });
+        }
+    }
+
+    // Dibujamos las tarjetas individuales
+    ops.forEach(op => {
+        const tarjeta = document.createElement("div");
+        tarjeta.style.background = "#050505";
+        tarjeta.style.border = "1px solid var(--border-color)";
+        tarjeta.style.borderRadius = "8px";
+        tarjeta.style.padding = "10px";
+        tarjeta.style.display = "flex";
+        tarjeta.style.flexDirection = "column";
+        tarjeta.style.gap = "6px";
+
+        let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
+        
+        // Añadimos los 4 turnos para este operario en concreto
+        for (let t = 1; t <= 4; t++) {
+            let puesto = asignacionesPorOp[op][t];
+            let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
+            
+            htmlCard += `
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                    <span style="color: var(--accent); font-weight: bold;">T${t}:</span>
+                    <span style="${estiloPuesto}">${puesto}</span>
+                </div>`;
+        }
+
+        tarjeta.innerHTML = htmlCard;
+        contenedor.appendChild(tarjeta);
+    });
+}
+
 </script>
 </body>
 </html>
