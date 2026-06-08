@@ -169,7 +169,6 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* NUEVO: Estilos estéticos para los botones de ordenación */
         .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 6px; cursor: pointer; width: 30px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: background 0.2s; }
         .btn-order:hover { background: #374151; }
 
@@ -557,7 +556,6 @@
         else btnT.classList.add("active-afternoon");
     }
 
-    // MODIFICADO: Agrega los botones de subir y bajar solo a las cargas de trabajo
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
         const row = document.createElement("div");
@@ -579,7 +577,7 @@
         contenedor.appendChild(row);
     }
 
-    // NUEVO: Función nativa para reordenar los elementos en el DOM y lanzar el recálculo
+    // CORREGIDO: Ahora el movimiento forza el refresco inmediato de datos y matrices
     function moverFila(boton, direccion) {
         const filaActual = boton.parentElement;
         const contenedor = filaActual.parentElement;
@@ -604,6 +602,7 @@
             .filter(v => v);
     }
 
+    // CORREGIDO: Procesa y sincroniza los cambios en cascada hacia las tablas y el LocalStorage
     function procesarCambios() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -656,14 +655,12 @@
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
-        // PROCESADO SECUENCIAL: Turno por Turno para que el impacto manual se arrastre correctamente
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             
-            // Pasada 1 del Turno 't': Bloquear y registrar los cambios manuales existentes
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -680,14 +677,12 @@
                 }
             });
 
-            // Pasada 2 del Turno 't': Rellenar automáticos en base al estado REAL actual de este turno
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; // Si ya fue asignado manualmente, saltar
+                if (matrizJornadaCalculada[t][carga]) return; 
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
-                // FILTRADO DE POLIVALENCIA TOTAL
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
@@ -702,7 +697,6 @@
                     }
                 }
 
-                // Plan B: Forzar libre sin repetir faena (Alerta Naranja)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -718,7 +712,6 @@
                     }
                 }
 
-                // Plan C: Falta crítica de personal
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -737,7 +730,6 @@
             });
         }
 
-        // Renderizado del HTML en base a la matriz limpia y recalculada en cadena
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
