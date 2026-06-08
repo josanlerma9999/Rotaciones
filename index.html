@@ -169,7 +169,7 @@
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        /* Estilos estéticos para los botones de ordenación */
+        /* NUEVO: Estilos estéticos para los botones de ordenación */
         .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 6px; cursor: pointer; width: 30px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: background 0.2s; }
         .btn-order:hover { background: #374151; }
 
@@ -407,16 +407,6 @@
         .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
         .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
         .history-linea strong { color: #fff; }
-
-        /* Estilos de la Pestaña Vista */
-        .op-selector-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 15px; }
-        .select-large { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 1rem; font-weight: bold; outline: none; }
-        .vista-op-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; }
-        .vista-op-header { font-size: 1.1rem; font-weight: 800; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
-        .vista-op-turno-row { background: #000; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .v-turno-label { font-weight: 800; color: var(--primary-light); }
-        .v-turno-hours { font-size: 0.75rem; color: var(--text-muted); display: block; }
-        .v-turno-carga { font-weight: 800; color: #fff; font-size: 0.95rem; text-align: right; }
     </style>
 </head>
 <body>
@@ -464,14 +454,6 @@
         </div>
     </div>
 
-    <div id="tab-vista" class="tab-content">
-        <div class="op-selector-box">
-            <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--text-muted)">Selecciona un Operario:</label>
-            <select id="selectVistaOpIndividual" class="select-large" onchange="renderizarVistaIndividualOperario()"></select>
-        </div>
-        <div id="contenedorVistaIndividual" class="vista-op-card"></div>
-    </div>
-
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -500,10 +482,6 @@
         <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
             <span class="icon">📅</span>
             <span>Turnos</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-vista', this)">
-            <span class="icon">👤</span>
-            <span>Vista</span>
         </button>
         <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
             <span class="icon">📊</span>
@@ -559,12 +537,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
-        
         if(tabId === 'tab-historial') renderizarHistorial();
-        if(tabId === 'tab-vista') {
-            actualizarDesplegableOperariosIndividual();
-            renderizarVistaIndividualOperario();
-        }
     }
 
     function seleccionarTipoHorario(tipo) {
@@ -584,6 +557,7 @@
         else btnT.classList.add("active-afternoon");
     }
 
+    // MODIFICADO: Agrega los botones de subir y bajar solo a las cargas de trabajo
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
         const row = document.createElement("div");
@@ -605,6 +579,7 @@
         contenedor.appendChild(row);
     }
 
+    // NUEVO: Función nativa para reordenar los elementos en el DOM y lanzar el recálculo
     function moverFila(boton, direccion) {
         const filaActual = boton.parentElement;
         const contenedor = filaActual.parentElement;
@@ -681,12 +656,14 @@
         let historialPuestosPorOperarioDia = {}; 
         ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
 
+        // PROCESADO SECUENCIAL: Turno por Turno para que el impacto manual se arrastre correctamente
         for (let t = 1; t <= 4; t++) {
             let desplazo = saltoInicialJornada + (t - 1);
             matrizJornadaCalculada[t] = {};
             
             let operariosOcupadosEnEsteTurnoMismo = new Set();
             
+            // Pasada 1 del Turno 't': Bloquear y registrar los cambios manuales existentes
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -703,12 +680,14 @@
                 }
             });
 
+            // Pasada 2 del Turno 't': Rellenar automáticos en base al estado REAL actual de este turno
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return;
+                if (matrizJornadaCalculada[t][carga]) return; // Si ya fue asignado manualmente, saltar
 
                 let idxBase = (i + desplazo) % ops.length;
                 let asignado = false;
 
+                // FILTRADO DE POLIVALENCIA TOTAL
                 for (let s = 0; s < ops.length; s++) {
                     let candidato = ops[(idxBase + s) % ops.length];
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
@@ -723,6 +702,7 @@
                     }
                 }
 
+                // Plan B: Forzar libre sin repetir faena (Alerta Naranja)
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -738,6 +718,7 @@
                     }
                 }
 
+                // Plan C: Falta crítica de personal
                 if (!asignado) {
                     for (let s = 0; s < ops.length; s++) {
                         let candidato = ops[(idxBase + s) % ops.length];
@@ -756,6 +737,7 @@
             });
         }
 
+        // Renderizado del HTML en base a la matriz limpia y recalculada en cadena
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -819,64 +801,6 @@
         generarJornadaCompleta();
     }
 
-    /* Funciones para la pestaña Vista */
-    function actualizarDesplegableOperariosIndividual() {
-        const select = document.getElementById("selectVistaOpIndividual");
-        const ops = leerLista("listaOps");
-        const opSeleccionadoPreviamente = select.value;
-        
-        select.innerHTML = ops.map(o => `<option value="${o}">${o}</option>`).join('');
-        if(ops.includes(opSeleccionadoPreviamente)) {
-            select.value = opSeleccionadoPreviamente;
-        }
-    }
-
-    function renderizarVistaIndividualOperario() {
-        const select = document.getElementById("selectVistaOpIndividual");
-        const contenedor = document.getElementById("contenedorVistaIndividual");
-        const op = select.value;
-        
-        if(!op) {
-            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted);">No hay operario seleccionado.</div>`;
-            return;
-        }
-
-        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
-        let html = `<div class="vista-op-header">
-            <span>📋 Tareas de ${op}</span>
-            <span>${tipoHorarioSeleccionado === 'manana' ? '☀️ Mañana' : '🌙 Tarde'}</span>
-        </div>`;
-
-        const cargas = leerLista("listaCargas");
-
-        for(let t = 1; t <= 4; t++) {
-            let cargaAsignada = "Libre / No Asignado";
-            
-            cargas.forEach(c => {
-                // Leemos directamente del desplegable de Turnos para asegurarnos de que coge tus cambios manuales sin guardar
-                let selectorHTML = document.querySelector(`select[data-turno="${t}"][data-carga="${c}"]`);
-                let opEnCarga = selectorHTML ? selectorHTML.value : (matrizJornadaCalculada[t] && matrizJornadaCalculada[t][c] ? matrizJornadaCalculada[t][c].nombre : null);
-                
-                if(opEnCarga === op) {
-                    cargaAsignada = c;
-                }
-            });
-
-            html += `<div class="vista-op-turno-row">
-                <div>
-                    <span class="v-turno-label">TURNO ${t}</span>
-                    <span class="v-turno-hours">⏱️ ${horasActivas[t-1]}</span>
-                </div>
-                <div class="v-turno-carga">${cargaAsignada}</div>
-            </div>`;
-        }
-        contenedor.innerHTML = html;
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        actualizarDesplegableOperariosIndividual();
-    });
-
     function renderizarTablaContadores() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
@@ -920,9 +844,7 @@
         for(let t=1; t<=4; t++) {
             copiaTurnos[t] = {};
             for(let c in matrizJornadaCalculada[t]) {
-                // Al guardar el historial cogemos el valor real que hay en el selector
-                let selectorHTML = document.querySelector(`select[data-turno="${t}"][data-carga="${c}"]`);
-                copiaTurnos[t][c] = selectorHTML ? selectorHTML.value : matrizJornadaCalculada[t][c].nombre;
+                copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
             }
         }
 
