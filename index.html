@@ -947,25 +947,28 @@
 
     if (ops.length === 0 || cargas.length === 0) return;
 
-    // Estructura temporal para agrupar qué hace cada uno en cada turno
+    // 1. Preparamos el cuadrante vacío para cada operario
     let asignacionesPorOp = {};
     ops.forEach(op => {
         asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
     });
 
-    // Mapeamos lo que hay en la matriz calculada en tiempo real
+    // 2. Leemos directamente los selectores (<select>) dibujados en la pantalla
     for (let t = 1; t <= 4; t++) {
-        if (matrizJornadaCalculada[t]) {
-            cargas.forEach(carga => {
-                let res = matrizJornadaCalculada[t][carga];
-                if (res && res.nombre && asignacionesPorOp[res.nombre]) {
-                    asignacionesPorOp[res.nombre][t] = carga;
+        cargas.forEach(carga => {
+            // Buscamos el select de este turno y esta carga específica
+            let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+            if (selector) {
+                let opAsignado = selector.value;
+                // Si el operario existe en nuestra lista oficial, le asignamos la carga en este turno
+                if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
+                    asignacionesPorOp[opAsignado][t] = carga;
                 }
-            });
-        }
+            }
+        });
     }
 
-    // Dibujamos las tarjetas individuales
+    // 3. Dibujamos las tarjetas individuales en el contenedor
     ops.forEach(op => {
         const tarjeta = document.createElement("div");
         tarjeta.style.background = "#050505";
@@ -978,7 +981,6 @@
 
         let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
         
-        // Añadimos los 4 turnos para este operario en concreto
         for (let t = 1; t <= 4; t++) {
             let puesto = asignacionesPorOp[op][t];
             let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
@@ -994,6 +996,7 @@
         contenedor.appendChild(tarjeta);
     });
 }
+
 
 </script>
 </body>
