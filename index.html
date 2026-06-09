@@ -299,13 +299,7 @@
             border-width: 0 3px 3px 0;
             transform: rotate(45deg);
         }
-<div class="section-box" style="margin-top: 20px; margin-bottom: 20px; flex: 1 0 auto; scroll-snap-align: none;">
-    <div class="section-header">
-        <span class="section-title">📋 Resumen Individual por Operario</span>
-    </div>
-    <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;">
-        </div>
-</div>
+
 
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
@@ -411,10 +405,11 @@
         .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
         @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
         .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
-        .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
+                .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
         .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
         .history-linea strong { color: #fff; }
     </style>
+
 </head>
 <body>
 
@@ -442,7 +437,7 @@
         </div>
     </div>
 
-    <div id="tab-matriz" class="tab-content">
+        <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
@@ -454,13 +449,20 @@
 
         <div class="jornada-grid" id="contenedorJornada"></div>
 
+        <div class="section-box" style="margin-top: 20px; margin-bottom: 20px; flex: 1 0 auto; scroll-snap-align: none;">
+            <div class="section-header">
+                <span class="section-title">📋 Resumen Individual por Operario</span>
+            </div>
+            <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;">
+                </div>
+        </div>
+
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
     </div>
-
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -482,6 +484,7 @@
             <span class="icon">⚙️</span>
             <span>Configurar</span>
         </button>
+
         <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
             <span class="icon">🛠️</span>
             <span>Polivalencia</span>
