@@ -164,7 +164,21 @@
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
         
         #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
-        #listaCargas .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: #fff; font-weight: 800; }
+        #listaCargas .item-input { 
+    flex: 1; 
+    padding: 10px 12px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    font-size: 0.9rem; 
+    background: #000; 
+    color: #fff; 
+    font-weight: 800; 
+    cursor: pointer;
+    -webkit-user-select: none; 
+    user-select: none;
+    -webkit-tap-highlight-color: transparent; 
+}
+
         .item-input:focus { border-color: var(--primary-light); outline: none; }
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
@@ -568,45 +582,27 @@
     }
 
     // MODIFICADO: Agrega los botones de subir y bajar solo a las cargas de trabajo
-    function agregarFila(contenedorId, tipo, valor = "") {
-        const contenedor = document.getElementById(contenedorId);
-        const row = document.createElement("div");
-        row.className = "item-row";
-        
-        let htmlBotonesOrden = "";
-        if (tipo === 'Carga') {
-            htmlBotonesOrden = `
-                <button class="btn-order" onclick="moverFila(this, 'subir')" title="Subir prioridad">🔼</button>
-                <button class="btn-order" onclick="moverFila(this, 'bajar')" title="Bajar prioridad">🔽</button>
-            `;
-        }
-
+  function agregarFila(contenedorId, tipo, valor = "") {
+    const contenedor = document.getElementById(contenedorId);
+    const row = document.createElement("div");
+    row.className = "item-row";
+    
+    if (tipo === 'Carga') {
         row.innerHTML = `
-            ${htmlBotonesOrden}
+            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)">
+            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
+        `;
+    } else {
+        row.innerHTML = `
             <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()">
             <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
         `;
-        contenedor.appendChild(row);
     }
+    contenedor.appendChild(row);
+}
 
     // NUEVO: Función nativa para reordenar los elementos en el DOM y lanzar el recálculo
-    function moverFila(boton, direccion) {
-        const filaActual = boton.parentElement;
-        const contenedor = filaActual.parentElement;
-        
-        if (direccion === 'subir') {
-            const filaAnterior = filaActual.previousElementSibling;
-            if (filaAnterior) {
-                contenedor.insertBefore(filaActual, filaAnterior);
-            }
-        } else if (direccion === 'bajar') {
-            const filaSiguiente = filaActual.nextElementSibling;
-            if (filaSiguiente) {
-                contenedor.insertBefore(filaSiguiente, filaActual);
-            }
-        }
-        procesarCambios();
-    }
+    
 
     function leerLista(contenedorId) {
         return Array.from(document.querySelectorAll(`#${contenedorId} .item-input`))
@@ -996,6 +992,22 @@
         contenedor.appendChild(tarjeta);
     });
 }
+function rotarFilaHaciaArriba(inputElement) {
+    // Si estás editando el texto, bloqueamos el movimiento para que no se cierre el teclado
+    if (document.activeElement === inputElement) return;
+
+    const filaActual = inputElement.parentElement;
+    const contenedor = filaActual.parentElement;
+    const filaAnterior = filaActual.previousElementSibling;
+
+    if (filaAnterior) {
+        contenedor.insertBefore(filaActual, filaAnterior);
+    } else {
+        contenedor.appendChild(filaActual);
+    }
+    procesarCambios();
+}
+
 
 
 </script>
