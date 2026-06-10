@@ -164,21 +164,22 @@
         }
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
         
-        #listaOps .item-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: #000; color: var(--primary-light); font-weight: 700; }
-        #listaCargas .item-input { 
-    flex: 1; 
-    padding: 10px 12px; 
-    border: 1px solid var(--border-color); 
-    border-radius: 8px; 
-    font-size: 0.9rem; 
-    background: #000; 
-    color: #fff; 
-    font-weight: 800; 
-    cursor: pointer;
-    -webkit-user-select: none; 
-    user-select: none;
-    -webkit-tap-highlight-color: transparent; 
-}
+                #listaOps .item-input, #listaCargas .item-input { 
+            flex: 1; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            background: #000; 
+            font-weight: 800; 
+            cursor: pointer;
+            -webkit-user-select: none; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        #listaOps .item-input { color: var(--primary-light); }
+        #listaCargas .item-input { color: #fff; }
+
 
 /* Botón estético táctil para activar edición de texto */
 .btn-edit-text { 
@@ -612,21 +613,15 @@
     const row = document.createElement("div");
     row.className = "item-row";
     
-    if (tipo === 'Carga') {
-        // Añadimos readonly por defecto para que responda al toque de mover y un botón de lápiz para editar
-        row.innerHTML = `
-            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
-            <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
-            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
-        `;
-    } else {
-        row.innerHTML = `
-            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()">
-            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
-        `;
-    }
+    // Aplicamos readonly y botón de lápiz a ambos por igual
+    row.innerHTML = `
+        <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
+        <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
+        <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
+    `;
     contenedor.appendChild(row);
 }
+
 
 // Nueva función de apoyo para habilitar el teclado al pulsar el lápiz
 function habilitarEdicionInput(boton) {
@@ -793,10 +788,11 @@ function habilitarEdicionInput(boton) {
                 let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true };
                 let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
 
-                html += `<tr>
+                                html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="actualizarResumenIndividual()">
+
                             ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
