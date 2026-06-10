@@ -105,21 +105,22 @@
             box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         
-        .tab-btn { 
-            flex: 1; 
-            border: none; 
-            background: transparent; 
-            color: var(--text-muted); 
-            cursor: pointer; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 4px; 
-            font-size: 0.68rem; 
-            font-weight: 700;
-            transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
+   .tab-btn { 
+    flex: 1; 
+    border: none; 
+    background: transparent; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 4px; 
+    font-size: 0.62rem; /* Ajustado sutilmente para acomodar los 6 botones perfectamente */
+    font-weight: 700;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
         
         .tab-btn .icon { font-size: 1.45rem !important; } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
@@ -481,13 +482,7 @@
 
         <div class="jornada-grid" id="contenedorJornada"></div>
 
-        <div class="section-box" style="margin-top: 20px; margin-bottom: 20px; flex: 1 0 auto; scroll-snap-align: none;">
-            <div class="section-header">
-                <span class="section-title">📋 Resumen Individual por Operario</span>
-            </div>
-            <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;">
-                </div>
-        </div>
+        
 
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
@@ -495,6 +490,16 @@
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
     </div>
+    <!-- Nueva pestaña independiente para el Resumen Individual -->
+<div id="tab-resumen" class="tab-content">
+    <div class="section-box" style="flex: 1 0 auto;">
+        <div class="section-header">
+            <span class="section-title">📋 Resumen Individual por Operario</span>
+        </div>
+        <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;"></div>
+    </div>
+</div>
+
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
             <span class="section-title">📊 Veces por Puesto</span>
@@ -512,28 +517,30 @@
     </div>
 
     <div class="tabs-nav">
-        <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-            <span class="icon">⚙️</span>
-            <span>Configurar</span>
-        </button>
-
-        <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-            <span class="icon">🛠️</span>
-            <span>Polivalencia</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-            <span class="icon">📅</span>
-            <span>Turnos</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
-            <span class="icon">📊</span>
-            <span>Contador</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">📂</span>
-            <span>Historial</span>
-        </button>
-    </div>
+    <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
+        <span class="icon">⚙️</span>
+        <span>Configurar</span>
+    </button>
+    <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
+        <span class="icon">🛠️</span>
+        <span>Polivalencia</span>
+    </button>
+    <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
+        <span class="icon">📅</span>
+        <span>Turnos</span>
+    </button>
+    <button class="tab-btn" onclick="cambiarPestaña('tab-resumen', this)">
+        <span class="icon">📋</span>
+        <span>Resumen</span>
+    </button>
+    <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+        <span class="icon">📊</span>
+        <span>Contador</span>
+    </button>
+    <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
+        <span class="icon">📂</span>
+        <span>Historial</span>
+    </button>
 </div>
 
 <script>
