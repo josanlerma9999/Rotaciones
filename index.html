@@ -874,81 +874,130 @@ function habilitarEdicionInput(boton) {
     }
 
     function guardarEnHistorial() {
-        const selectores = document.querySelectorAll(".select-op-editable");
-        if(selectores.length === 0) return;
+    const selectores = document.querySelectorAll(".select-op-editable");
+    if(selectores.length === 0) return;
 
-        selectores.forEach(select => {
-            let opAsignado = select.value;
-            let carga = select.dataset.carga;
-            if(opAsignado !== "No Apto") {
-                let clv = `${opAsignado}_X_${carga}`;
-                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-                conteoSemanal[clv]++;
-            }
-        });
-        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
-        renderizarTablaContadores();
+    const ops = leerLista("listaOps");
+    const cargas = leerLista("listaCargas");
 
-        let copiaTurnos = {};
-        for(let t=1; t<=4; t++) {
-            copiaTurnos[t] = {};
-            for(let c in matrizJornadaCalculada[t]) {
-                copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
-            }
+    // 1. Guardar en los contadores semanales numéricos
+    selectores.forEach(select => {
+        let opAsignado = select.value;
+        let carga = select.dataset.carga;
+        if(opAsignado !== "No Apto") {
+            let clv = `${opAsignado}_X_${carga}`;
+            if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+            conteoSemanal[clv]++;
         }
+    });
+    localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+    renderizarTablaContadores();
 
-        let fechaActual = new Date();
-        let nuevaJornada = {
-            id: Date.now(),
-            fecha: fechaActual.toLocaleDateString("es-ES"),
-            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
-            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
-            datos: copiaTurnos
-        };
-
-        historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-        
-        alert("💾 ¡Guardado con éxito en contadores e Historial!");
+    // 2. Construir la estructura clásica por turnos
+    let copiaTurnos = {};
+    for(let t=1; t<=4; t++) {
+        copiaTurnos[t] = {};
+        for(let c in matrizJornadaCalculada[t]) {
+            copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
+        }
     }
 
+    // 3. NUEVO: Construir la estructura agrupada por Operario para el Historial
+    let resumenOperariosHoy = {};
+    ops.forEach(op => {
+        resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
+    });
+
+    for (let t = 1; t <= 4; t++) {
+        cargas.forEach(carga => {
+            let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+            if (selector) {
+                let opAsignado = selector.value;
+                if (opAsignado && opAsignado !== "No Apto" && resumenOperariosHoy[opAsignado]) {
+                    resumenOperariosHoy[opAsignado][t] = carga;
+                }
+            }
+        });
+    }
+
+    // 4. Crear el objeto final con ambas estructuras
+    let fechaActual = new Date();
+    let nuevaJornada = {
+        id: Date.now(),
+        fecha: fechaActual.toLocaleDateString("es-ES"),
+        hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
+        tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
+        datos: copiaTurnos,
+        resumenOps: resumenOperariosHoy // Guardamos el cuadrante individual
+    };
+
+    historialJornadas.unshift(nuevaJornada);
+    localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+    
+    alert("💾 ¡Guardado con éxito en contadores e Historial!");
+}
+
+
     function renderizarHistorial() {
-        const contenedor = document.getElementById("contenedorHistorial");
-        contenedor.innerHTML = "";
+    const contenedor = document.getElementById("contenedorHistorial");
+    contenedor.innerHTML = "";
 
-        if(historialJornadas.length === 0) {
-            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
-            return;
+    if(historialJornadas.length === 0) {
+        contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
+        return;
+    }
+
+    historialJornadas.forEach(jornada => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        
+        let htmlTitle = `<div class="history-item-title">
+            <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
+            <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
+        </div>`;
+        
+        // --- BLOQUE 1: Vista clásica por Turnos ---
+        let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
+        htmlContent += `<div class="history-item-content">`;
+        for(let t=1; t<=4; t++) {
+            htmlContent += `<div class="history-turno-block">
+                <div class="history-turno-title">TURNO ${t}</div>`;
+            if(jornada.datos && jornada.datos[t]) {
+                for(let carga in jornada.datos[t]) {
+                    htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
+                }
+            }
+            htmlContent += `</div>`;
         }
+        htmlContent += `</div>`; // Cierre de history-item-content
 
-        historialJornadas.forEach(jornada => {
-            const item = document.createElement("div");
-            item.className = "history-item";
+        // --- BLOQUE 2: NUEVO - Vista resumida por Operario ---
+        if (jornada.resumenOps) {
+            htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
+            htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
             
-            let htmlTitle = `<div class="history-item-title">
-                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
-                <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
-            </div>`;
-            
-            let htmlContent = `<div class="history-item-content">`;
-
-            for(let t=1; t<=4; t++) {
-                htmlContent += `<div class="history-turno-block">
-                    <div class="history-turno-title">TURNO ${t}</div>`;
+            for (let op in jornada.resumenOps) {
+                htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
+                    <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
                 
-                if(jornada.datos && jornada.datos[t]) {
-                    for(let carga in jornada.datos[t]) {
-                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
-                    }
+                for (let t = 1; t <= 4; t++) {
+                    let puesto = jornada.resumenOps[op][t] || "-";
+                    let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
+                    htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
+                        <span style="color:var(--primary-light);">T${t}:</span>
+                        <span style="${colorPuesto}">${puesto}</span>
+                    </div>`;
                 }
                 htmlContent += `</div>`;
             }
             htmlContent += `</div>`;
-            
-            item.innerHTML = htmlTitle + htmlContent;
-            contenedor.appendChild(item);
-        });
-    }
+        }
+        
+        item.innerHTML = htmlTitle + htmlContent;
+        contenedor.appendChild(item);
+    });
+}
+
 
     function borrarJornadaIndividual(id) {
         if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
