@@ -788,7 +788,7 @@ function habilitarEdicionInput(boton) {
             });
         }
 
-        // Renderizado del HTML
+                // Renderizado del HTML con detección de repetición del día anterior
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -796,13 +796,28 @@ function habilitarEdicionInput(boton) {
 
             cargas.forEach(carga => {
                 let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true };
-                let claseExtra = res.alerta ? "op-alert" : res.error ? "op-error" : "";
+                
+                // Comprobamos si el operario asignado ya hizo esta carga ayer
+                let hizoEstaCargaAyer = false;
+                if (res.nombre !== "No Apto") {
+                    let puestosAyer = obtenerPuestoAyer(res.nombre);
+                    if (puestosAyer && puestosAyer.has(carga)) {
+                        hizoEstaCargaAyer = true;
+                    }
+                }
+
+                // Si repite lo de ayer va en ROJO directo. Si no, mantiene su lógica (Naranja o Normal)
+                let claseExtra = hizoEstaCargaAyer ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="actualizarResumenIndividual()">
-                            ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="actualizarResumenIndividual(); generarJornadaCompleta();">
+                            ${ops.map(o => {
+                                let puestosAyerOpt = obtenerPuestoAyer(o);
+                                let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
+                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
+                            }).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
                     </td>
@@ -820,7 +835,7 @@ function habilitarEdicionInput(boton) {
             card.innerHTML = html;
             contenedor.appendChild(card);
         }
-        
+
         actualizarResumenIndividual();
     }
 function obtenerPuestoAyer(operario) {
