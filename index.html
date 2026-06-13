@@ -681,7 +681,7 @@ function habilitarEdicionInput(boton) {
         cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
     }
-             let matrizJornadaCalculada = {};
+                let matrizJornadaCalculada = {};
 
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
@@ -803,7 +803,7 @@ function habilitarEdicionInput(boton) {
                     if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
                 }
 
-                // Contamos de verdad cuántas veces sale este operario en esta misma carga HOY
+                // CORREGIDO: Buscamos .nombre en ambos lados de la condición para evitar fallos de lectura
                 let repeticionesHoy = 0;
                 if (res.nombre !== "No Apto") {
                     for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
@@ -845,6 +845,7 @@ function habilitarEdicionInput(boton) {
         
         actualizarResumenIndividual();
     }
+ 
 
 
 function obtenerPuestoAyer(operario) {
@@ -918,69 +919,74 @@ function obtenerPuestoAyer(operario) {
         contenedor.innerHTML = html;
     }
 
+    
     function guardarEnHistorial() {
-    const selectores = document.querySelectorAll(".select-op-editable");
-    if(selectores.length === 0) return;
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
 
-    const ops = leerLista("listaOps");
-    const cargas = leerLista("listaCargas");
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
 
-    // 1. Guardar en los contadores semanales numéricos
-    selectores.forEach(select => {
-        let opAsignado = select.value;
-        let carga = select.dataset.carga;
-        if(opAsignado !== "No Apto") {
-            let clv = `${opAsignado}_X_${carga}`;
-            if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-            conteoSemanal[clv]++;
-        }
-    });
-    localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
-    renderizarTablaContadores();
-
-    // 2. Construir la estructura clásica por turnos
-    let copiaTurnos = {};
-    for(let t=1; t<=4; t++) {
-        copiaTurnos[t] = {};
-        for(let c in matrizJornadaCalculada[t]) {
-            copiaTurnos[t][c] = matrizJornadaCalculada[t][c].nombre;
-        }
-    }
-
-    // 3. NUEVO: Construir la estructura agrupada por Operario para el Historial
-    let resumenOperariosHoy = {};
-    ops.forEach(op => {
-        resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
-    });
-
-    for (let t = 1; t <= 4; t++) {
-        cargas.forEach(carga => {
-            let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
-            if (selector) {
-                let opAsignado = selector.value;
-                if (opAsignado && opAsignado !== "No Apto" && resumenOperariosHoy[opAsignado]) {
-                    resumenOperariosHoy[opAsignado][t] = carga;
-                }
+        // 1. Guardar en los contadores semanales numéricos
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
             }
         });
+        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+        renderizarTablaContadores();
+
+        // 2. Construir la estructura clásica por turnos
+        let copiaTurnos = {};
+        for(let t=1; t<=4; t++) {
+            copiaTurnos[t] = {};
+            cargas.forEach(carga => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                if (selector) {
+                    copiaTurnos[t][carga] = selector.value;
+                }
+            });
+        }
+
+        // 3. Construir la estructura agrupada por Operario para el Escudo de Ayer
+        let resumenOperariosHoy = {};
+        ops.forEach(op => {
+            resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
+        });
+
+        for (let t = 1; t <= 4; t++) {
+            cargas.forEach(carga => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                if (selector) {
+                    let opAsignado = selector.value;
+                    if (opAsignado && opAsignado !== "No Apto" && resumenOperariosHoy[opAsignado]) {
+                        resumenOperariosHoy[opAsignado][t] = carga;
+                    }
+                }
+            });
+        }
+
+        // 4. Crear el objeto final con ambas estructuras
+        let fechaActual = new Date();
+        let nuevaJornada = {
+            id: Date.now(),
+            fecha: fechaActual.toLocaleDateString("es-ES"),
+            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
+            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
+            datos: copiaTurnos,
+            resumenOps: resumenOperariosHoy
+        };
+
+        historialJornadas.unshift(nuevaJornada);
+        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+        
+        alert("💾 ¡Guardado con éxito en contadores e Historial!");
+        generarJornadaCompleta();
     }
-
-    // 4. Crear el objeto final con ambas estructuras
-    let fechaActual = new Date();
-    let nuevaJornada = {
-        id: Date.now(),
-        fecha: fechaActual.toLocaleDateString("es-ES"),
-        hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
-        tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
-        datos: copiaTurnos,
-        resumenOps: resumenOperariosHoy // Guardamos el cuadrante individual
-    };
-
-    historialJornadas.unshift(nuevaJornada);
-    localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-    
-    alert("💾 ¡Guardado con éxito en contadores e Historial!");
-}
 
 
     function renderizarHistorial() {
