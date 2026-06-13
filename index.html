@@ -681,7 +681,7 @@ function habilitarEdicionInput(boton) {
         cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
     }
- let matrizJornadaCalculada = {};
+     let matrizJornadaCalculada = {};
 
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
@@ -719,24 +719,28 @@ function habilitarEdicionInput(boton) {
             });
 
             // Pasada 2 del Turno 't': Rellenar automáticos buscando la equidad semanal
-            cargas.forEach((carga) => {
+            cargas.forEach((carga, i) => {
                 if (matrizJornadaCalculada[t][carga]) return; // Si ya fue asignado manualmente, saltar
 
-                // NUEVO MOTOR DE EQUIDAD: Ordenamos los operarios según las veces que han hecho ESTA carga concreta
+                // NUEVA MEJORA EN EL MOTOR DE EQUIDAD Y DESEMPATE INTELIGENTE
                 let opsOrdenadosPorHistorial = [...ops].sort((a, b) => {
                     let vecesA = conteoSemanal[`${a}_X_${carga}`] || 0;
                     let vecesB = conteoSemanal[`${b}_X_${carga}`] || 0;
                     
                     if (vecesA !== vecesB) {
-                        return vecesA - vecesB; // Prioridad al que MENOS veces la ha hecho en la semana
+                        return vecesA - vecesB; // Prioridad absoluta al que MENOS veces la ha hecho en la semana
                     }
-                    // Si empatan en el historial, usamos el botón "Combinación" (saltoInicialJornada) para desempatar aleatoriamente
-                    return (ops.indexOf(a) + saltoInicialJornada) - (ops.indexOf(b) + saltoInicialJornada);
+                    
+                    // SOLUCIÓN AL "EFECTO LUNES": Si empatan (ambos a 0), aplicamos un desplazamiento
+                    // basado en la posición de la carga (i), el turno (t) y el botón combinación.
+                    let ordenA = (ops.indexOf(a) + saltoInicialJornada + t + i) % ops.length;
+                    let ordenB = (ops.indexOf(b) + saltoInicialJornada + t + i) % ops.length;
+                    return ordenA - ordenB;
                 });
 
                 let asignado = false;
 
-                // PLAN A: Filtrado estricto por Polivalencia (Candidatos Aptos que no repiten hoy)
+                // PLAN A: Filtrado estricto por Polivalencia (Candidatos Aptos que no repiten hoy ni están ocupados ahora)
                 for (let candidato of opsOrdenadosPorHistorial) {
                     let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
                     let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
@@ -750,10 +754,11 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // PLAN B: Forzar libre sin repetir faena hoy pero saltándose polivalencia (Alerta Naranja)
+                // PLAN B: Forzar libre sin repetir faena hoy, saltándose polivalencia por necesidad (Alerta Naranja)
                 if (!asignado) {
                     for (let candidato of opsOrdenadosPorHistorial) {
                         let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                        let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
 
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
@@ -765,7 +770,7 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // PLAN C: Emergencia por falta de personal (Repetir faena si hace falta)
+                // PLAN C: Emergencia por falta crítica de personal (Repetir operario en el mismo día)
                 if (!asignado) {
                     for (let candidato of opsOrdenadosPorHistorial) {
                         if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
@@ -783,7 +788,7 @@ function habilitarEdicionInput(boton) {
             });
         }
 
-        // Renderizado del HTML idéntico al original
+        // Renderizado del HTML
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -818,6 +823,22 @@ function habilitarEdicionInput(boton) {
         
         actualizarResumenIndividual();
     }
+function obtenerPuestoAyer(operario) {
+    if (!historialJornadas || historialJornadas.length === 0) return null;
+    
+    // Cogemos la última jornada guardada en el historial (ayer)
+    const jornadaAyer = historialJornadas[0]; 
+    if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
+    
+    // Devolvemos un Set con los puestos que pisó ayer ese operario para comparar rápido
+    const puestosAyer = new Set();
+    for (let t = 1; t <= 4; t++) {
+        let puesto = jornadaAyer.resumenOps[operario][t];
+        if (puesto && puesto !== "-") puestosAyer.add(puesto);
+    }
+    return puestosAyer;
+}
+
 
 
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
