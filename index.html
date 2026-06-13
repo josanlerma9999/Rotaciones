@@ -681,7 +681,8 @@ function habilitarEdicionInput(boton) {
         cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
     }
-                let matrizJornadaCalculada = {};
+                
+     let matrizJornadaCalculada = {};
 
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
@@ -693,22 +694,24 @@ function habilitarEdicionInput(boton) {
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        let historialPuestosPorOperarioDia = {}; 
-        ops.forEach(o => historialPuestosPorOperarioDia[o] = new Set());
+        
+        // Registro estricto de lo que va haciendo cada operario a lo largo de TODO el día de hoy
+        let asignacionesAcumuladasHoy = {};
+        ops.forEach(o => asignacionesAcumuladasHoy[o] = new Set());
 
-        // PROCESADO SECUENCIAL: Turno por Turno
+        // PROCESADO TURNO A TURNO
         for (let t = 1; t <= 4; t++) {
             matrizJornadaCalculada[t] = {};
-            let operariosOcupadosEnEsteTurnoMismo = new Set();
+            let operariosOcupadosEnEsteTurno = new Set();
             
-            // Pasada 1 del Turno 't': Bloquear y registrar los cambios manuales existentes
+            // PASADA 1: Respetar y fijar los cambios manuales que tú hayas hecho en la pantalla
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
                     let opManual = cambiosManualesUsuarios[claveManual];
                     if (opManual !== "No Apto") {
-                        operariosOcupadosEnEsteTurnoMismo.add(opManual); 
-                        historialPuestosPorOperarioDia[opManual].add(carga);
+                        operariosOcupadosEnEsteTurno.add(opManual); 
+                        asignacionesAcumuladasHoy[opManual].add(carga);
                     }
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
@@ -718,77 +721,84 @@ function habilitarEdicionInput(boton) {
                 }
             });
 
-            // Pasada 2 del Turno 't': Rellenar automáticos buscando la equidad semanal sin repeticiones
+            // PASADA 2: Asignación inteligente automática para las cargas libres
             cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; // Si ya fue asignado manualmente, saltar
+                if (matrizJornadaCalculada[t][carga]) return; // Saltamos si ya la fijaste a mano
 
-                // MOTOR DE EQUIDAD Y DESEMPATE CON INTERCALE SEGURO
-                let opsOrdenadosPorHistorial = [...ops].sort((a, b) => {
+                // MOTOR DE EQUIDAD SEMANAL REFORZADO
+                // Ordena los operarios dando prioridad absoluta a los que MENOS veces han hecho esta máquina en la semana
+                let opsOrdenados = [...ops].sort((a, b) => {
                     let vecesA = conteoSemanal[`${a}_X_${carga}`] || 0;
                     let vecesB = conteoSemanal[`${b}_X_${carga}`] || 0;
-                    if (vecesA !== parseInt(vecesB)) return vecesA - vecesB;
+                    if (vecesA !== vecesB) return vecesA - vecesB;
                     
-                    // Mezcla matemática más agresiva para romper simetrías automáticas en empates a cero
-                    let ordenA = (ops.indexOf(a) + saltoInicialJornada + (t * 3) + (i * 7)) % ops.length;
-                    let ordenB = (ops.indexOf(b) + saltoInicialJornada + (t * 3) + (i * 7)) % ops.length;
+                    // Romper empates (como el lunes a las 0 veces) usando una dispersión matemática agresiva
+                    let ordenA = (ops.indexOf(a) + saltoInicialJornada + (t * 5) + (i * 11)) % ops.length;
+                    let ordenB = (ops.indexOf(b) + saltoInicialJornada + (t * 5) + (i * 11)) % ops.length;
                     return ordenA - ordenB;
                 });
 
                 let asignado = false;
 
-                // PLAN A: FILTRADO ESTRICTO BLINDADO (Apto + NO haber hecho esta carga HOY + NO haberla hecho AYER)
-                for (let candidato of opsOrdenadosPorHistorial) {
-                    let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                // PLAN A: FILTRADO ABSOLUTO (Apto + NO ocupado en este turno + NO ha hecho esta máquina HOY + NO la hizo AYER)
+                for (let candidato of opsOrdenados) {
+                    if (operariosOcupadosEnEsteTurno.has(candidato)) continue; // Ya está trabajando en este turno
+                    
                     let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
+                    let yaLaHizoHoy = asignacionesAcumuladasHoy[candidato].has(carga);
                     
                     let puestosAyer = obtenerPuestoAyer(candidato);
-                    let hizoEstaCargaAyer = puestosAyer ? puestosAyer.has(carga) : false;
+                    let laHizoAyer = puestosAyer ? puestosAyer.has(carga) : false;
 
-                    // Bloqueo total: Si ya la ha hecho hoy o ayer, NO entra en el reparto limpio (Plan A)
-                    if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy && !hizoEstaCargaAyer && esApto) {
+                    // Si cumple el blindaje total, se le asigna la máquina
+                    if (esApto && !yaLaHizoHoy && !laHizoAyer) {
                         matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: false, error: false };
-                        operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                        historialPuestosPorOperarioDia[candidato].add(carga);
+                        operariosOcupadosEnEsteTurno.add(candidato);
+                        asignacionesAcumuladasHoy[candidato].add(carga);
                         asignado = true;
                         break;
                     }
                 }
 
-                // PLAN B: Forzar libre sin repetir hoy, pero permitiendo repetir la de ayer por fuerza mayor (Alerta Naranja)
+                // PLAN B: RELAJAR AYER (Si la proporción de la plantilla es justa, permitimos que haga la de ayer, pero PROHIBIDO repetir la de HOY)
                 if (!asignado) {
-                    for (let candidato of opsOrdenadosPorHistorial) {
-                        let yaHizoEstaFaenaHoy = historialPuestosPorOperarioDia[candidato].has(carga);
+                    for (let candidato of opsOrdenados) {
+                        if (operariosOcupadosEnEsteTurno.has(candidato)) continue;
+                        
                         let esApto = (competencies[`${candidato}_X_${carga}`] !== false);
+                        let yaLaHizoHoy = asignacionesAcumuladasHoy[candidato].has(carga);
 
-                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato) && !yaHizoEstaFaenaHoy && esApto) {
+                        if (esApto && !yaLaHizoHoy) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
-                            historialPuestosPorOperarioDia[candidato].add(carga);
+                            operariosOcupadosEnEsteTurno.add(candidato);
+                            asignacionesAcumuladasHoy[candidato].add(carga);
                             asignado = true;
                             break;
                         }
                     }
                 }
 
-                // PLAN C: Emergencia máxima (Repetir operario en el mismo día porque no queda nadie más en el turno)
+                // PLAN C: EMERGENCIA CRÍTICA POR FUERZA MAYOR (Romper todos los escudos porque faltan operarios aptos en el turno)
                 if (!asignado) {
-                    for (let candidato of opsOrdenadosPorHistorial) {
-                        if (!operariosOcupadosEnEsteTurnoMismo.has(candidato)) {
+                    for (let candidato of opsOrdenados) {
+                        if (!operariosOcupadosEnEsteTurno.has(candidato)) {
                             matrizJornadaCalculada[t][carga] = { nombre: candidato, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurnoMismo.add(candidato);
+                            operariosOcupadosEnEsteTurno.add(candidato);
+                            asignacionesAcumuladasHoy[candidato].add(carga);
                             asignado = true;
                             break;
                         }
                     }
                 }
 
+                // Si no hay absolutamente nadie libre en el edificio
                 if (!asignado) {
                     matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
             });
         }
 
-        // Renderizado del HTML con alertas visuales dinámicas
+        // DIBUJAR LAS TARJETAS EN PANTALLA CON CHIVATOS VISUALES
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -803,7 +813,7 @@ function habilitarEdicionInput(boton) {
                     if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
                 }
 
-                // CORREGIDO: Buscamos .nombre en ambos lados de la condición para evitar fallos de lectura
+                // Contorlar de forma real si se está repitiendo esta máquina a lo largo del día
                 let repeticionesHoy = 0;
                 if (res.nombre !== "No Apto") {
                     for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
@@ -813,7 +823,7 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // SI REPE DE AYER O REPE HOY -> ROJO CRÍTICO (op-error)
+                // Si repite ayer o repite hoy, se pinta la fila de rojo chillón instantáneo
                 let claseExtra = (hizoEstaCargaAyer || repeticionesHoy > 1) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
                 html += `<tr>
@@ -845,7 +855,7 @@ function habilitarEdicionInput(boton) {
         
         actualizarResumenIndividual();
     }
- 
+
 
 
 function obtenerPuestoAyer(operario) {
