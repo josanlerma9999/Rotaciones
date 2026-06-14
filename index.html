@@ -682,7 +682,7 @@ function habilitarEdicionInput(boton) {
         generarJornadaCompleta();
     }
                 
-       let matrizJornadaCalculada = {};
+         let matrizJornadaCalculada = {};
 
     function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
@@ -695,7 +695,7 @@ function habilitarEdicionInput(boton) {
 
         matrizJornadaCalculada = {};
         
-        // FUNCIÓN DE APOYO VITAL: Comprueba el historial real de los turnos ya calculados HOY
+        // FUNCIÓN DE APOYO: Revisa estrictamente el pasado de HOY
         function yaLaHizoHoy(candidato, cargaToCheck, turnoActual) {
             for (let prevT = 1; prevT < turnoActual; prevT++) {
                 if (matrizJornadaCalculada[prevT] && 
@@ -707,123 +707,115 @@ function habilitarEdicionInput(boton) {
             return false;
         }
 
+        const esAptoGlobal = (op, c) => competencies[`${op}_X_${c}`] !== false;
+        const hizoAyerGlobal = (op, c) => { let p = obtenerPuestoAyer(op); return p ? p.has(c) : false; };
+
         // PROCESADO TURNO A TURNO
         for (let t = 1; t <= 4; t++) {
             matrizJornadaCalculada[t] = {};
-            let operariosOcupadosEnEsteTurno = new Set();
             
-            // PASADA 1: Respetar bloqueos manuales
+            // 1. Respetar bloqueos manuales del usuario
+            let manualOps = new Set();
+            let manualCargas = new Set();
+            
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
                     let opManual = cambiosManualesUsuarios[claveManual];
-                    if (opManual !== "No Apto") operariosOcupadosEnEsteTurno.add(opManual); 
+                    if (opManual !== "No Apto") manualOps.add(opManual);
+                    manualCargas.add(carga);
                     matrizJornadaCalculada[t][carga] = { 
                         nombre: opManual, 
-                        alerta: (opManual !== "No Apto" && competencies[`${opManual}_X_${carga}`] === false),
+                        alerta: (opManual !== "No Apto" && !esAptoGlobal(opManual, carga)),
                         error: (opManual === "No Apto")
                     };
                 }
             });
 
-            // PASADA 2: Asignación Inteligente
-            cargas.forEach((carga, i) => {
-                if (matrizJornadaCalculada[t][carga]) return; 
+            // 2. Extraer quiénes quedan libres en este turno
+            let cargasLibres = cargas.filter(c => !manualCargas.has(c));
+            let opsLibres = ops.filter(o => !manualOps.has(o));
 
-                // Prioridad por equidad (Contador semanal) y desempate sin patrones
-                let opsOrdenados = [...ops].sort((a, b) => {
-                    let vecesA = conteoSemanal[`${a}_X_${carga}`] || 0;
-                    let vecesB = conteoSemanal[`${b}_X_${carga}`] || 0;
+            // 3. Crear matriz de preferencias (Prioridad 1: Equidad Semanal, Prioridad 2: Rotación Perfecta)
+            let preferencias = {};
+            cargasLibres.forEach((carga) => {
+                preferencias[carga] = [...opsLibres].sort((a, b) => {
+                    let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
+                    let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
                     if (vecesA !== vecesB) return vecesA - vecesB;
-                    let ordenA = (ops.indexOf(a) + saltoInicialJornada + (t * 5) + (i * 11)) % ops.length;
-                    let ordenB = (ops.indexOf(b) + saltoInicialJornada + (t * 5) + (i * 11)) % ops.length;
-                    return ordenA - ordenB;
+                    
+                    let idxCarga = cargas.indexOf(carga);
+                    // Dispersión matemática óptima para asegurar que la base inicial no tenga solapamientos nativos
+                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 7) % ops.length;
+                    let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
+                    let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
+                    return distA - distB;
                 });
+            });
 
-                let asignado = false;
-                const esApto = (cand, c) => competencies[`${cand}_X_${c}`] !== false;
-                const hizoAyer = (cand, c) => { let p = obtenerPuestoAyer(cand); return p ? p.has(c) : false; };
+            // 4. NUEVO MOTOR DE EMPAREJAMIENTO DE GRAFOS (Bipartite Matching)
+            // Este motor es capaz de reorganizar en cadena a toda la plantilla si detecta un atasco
+            let matchCarga = {}; 
+            let matchOp = {};
 
-                // PLAN A: Perfecto (Apto + NO la ha hecho HOY + NO la hizo AYER)
-                for (let cand of opsOrdenados) {
-                    if (operariosOcupadosEnEsteTurno.has(cand)) continue;
-                    if (esApto(cand, carga) && !yaLaHizoHoy(cand, carga, t) && !hizoAyer(cand, carga)) {
-                        matrizJornadaCalculada[t][carga] = { nombre: cand, alerta: false, error: false };
-                        operariosOcupadosEnEsteTurno.add(cand);
-                        asignado = true; break;
-                    }
-                }
-
-                // PLAN B: Permitir repetir ayer si no hay más remedio, pero NO HOY
-                if (!asignado) {
-                    for (let cand of opsOrdenados) {
-                        if (operariosOcupadosEnEsteTurno.has(cand)) continue;
-                        if (esApto(cand, carga) && !yaLaHizoHoy(cand, carga, t)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: cand, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurno.add(cand);
-                            asignado = true; break;
-                        }
-                    }
-                }
-
-                // PLAN C: INTERCAMBIO (SWAP) -> El desatascador inteligente
-                // Si el algoritmo se atasca porque el operario libre ya la hizo hoy, le cambia el puesto a un compañero de este mismo turno.
-                if (!asignado) {
-                    let libres = ops.filter(o => !operariosOcupadosEnEsteTurno.has(o));
-                    for (let malo of libres) {
-                        for (let j = 0; j < i; j++) {
-                            let cargaPrevia = cargas[j];
-                            let opPrevio = matrizJornadaCalculada[t][cargaPrevia].nombre;
-                            
-                            // No tocar bloqueos manuales ni huecos rotos
-                            if (opPrevio === "No Apto" || cambiosManualesUsuarios[`${t}_X_${cargaPrevia}`]) continue; 
-
-                            // Comprobar si al intercambiarlos los dos quedan limpios de repeticiones de HOY
-                            let seguroPrevio = esApto(opPrevio, carga) && !yaLaHizoHoy(opPrevio, carga, t);
-                            let seguroMalo = esApto(malo, cargaPrevia) && !yaLaHizoHoy(malo, cargaPrevia, t);
-
-                            if (seguroPrevio && seguroMalo) {
-                                // ¡Hacer el cambiazo!
-                                matrizJornadaCalculada[t][cargaPrevia] = { nombre: malo, alerta: hizoAyer(malo, cargaPrevia), error: false };
-                                matrizJornadaCalculada[t][carga] = { nombre: opPrevio, alerta: hizoAyer(opPrevio, carga), error: false };
-                                operariosOcupadosEnEsteTurno.add(malo);
-                                asignado = true;
-                                break;
+            function buscarAumentos(condicion) {
+                let huboMejora = true;
+                while (huboMejora) {
+                    huboMejora = false;
+                    for (let carga of cargasLibres) {
+                        if (matchCarga[carga]) continue; // Ya tiene una asignación exitosa en este nivel
+                        
+                        let visitados = new Set();
+                        function dfs(c) {
+                            for (let op of preferencias[c]) {
+                                if (condicion(op, c) && !visitados.has(op)) {
+                                    visitados.add(op);
+                                    // Si el operario está libre, O si podemos mover la carga que ya tenía a otro operario
+                                    if (!matchOp[op] || dfs(matchOp[op])) {
+                                        matchOp[op] = c;
+                                        matchCarga[c] = op;
+                                        return true;
+                                    }
+                                }
                             }
+                            return false;
                         }
-                        if (asignado) break;
-                    }
-                }
-
-                // PLAN D: Forzar asignar a alguien que no la haya hecho hoy, saltándose la aptitud si hace falta (Pintará naranja)
-                if (!asignado) {
-                    for (let cand of opsOrdenados) {
-                        if (operariosOcupadosEnEsteTurno.has(cand)) continue;
-                        if (!yaLaHizoHoy(cand, carga, t)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: cand, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurno.add(cand);
-                            asignado = true; break;
+                        
+                        // Si logra desenredar un camino y hacer la asignación, marcamos que hubo mejora
+                        if (dfs(carga)) {
+                            huboMejora = true;
                         }
                     }
                 }
+            }
 
-                // PLAN E: Emergencia Máxima (Repetir hoy. Si con 12/12 llega aquí, es que hay un bloqueo extremo en polivalencia)
-                if (!asignado) {
-                    for (let cand of opsOrdenados) {
-                        if (!operariosOcupadosEnEsteTurno.has(cand)) {
-                            matrizJornadaCalculada[t][carga] = { nombre: cand, alerta: true, error: false };
-                            operariosOcupadosEnEsteTurno.add(cand);
-                            asignado = true; break;
-                        }
-                    }
+            // Aplicamos el motor organizando a la gente en 4 escudos progresivos:
+            // Escudo 1 (Perfecto): Operarios aptos, que no hayan hecho la carga ni HOY ni AYER.
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
+            
+            // Escudo 2 (Relajar ayer): Solo si falta gente, permitimos que repita algo de ayer (Pero PROHIBIDO HOY).
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
+            
+            // Escudo 3 (Fuerza mayor por Polivalencia): Asignar no apto antes que hacerle repetir faena en el día.
+            buscarAumentos((op, c) => !yaLaHizoHoy(op, c, t));
+            
+            // Escudo 4 (Emergencia crítica del sistema): Solo se llega aquí si hay menos operarios físicos que cargas.
+            buscarAumentos((op, c) => true);
+
+            // 5. Volcar los resultados matemáticos calculados a la pantalla
+            cargasLibres.forEach(carga => {
+                let opAsignado = matchCarga[carga];
+                if (opAsignado) {
+                    // Si llegó a asignar pero saltándose la polivalencia, avisamos en naranja.
+                    let alertaNaranja = !esAptoGlobal(opAsignado, carga) && !yaLaHizoHoy(opAsignado, carga, t);
+                    matrizJornadaCalculada[t][carga] = { nombre: opAsignado, alerta: alertaNaranja, error: false };
+                } else {
+                    matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
-
-                // Falla el turno (Máquina sin cubrir)
-                if (!asignado) matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
             });
         }
 
-        // Renderizado del HTML con alertas visuales dinámicas (Rojo o Naranja)
+        // Renderizado del HTML con chivatos visuales (Mantiene tu diseño intacto)
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -847,7 +839,7 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // Si por fuerza mayor repite ayer o repite hoy, se marca en rojo.
+                // Chivato en rojo crítico si hay repetición forzada
                 let claseExtra = (hizoEstaCargaAyer || repeticionesHoy > 1) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
                 html += `<tr>
@@ -879,7 +871,7 @@ function habilitarEdicionInput(boton) {
         
         actualizarResumenIndividual();
     }
-  
+
 
 
 
