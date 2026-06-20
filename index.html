@@ -1029,13 +1029,15 @@ function obtenerPuestoAyer(operario) {
         const item = document.createElement("div");
         item.className = "history-item";
         
-                let htmlTitle = `<div class="history-item-title">
+                        let htmlTitle = `<div class="history-item-title">
             <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
-            <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
+                <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
                 <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
             </div>
         </div>`;
+
 
         
         // --- BLOQUE 1: Vista clásica por Turnos ---
@@ -1232,6 +1234,106 @@ function rotarFilaHaciaArriba(inputElement) {
         });
     }
 
+    function imprimirJornadaPDF(id) {
+        const jornada = historialJornadas.find(j => j.id === id);
+        if(!jornada) return;
+
+        // Diseñamos un HTML limpio y profesional exclusivo para el folio PDF
+        let htmlImprimir = `
+            <html>
+            <head>
+                <title>Reporte de Rotaciones - ${jornada.fecha}</title>
+                <style>
+                    body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; background: #fff; color: #000; }
+                    .titulo { font-size: 1.3rem; font-weight: bold; border-bottom: 3px solid #1e3a8a; padding-bottom: 6px; margin-bottom: 20px; text-transform: uppercase; }
+                    .seccion { font-weight: 800; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; letter-spacing: 0.5px; }
+                    .tabla { width: 100%; border-collapse: collapse; margin-bottom: 25px; page-break-inside: avoid; }
+                    .tabla th, .tabla td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 0.85rem; }
+                    .tabla th { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
+                    .grid-ops { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; page-break-inside: avoid; }
+                    .card-op { border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background: #f8fafc; }
+                    .card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
+                </style>
+            </head>
+            <body>
+                <div class="titulo">📅 Control de Rotaciones: ${jornada.fecha} (${jornada.hora})</div>
+                <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${jornada.tipoHorario}</div>
+                
+                <div class="seccion">⏱️ Distribución de Cargas por Turnos</div>
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Puesto / Carga de Trabajo</th>
+                            <th>Turno 1</th>
+                            <th>Turno 2</th>
+                            <th>Turno 3</th>
+                            <th>Turno 4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // Extraemos las cargas que se usaron en esta jornada específica
+        let cargasAsignadas = new Set();
+        for (let t = 1; t <= 4; t++) {
+            if (jornada.datos && jornada.datos[t]) {
+                Object.keys(jornada.datos[t]).forEach(c => cargasAsignadas.add(c));
+            }
+        }
+
+        cargasAsignadas.forEach(carga => {
+            let t1 = (jornada.datos && jornada.datos[1]) ? (jornada.datos[1][carga] || "-") : "-";
+            let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
+            let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
+            let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
+            htmlImprimir += `<tr>
+                <td><strong>${carga}</strong></td>
+                <td>${t1}</td>
+                <td>${t2}</td>
+                <td>${t3}</td>
+                <td>${t4}</td>
+            </tr>`;
+        });
+
+        htmlImprimir += `</tbody></table>`;
+
+        // Si existe el resumen estructurado por operario, lo añadimos abajo
+        if (jornada.resumenOps) {
+            htmlImprimir += `
+                <div class="seccion">📋 Resumen de Tareas por Operario</div>
+                <div class="grid-ops">
+            `;
+            for (let op in jornada.resumenOps) {
+                htmlImprimir += `<div class="card-op">
+                    <div class="card-op-title">👤 ${op}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
+                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
+                </div>`;
+            }
+            htmlImprimir += `</div>`;
+        }
+
+        htmlImprimir += `</body></html>`;
+
+        // Creamos un marco invisible para aislar la impresión y que no altere tu app oscura
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0'; iframe.style.bottom = '0';
+        iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        
+        iframe.contentWindow.document.open();
+        iframe.contentWindow.document.write(htmlImprimir);
+        iframe.contentWindow.document.close();
+        
+        // Lanzamos el menú nativo de PDF de Android
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            document.body.removeChild(iframe);
+        }, 300);
+    }
 
 </script>
 </body>
