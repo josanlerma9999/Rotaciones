@@ -1179,12 +1179,11 @@ function rotarFilaHaciaArriba(inputElement) {
     }
     procesarCambios();
 }
+
     function exportarJornadaUnicaExcel(id) {
-        // Buscamos la jornada específica que el usuario ha seleccionado
         const jornada = historialJornadas.find(j => j.id === id);
         if(!jornada) return;
 
-        // Cabecera del archivo Excel (CSV)
         let csvContent = "\uFEFFFecha;Hora;Horario;Operario;Turno 1;Turno 2;Turno 3;Turno 4\n";
 
         if (jornada.resumenOps) {
@@ -1193,27 +1192,45 @@ function rotarFilaHaciaArriba(inputElement) {
                 let t2 = jornada.resumenOps[op][2] || "-";
                 let t3 = jornada.resumenOps[op][3] || "-";
                 let t4 = jornada.resumenOps[op][4] || "-";
-                
                 csvContent += `${jornada.fecha};${jornada.hora};${jornada.tipoHorario};${op};${t1};${t2};${t3};${t4}\n`;
             }
         }
 
-        // Crear el archivo de descarga al vuelo
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        
-        // Nombre personalizado con la fecha y hora de esa jornada concreta
-        let fechaArchivo = jornada.fecha.replace(/\//g, '-');
-        let horaArchivo = jornada.hora.replace(/:/g, '-');
-        link.setAttribute("download", `Jornada_${fechaArchivo}_${horaArchivo}.csv`);
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
+
+        // Si estamos en el móvil/APK y el sistema soporta compartir
+        if (navigator.share) {
+            try {
+                const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
+                
+                // Intentamos compartirlo como un archivo real listo para Excel
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: `Excel Jornada ${jornada.fecha}`,
+                        text: 'Aquí tienes el reporte de rotaciones.'
+                    });
+                } else {
+                    // Si el contenedor de tu APK bloquea archivos, compartimos el texto formateado
+                    navigator.share({ title: nombreArchivo, text: csvContent });
+                }
+            } catch (err) {
+                // Segundo plan b por si falla el empaquetado del archivo
+                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
+            }
+        } else {
+            // PLAN C: Si la APK es muy antigua y no tiene menú compartir, lo copia al portapapeles
+            fallbackPortapapeles(csvContent);
+        }
     }
 
+    function fallbackPortapapeles(texto) {
+        navigator.clipboard.writeText(texto).then(() => {
+            alert("📋 Tu APK bloquea las descargas directas, ¡pero hemos copiado los datos de la jornada al portapapeles! Ya puedes pegarlos en Excel, un correo o un bloc de notas.");
+        }).catch(() => {
+            alert("No se ha podido exportar en este dispositivo.");
+        });
+    }
 
 
 </script>
