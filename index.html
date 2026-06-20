@@ -1238,42 +1238,12 @@ function rotarFilaHaciaArriba(inputElement) {
         const jornada = historialJornadas.find(j => j.id === id);
         if(!jornada) return;
 
-        // Diseñamos un HTML limpio y profesional exclusivo para el folio PDF
-        let htmlImprimir = `
-            <html>
-            <head>
-                <title>Reporte de Rotaciones - ${jornada.fecha}</title>
-                <style>
-                    body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; background: #fff; color: #000; }
-                    .titulo { font-size: 1.3rem; font-weight: bold; border-bottom: 3px solid #1e3a8a; padding-bottom: 6px; margin-bottom: 20px; text-transform: uppercase; }
-                    .seccion { font-weight: 800; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; letter-spacing: 0.5px; }
-                    .tabla { width: 100%; border-collapse: collapse; margin-bottom: 25px; page-break-inside: avoid; }
-                    .tabla th, .tabla td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 0.85rem; }
-                    .tabla th { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
-                    .grid-ops { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; page-break-inside: avoid; }
-                    .card-op { border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background: #f8fafc; }
-                    .card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
-                </style>
-            </head>
-            <body>
-                <div class="titulo">📅 Control de Rotaciones: ${jornada.fecha} (${jornada.hora})</div>
-                <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${jornada.tipoHorario}</div>
-                
-                <div class="seccion">⏱️ Distribución de Cargas por Turnos</div>
-                <table class="tabla">
-                    <thead>
-                        <tr>
-                            <th>Puesto / Carga de Trabajo</th>
-                            <th>Turno 1</th>
-                            <th>Turno 2</th>
-                            <th>Turno 3</th>
-                            <th>Turno 4</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
+        // Limpieza por si quedó algún modal fantasma anterior
+        const modalPrevio = document.getElementById('modal-pdf-view');
+        if(modalPrevio) modalPrevio.remove();
 
-        // Extraemos las cargas que se usaron en esta jornada específica
+        // 1. Procesamos las filas de la tabla de cargas
+        let filasCargas = '';
         let cargasAsignadas = new Set();
         for (let t = 1; t <= 4; t++) {
             if (jornada.datos && jornada.datos[t]) {
@@ -1286,53 +1256,101 @@ function rotarFilaHaciaArriba(inputElement) {
             let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
             let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
             let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
-            htmlImprimir += `<tr>
-                <td><strong>${carga}</strong></td>
-                <td>${t1}</td>
-                <td>${t2}</td>
-                <td>${t3}</td>
-                <td>${t4}</td>
+            filasCargas += `<tr>
+                <td style="border:1px solid #cbd5e1; padding:7px; font-weight:bold; color:#000;">${carga}</td>
+                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t1}</td>
+                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t2}</td>
+                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t3}</td>
+                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t4}</td>
             </tr>`;
         });
 
-        htmlImprimir += `</tbody></table>`;
-
-        // Si existe el resumen estructurado por operario, lo añadimos abajo
+        // 2. Procesamos el resumen de operarios
+        let bloquesOps = '';
         if (jornada.resumenOps) {
-            htmlImprimir += `
-                <div class="seccion">📋 Resumen de Tareas por Operario</div>
-                <div class="grid-ops">
-            `;
             for (let op in jornada.resumenOps) {
-                htmlImprimir += `<div class="card-op">
-                    <div class="card-op-title">👤 ${op}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
-                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
-                </div>`;
+                bloquesOps += `
+                    <div style="border:1px solid #cbd5e1; padding:8px; border-radius:6px; background:#f8fafc; color:#000;">
+                        <div style="font-weight:bold; color:#1e3a8a; border-bottom:1px solid #e2e8f0; margin-bottom:4px; font-size:0.8rem; text-transform:uppercase;">👤 ${op}</div>
+                        <div style="font-size:0.75rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"} | <strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
+                        <div style="font-size:0.75rem;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"} | <strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
+                    </div>
+                `;
             }
-            htmlImprimir += `</div>`;
         }
 
-        htmlImprimir += `</body></html>`;
+        // 3. Creamos el contenedor flotante (Modal) inmune a restricciones de APK
+        const modal = document.createElement('div');
+        modal.id = 'modal-pdf-view';
+        modal.style.position = 'fixed';
+        modal.style.top = '0'; modal.style.left = '0';
+        modal.style.width = '100%'; modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.85)';
+        modal.style.zIndex = '99999';
+        modal.style.display = 'flex';
+        modal.style.flexDirection = 'column';
+        modal.style.padding = '12px';
+        modal.style.boxSizing = 'border-box';
 
-        // Creamos un marco invisible para aislar la impresión y que no altere tu app oscura
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0'; iframe.style.bottom = '0';
-        iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
-        document.body.appendChild(iframe);
-        
-        iframe.contentWindow.document.open();
-        iframe.contentWindow.document.write(htmlImprimir);
-        iframe.contentWindow.document.close();
-        
-        // Lanzamos el menú nativo de PDF de Android
-        setTimeout(() => {
-            iframe.contentWindow.print();
-            document.body.removeChild(iframe);
-        }, 300);
+        modal.innerHTML = `
+            <div style="display:flex; justify-content:space-between; background:#1e293b; padding:10px; border-radius:8px 8px 0 0; border-bottom:1px solid #334155;">
+                <button onclick="document.getElementById('modal-pdf-view').remove()" style="background:#ef4444; color:white; border:none; padding:6px 14px; border-radius:5px; font-weight:bold; font-size:0.8rem; cursor:pointer;">❌ Cerrar</button>
+                <span style="color:white; font-size:0.85rem; align-self:center; font-weight:bold; letter-spacing:0.5px;">VISTA DE JORNADA</span>
+                <button id="btn-copy-report-text" style="background:#2563eb; color:white; border:none; padding:6px 14px; border-radius:5px; font-weight:bold; font-size:0.8rem; cursor:pointer;">📋 Copiar</button>
+            </div>
+            
+            <div style="background:white; color:black; padding:16px; overflow-y:auto; flex-grow:1; border-radius:0 0 8px 8px; font-family:system-ui, -apple-system, sans-serif; box-sizing:border-box;">
+                <div style="font-size:1.1rem; font-weight:bold; border-bottom:3px solid #1e3a8a; padding-bottom:4px; margin-bottom:12px; color:#000; text-transform:uppercase;">📅 Reporte de Rotación</div>
+                <div style="font-size:0.8rem; margin-bottom:14px; color:#475569; line-height:1.4;">
+                    <strong>Fecha:</strong> ${jornada.fecha} (${jornada.hora})<br>
+                    <strong>Horario:</strong> ${jornada.tipoHorario}
+                </div>
+                
+                <div style="font-weight:bold; margin-bottom:6px; color:#1e3a8a; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.3px;">⏱️ Reparto de Cargas</div>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:18px; font-size:0.75rem;">
+                    <thead>
+                        <tr style="background:#f1f5f9; color:#000;">
+                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:left;">Puesto</th>
+                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T1</th>
+                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T2</th>
+                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T3</th>
+                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasCargas}
+                    </tbody>
+                </table>
+
+                ${bloquesOps ? `
+                    <div style="font-weight:bold; margin-bottom:6px; color:#1e3a8a; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.3px;">📋 Tareas por Operario</div>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        ${bloquesOps}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Lógica del botón de copia optimizado para texto plano legible
+        document.getElementById('btn-copy-report-text').addEventListener('click', () => {
+            let txt = `📋 JORNADA: ${jornada.fecha} (${jornada.hora})\n`;
+            txt += `Horario: ${jornada.tipoHorario}\n\n`;
+            txt += `--- RESUMEN DE OPERARIOS ---\n`;
+            if (jornada.resumenOps) {
+                for (let op in jornada.resumenOps) {
+                    txt += `👤 ${op}:\n`;
+                    txt += `  • T1: ${jornada.resumenOps[op][1] || "-"}\n`;
+                    txt += `  • T2: ${jornada.resumenOps[op][2] || "-"}\n`;
+                    txt += `  • T3: ${jornada.resumenOps[op][3] || "-"}\n`;
+                    txt += `  • T4: ${jornada.resumenOps[op][4] || "-"}\n`;
+                }
+            }
+            navigator.clipboard.writeText(txt).then(() => {
+                alert("✅ Estructura copiada al portapapeles.");
+            });
+        });
     }
 
 </script>
