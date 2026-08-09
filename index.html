@@ -684,7 +684,7 @@ function habilitarEdicionInput(boton) {
                 
          let matrizJornadaCalculada = {};
 
-    function generarJornadaCompleta() {
+       function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
@@ -694,8 +694,7 @@ function habilitarEdicionInput(boton) {
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        
-        // FUNCIÓN DE APOYO: Revisa estrictamente el pasado de HOY
+           // FUNCIÓN DE APOYO: Revisa estrictamente el pasado de HOY
         function yaLaHizoHoy(candidato, cargaToCheck, turnoActual) {
             for (let prevT = 1; prevT < turnoActual; prevT++) {
                 if (matrizJornadaCalculada[prevT] && 
@@ -732,11 +731,44 @@ function habilitarEdicionInput(boton) {
                 }
             });
 
-            // 2. Extraer quiénes quedan libres en este turno
+            // Extraer quiénes quedan libres inicialmente
             let cargasLibres = cargas.filter(c => !manualCargas.has(c));
             let opsLibres = ops.filter(o => !manualOps.has(o));
 
-            // 3. Crear matriz de preferencias (Prioridad 1: Equidad Semanal, Prioridad 2: Rotación Perfecta)
+            // =========================================================================
+            // FASE 0 (NUEVO): RESERVA PRIORITARIA PARA OPERARIOS CON 1 SOLA CARGA APTA
+            // =========================================================================
+            let matchEspecialistasCarga = {};
+            let matchEspecialistasOp = {};
+
+            opsLibres.forEach(op => {
+                // Obtenemos todas las cargas para las que este operario es apto
+                let cargasAptasOp = cargasLibres.filter(c => esAptoGlobal(op, c));
+                
+                // Si solo sabe hacer 1 carga disponible en el cuadrante:
+                if (cargasAptasOp.length === 1) {
+                    let cargaUnica = cargasAptasOp[0];
+                    // Si esa carga aún no ha sido reclamada por otro especialista
+                    if (!matchEspecialistasCarga[cargaUnica]) {
+                        matchEspecialistasCarga[cargaUnica] = op;
+                        matchEspecialistasOp[op] = cargaUnica;
+                    }
+                }
+            });
+
+            // Asignar especialistas fijos en la matriz y retirarlos del pool rotativo
+            for (let carga in matchEspecialistasCarga) {
+                let opAsignado = matchEspecialistasCarga[carga];
+                matrizJornadaCalculada[t][carga] = { nombre: opAsignado, alerta: false, error: false };
+            }
+
+            // Filtrar las cargas y operarios restantes para la rotación normal
+            cargasLibres = cargasLibres.filter(c => !matchEspecialistasCarga[c]);
+            opsLibres = opsLibres.filter(o => !matchEspecialistasOp[o]);
+
+            // =========================================================================
+            // FASE 1: MATRIZ DE PREFERENCIAS Y MOTOR GENERAL PARA EL RESTO DE PERSONAL
+            // =========================================================================
             let preferencias = {};
             cargasLibres.forEach((carga) => {
                 preferencias[carga] = [...opsLibres].sort((a, b) => {
@@ -745,7 +777,6 @@ function habilitarEdicionInput(boton) {
                     if (vecesA !== vecesB) return vecesA - vecesB;
                     
                     let idxCarga = cargas.indexOf(carga);
-                    // Dispersión matemática óptima para asegurar que la base inicial no tenga solapamientos nativos
                     let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 7) % ops.length;
                     let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
                     let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
@@ -753,8 +784,7 @@ function habilitarEdicionInput(boton) {
                 });
             });
 
-            // 4. NUEVO MOTOR DE EMPAREJAMIENTO DE GRAFOS (Bipartite Matching)
-            // Este motor es capaz de reorganizar en cadena a toda la plantilla si detecta un atasco
+            // MOTOR DE EMPAREJAMIENTO DE GRAFOS (Bipartite Matching)
             let matchCarga = {}; 
             let matchOp = {};
 
@@ -763,14 +793,13 @@ function habilitarEdicionInput(boton) {
                 while (huboMejora) {
                     huboMejora = false;
                     for (let carga of cargasLibres) {
-                        if (matchCarga[carga]) continue; // Ya tiene una asignación exitosa en este nivel
+                        if (matchCarga[carga]) continue;
                         
                         let visitados = new Set();
                         function dfs(c) {
                             for (let op of preferencias[c]) {
                                 if (condicion(op, c) && !visitados.has(op)) {
                                     visitados.add(op);
-                                    // Si el operario está libre, O si podemos mover la carga que ya tenía a otro operario
                                     if (!matchOp[op] || dfs(matchOp[op])) {
                                         matchOp[op] = c;
                                         matchCarga[c] = op;
@@ -781,7 +810,6 @@ function habilitarEdicionInput(boton) {
                             return false;
                         }
                         
-                        // Si logra desenredar un camino y hacer la asignación, marcamos que hubo mejora
                         if (dfs(carga)) {
                             huboMejora = true;
                         }
@@ -789,24 +817,16 @@ function habilitarEdicionInput(boton) {
                 }
             }
 
-            // Aplicamos el motor organizando a la gente en 4 escudos progresivos:
-            // Escudo 1 (Perfecto): Operarios aptos, que no hayan hecho la carga ni HOY ni AYER.
+            // Escudos de protección para los operarios polivalentes
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
-            
-            // Escudo 2 (Relajar ayer): Solo si falta gente, permitimos que repita algo de ayer (Pero PROHIBIDO HOY).
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
-            
-            // Escudo 3 (Fuerza mayor por Polivalencia): Asignar no apto antes que hacerle repetir faena en el día.
             buscarAumentos((op, c) => !yaLaHizoHoy(op, c, t));
-            
-            // Escudo 4 (Emergencia crítica del sistema): Solo se llega aquí si hay menos operarios físicos que cargas.
             buscarAumentos((op, c) => true);
 
-            // 5. Volcar los resultados matemáticos calculados a la pantalla
+            // Volcar resultados de la rotación normal
             cargasLibres.forEach(carga => {
                 let opAsignado = matchCarga[carga];
                 if (opAsignado) {
-                    // Si llegó a asignar pero saltándose la polivalencia, avisamos en naranja.
                     let alertaNaranja = !esAptoGlobal(opAsignado, carga) && !yaLaHizoHoy(opAsignado, carga, t);
                     matrizJornadaCalculada[t][carga] = { nombre: opAsignado, alerta: alertaNaranja, error: false };
                 } else {
@@ -815,7 +835,7 @@ function habilitarEdicionInput(boton) {
             });
         }
 
-        // Renderizado del HTML con chivatos visuales (Mantiene tu diseño intacto)
+        // Renderizado del HTML
         for (let t = 1; t <= 4; t++) {
             const card = document.createElement("div");
             card.className = "turno-card";
@@ -839,7 +859,7 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // Chivato en rojo crítico si hay repetición forzada
+                // Chivato visual
                 let claseExtra = (hizoEstaCargaAyer || repeticionesHoy > 1) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
                 html += `<tr>
@@ -871,6 +891,7 @@ function habilitarEdicionInput(boton) {
         
         actualizarResumenIndividual();
     }
+
 
 
 
