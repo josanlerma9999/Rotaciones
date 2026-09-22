@@ -105,22 +105,21 @@
             box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
         }
         
-   .tab-btn { 
-    flex: 1; 
-    border: none; 
-    background: transparent; 
-    color: var(--text-muted); 
-    cursor: pointer; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 4px; 
-    font-size: 0.62rem; /* Ajustado sutilmente para acomodar los 6 botones perfectamente */
-    font-weight: 700;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-}
-
+        .tab-btn { 
+            flex: 1; 
+            border: none; 
+            background: transparent; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 4px; 
+            font-size: 0.62rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
         
         .tab-btn .icon { font-size: 1.45rem !important; } 
         .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
@@ -164,7 +163,7 @@
         }
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
         
-                #listaOps .item-input, #listaCargas .item-input { 
+        #listaOps .item-input, #listaCargas .item-input { 
             flex: 1; 
             padding: 10px 12px; 
             border: 1px solid var(--border-color); 
@@ -180,32 +179,25 @@
         #listaOps .item-input { color: var(--primary-light); }
         #listaCargas .item-input { color: #fff; }
 
-
-/* Botón estético táctil para activar edición de texto */
-.btn-edit-text { 
-    background: #1f2937; 
-    color: #a5f3fc; 
-    border: 1px solid #0891b2; 
-    padding: 0; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    width: 36px; 
-    height: 36px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 0.9rem; 
-    flex-shrink: 0; 
-}
-
+        .btn-edit-text { 
+            background: #1f2937; 
+            color: #a5f3fc; 
+            border: 1px solid #0891b2; 
+            padding: 0; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 36px; 
+            height: 36px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.9rem; 
+            flex-shrink: 0; 
+        }
 
         .item-input:focus { border-color: var(--primary-light); outline: none; }
         
         .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
-
-        /* NUEVO: Estilos estéticos para los botones de ordenación */
-        .btn-order { background: #1f2937; color: #fff; border: 1px solid var(--border-color); padding: 0; border-radius: 6px; cursor: pointer; width: 30px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: background 0.2s; }
-        .btn-order:hover { background: #374151; }
 
         .matrix-container { 
             overflow-x: auto; 
@@ -334,7 +326,6 @@
             transform: rotate(45deg);
         }
 
-
         .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
         .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
@@ -439,11 +430,10 @@
         .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
         @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
         .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
-                .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
+        .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
         .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
         .history-linea strong { color: #fff; }
     </style>
-
 </head>
 <body>
 
@@ -471,7 +461,7 @@
         </div>
     </div>
 
-        <div id="tab-matriz" class="tab-content">
+    <div id="tab-matriz" class="tab-content">
         <div class="matrix-container" id="contenedorMatriz"></div>
     </div>
 
@@ -483,23 +473,21 @@
 
         <div class="jornada-grid" id="contenedorJornada"></div>
 
-        
-
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>
     </div>
-    <!-- Nueva pestaña independiente para el Resumen Individual -->
-<div id="tab-resumen" class="tab-content">
-    <div class="section-box" style="flex: 1 0 auto;">
-        <div class="section-header">
-            <span class="section-title">📋 Resumen Individual por Operario</span>
+
+    <div id="tab-resumen" class="tab-content">
+        <div class="section-box" style="flex: 1 0 auto;">
+            <div class="section-header">
+                <span class="section-title">📋 Resumen Individual por Operario</span>
+            </div>
+            <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;"></div>
         </div>
-        <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;"></div>
     </div>
-</div>
 
     <div id="tab-contador" class="tab-content">
         <div class="history-header">
@@ -518,30 +506,31 @@
     </div>
 
     <div class="tabs-nav">
-    <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-        <span class="icon">⚙️</span>
-        <span>Configurar</span>
-    </button>
-    <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-        <span class="icon">🛠️</span>
-        <span>Polivalencia</span>
-    </button>
-    <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-        <span class="icon">📅</span>
-        <span>Turnos</span>
-    </button>
-    <button class="tab-btn" onclick="cambiarPestaña('tab-resumen', this)">
-        <span class="icon">📋</span>
-        <span>Resumen</span>
-    </button>
-    <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
-        <span class="icon">📊</span>
-        <span>Contador</span>
-    </button>
-    <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-        <span class="icon">📂</span>
-        <span>Historial</span>
-    </button>
+        <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
+            <span class="icon">⚙️</span>
+            <span>Configurar</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
+            <span class="icon">🛠️</span>
+            <span>Polivalencia</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
+            <span class="icon">📅</span>
+            <span>Turnos</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-resumen', this)">
+            <span class="icon">📋</span>
+            <span>Resumen</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+            <span class="icon">📊</span>
+            <span>Contador</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
+            <span class="icon">📂</span>
+            <span>Historial</span>
+        </button>
+    </div>
 </div>
 
 <script>
@@ -607,37 +596,28 @@
         else btnT.classList.add("active-afternoon");
     }
 
-    // MODIFICADO: Agrega los botones de subir y bajar solo a las cargas de trabajo
-  function agregarFila(contenedorId, tipo, valor = "") {
-    const contenedor = document.getElementById(contenedorId);
-    const row = document.createElement("div");
-    row.className = "item-row";
-    
-    // Aplicamos readonly y botón de lápiz a ambos por igual
-    row.innerHTML = `
-        <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
-        <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
-        <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
-    `;
-    contenedor.appendChild(row);
-}
+    function agregarFila(contenedorId, tipo, valor = "") {
+        const contenedor = document.getElementById(contenedorId);
+        const row = document.createElement("div");
+        row.className = "item-row";
+        
+        row.innerHTML = `
+            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
+            <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
+            <button class="btn-del" onclick="this.parentElement.remove(); procesarCambios();">🗑️</button>
+        `;
+        contenedor.appendChild(row);
+    }
 
-
-// Nueva función de apoyo para habilitar el teclado al pulsar el lápiz
-function habilitarEdicionInput(boton) {
-    const input = boton.parentElement.querySelector('.item-input');
-    input.removeAttribute('readonly');
-    input.focus();
-    
-    // Al quitar el foco, vuelve a bloquearse para permitir arrastrar/rotar con un toque
-    input.onblur = function() {
-        input.setAttribute('readonly', true);
-    };
-}
-
-
-    // NUEVO: Función nativa para reordenar los elementos en el DOM y lanzar el recálculo
-    
+    function habilitarEdicionInput(boton) {
+        const input = boton.parentElement.querySelector('.item-input');
+        input.removeAttribute('readonly');
+        input.focus();
+        
+        input.onblur = function() {
+            input.setAttribute('readonly', true);
+        };
+    }
 
     function leerLista(contenedorId) {
         return Array.from(document.querySelectorAll(`#${contenedorId} .item-input`))
@@ -682,9 +662,9 @@ function habilitarEdicionInput(boton) {
         generarJornadaCompleta();
     }
                 
-         let matrizJornadaCalculada = {};
+    let matrizJornadaCalculada = {};
 
-       function generarJornadaCompleta() {
+    function generarJornadaCompleta() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
@@ -694,7 +674,7 @@ function habilitarEdicionInput(boton) {
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-           // FUNCIÓN DE APOYO: Revisa estrictamente el pasado de HOY
+        
         function yaLaHizoHoy(candidato, cargaToCheck, turnoActual) {
             for (let prevT = 1; prevT < turnoActual; prevT++) {
                 if (matrizJornadaCalculada[prevT] && 
@@ -713,7 +693,6 @@ function habilitarEdicionInput(boton) {
         for (let t = 1; t <= 4; t++) {
             matrizJornadaCalculada[t] = {};
             
-            // 1. Respetar bloqueos manuales del usuario
             let manualOps = new Set();
             let manualCargas = new Set();
             
@@ -731,44 +710,9 @@ function habilitarEdicionInput(boton) {
                 }
             });
 
-            // Extraer quiénes quedan libres inicialmente
             let cargasLibres = cargas.filter(c => !manualCargas.has(c));
             let opsLibres = ops.filter(o => !manualOps.has(o));
 
-            // =========================================================================
-            // FASE 0 (NUEVO): RESERVA PRIORITARIA PARA OPERARIOS CON 1 SOLA CARGA APTA
-            // =========================================================================
-            let matchEspecialistasCarga = {};
-            let matchEspecialistasOp = {};
-
-            opsLibres.forEach(op => {
-                // Obtenemos todas las cargas para las que este operario es apto
-                let cargasAptasOp = cargasLibres.filter(c => esAptoGlobal(op, c));
-                
-                // Si solo sabe hacer 1 carga disponible en el cuadrante:
-                if (cargasAptasOp.length === 1) {
-                    let cargaUnica = cargasAptasOp[0];
-                    // Si esa carga aún no ha sido reclamada por otro especialista
-                    if (!matchEspecialistasCarga[cargaUnica]) {
-                        matchEspecialistasCarga[cargaUnica] = op;
-                        matchEspecialistasOp[op] = cargaUnica;
-                    }
-                }
-            });
-
-            // Asignar especialistas fijos en la matriz y retirarlos del pool rotativo
-            for (let carga in matchEspecialistasCarga) {
-                let opAsignado = matchEspecialistasCarga[carga];
-                matrizJornadaCalculada[t][carga] = { nombre: opAsignado, alerta: false, error: false };
-            }
-
-            // Filtrar las cargas y operarios restantes para la rotación normal
-            cargasLibres = cargasLibres.filter(c => !matchEspecialistasCarga[c]);
-            opsLibres = opsLibres.filter(o => !matchEspecialistasOp[o]);
-
-            // =========================================================================
-            // FASE 1: MATRIZ DE PREFERENCIAS Y MOTOR GENERAL PARA EL RESTO DE PERSONAL
-            // =========================================================================
             let preferencias = {};
             cargasLibres.forEach((carga) => {
                 preferencias[carga] = [...opsLibres].sort((a, b) => {
@@ -784,7 +728,6 @@ function habilitarEdicionInput(boton) {
                 });
             });
 
-            // MOTOR DE EMPAREJAMIENTO DE GRAFOS (Bipartite Matching)
             let matchCarga = {}; 
             let matchOp = {};
 
@@ -793,7 +736,7 @@ function habilitarEdicionInput(boton) {
                 while (huboMejora) {
                     huboMejora = false;
                     for (let carga of cargasLibres) {
-                        if (matchCarga[carga]) continue;
+                        if (matchCarga[carga]) continue; 
                         
                         let visitados = new Set();
                         function dfs(c) {
@@ -817,13 +760,11 @@ function habilitarEdicionInput(boton) {
                 }
             }
 
-            // Escudos de protección para los operarios polivalentes
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
             buscarAumentos((op, c) => !yaLaHizoHoy(op, c, t));
             buscarAumentos((op, c) => true);
 
-            // Volcar resultados de la rotación normal
             cargasLibres.forEach(carga => {
                 let opAsignado = matchCarga[carga];
                 if (opAsignado) {
@@ -859,13 +800,13 @@ function habilitarEdicionInput(boton) {
                     }
                 }
 
-                // Chivato visual
                 let claseExtra = (hizoEstaCargaAyer || repeticionesHoy > 1) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
+                // NUEVO: La función al cambiar un selector guarda la edición y recalcula los siguientes turnos automáticamente
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="actualizarResumenIndividual(); generarJornadaCompleta();">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
                             ${ops.map(o => {
                                 let puestosAyerOpt = obtenerPuestoAyer(o);
                                 let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
@@ -892,27 +833,36 @@ function habilitarEdicionInput(boton) {
         actualizarResumenIndividual();
     }
 
+    // NUEVA FUNCIÓN: Al cambiar cualquier opción del desplegable, fija el cambio y recalcula los turnos posteriores al instante
+    function guardarEdicionManualYRecalcular(turnoEditado, cargaEditada, nuevoOperario) {
+        // 1. Guardar la modificación manual seleccionada por el usuario
+        cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
 
+        // 2. Limpiar las fijaciones manuales de los turnos POSTERIORES para que el motor inteligente pueda re-rotar a la plantilla dinámicamente
+        const cargas = leerLista("listaCargas");
+        for (let t = turnoEditado + 1; t <= 4; t++) {
+            cargas.forEach(c => {
+                delete cambiosManualesUsuarios[`${t}_X_${c}`];
+            });
+        }
 
-
-
-function obtenerPuestoAyer(operario) {
-    if (!historialJornadas || historialJornadas.length === 0) return null;
-    
-    // Cogemos la última jornada guardada en el historial (ayer)
-    const jornadaAyer = historialJornadas[0]; 
-    if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
-    
-    // Devolvemos un Set con los puestos que pisó ayer ese operario para comparar rápido
-    const puestosAyer = new Set();
-    for (let t = 1; t <= 4; t++) {
-        let puesto = jornadaAyer.resumenOps[operario][t];
-        if (puesto && puesto !== "-") puestosAyer.add(puesto);
+        // 3. Volver a calcular la jornada entera de manera fluida
+        generarJornadaCompleta();
     }
-    return puestosAyer;
-}
 
-
+    function obtenerPuestoAyer(operario) {
+        if (!historialJornadas || historialJornadas.length === 0) return null;
+        
+        const jornadaAyer = historialJornadas[0]; 
+        if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
+        
+        const puestosAyer = new Set();
+        for (let t = 1; t <= 4; t++) {
+            let puesto = jornadaAyer.resumenOps[operario][t];
+            if (puesto && puesto !== "-") puestosAyer.add(puesto);
+        }
+        return puestosAyer;
+    }
 
     function guardarTurnoYRecalcularSiguientes(turnoEditado) {
         const cargasEnTurno = leerLista("listaCargas");
@@ -967,7 +917,6 @@ function obtenerPuestoAyer(operario) {
         contenedor.innerHTML = html;
     }
 
-    
     function guardarEnHistorial() {
         const selectores = document.querySelectorAll(".select-op-editable");
         if(selectores.length === 0) return;
@@ -975,7 +924,6 @@ function obtenerPuestoAyer(operario) {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
-        // 1. Guardar en los contadores semanales numéricos
         selectores.forEach(select => {
             let opAsignado = select.value;
             let carga = select.dataset.carga;
@@ -988,7 +936,6 @@ function obtenerPuestoAyer(operario) {
         localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
         renderizarTablaContadores();
 
-        // 2. Construir la estructura clásica por turnos
         let copiaTurnos = {};
         for(let t=1; t<=4; t++) {
             copiaTurnos[t] = {};
@@ -1000,7 +947,6 @@ function obtenerPuestoAyer(operario) {
             });
         }
 
-        // 3. Construir la estructura agrupada por Operario para el Escudo de Ayer
         let resumenOperariosHoy = {};
         ops.forEach(op => {
             resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
@@ -1018,7 +964,6 @@ function obtenerPuestoAyer(operario) {
             });
         }
 
-        // 4. Crear el objeto final con ambas estructuras
         let fechaActual = new Date();
         let nuevaJornada = {
             id: Date.now(),
@@ -1036,73 +981,67 @@ function obtenerPuestoAyer(operario) {
         generarJornadaCompleta();
     }
 
-
     function renderizarHistorial() {
-    const contenedor = document.getElementById("contenedorHistorial");
-    contenedor.innerHTML = "";
+        const contenedor = document.getElementById("contenedorHistorial");
+        contenedor.innerHTML = "";
 
-    if(historialJornadas.length === 0) {
-        contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
-        return;
-    }
-
-    historialJornadas.forEach(jornada => {
-        const item = document.createElement("div");
-        item.className = "history-item";
-        
-                        let htmlTitle = `<div class="history-item-title">
-            <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
-                <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
-                <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
-            </div>
-        </div>`;
-
-
-        
-        // --- BLOQUE 1: Vista clásica por Turnos ---
-        let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
-        htmlContent += `<div class="history-item-content">`;
-        for(let t=1; t<=4; t++) {
-            htmlContent += `<div class="history-turno-block">
-                <div class="history-turno-title">TURNO ${t}</div>`;
-            if(jornada.datos && jornada.datos[t]) {
-                for(let carga in jornada.datos[t]) {
-                    htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
-                }
-            }
-            htmlContent += `</div>`;
+        if(historialJornadas.length === 0) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
+            return;
         }
-        htmlContent += `</div>`; // Cierre de history-item-content
 
-        // --- BLOQUE 2: NUEVO - Vista resumida por Operario ---
-        if (jornada.resumenOps) {
-            htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
-            htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
+        historialJornadas.forEach(jornada => {
+            const item = document.createElement("div");
+            item.className = "history-item";
             
-            for (let op in jornada.resumenOps) {
-                htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
-                    <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
-                
-                for (let t = 1; t <= 4; t++) {
-                    let puesto = jornada.resumenOps[op][t] || "-";
-                    let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
-                    htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
-                        <span style="color:var(--primary-light);">T${t}:</span>
-                        <span style="${colorPuesto}">${puesto}</span>
-                    </div>`;
+            let htmlTitle = `<div class="history-item-title">
+                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
+                    <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
+                    <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
+                </div>
+            </div>`;
+
+            let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
+            htmlContent += `<div class="history-item-content">`;
+            for(let t=1; t<=4; t++) {
+                htmlContent += `<div class="history-turno-block">
+                    <div class="history-turno-title">TURNO ${t}</div>`;
+                if(jornada.datos && jornada.datos[t]) {
+                    for(let carga in jornada.datos[t]) {
+                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
+                    }
                 }
                 htmlContent += `</div>`;
             }
             htmlContent += `</div>`;
-        }
-        
-        item.innerHTML = htmlTitle + htmlContent;
-        contenedor.appendChild(item);
-    });
-}
 
+            if (jornada.resumenOps) {
+                htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
+                htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
+                
+                for (let op in jornada.resumenOps) {
+                    htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
+                        <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
+                    
+                    for (let t = 1; t <= 4; t++) {
+                        let puesto = jornada.resumenOps[op][t] || "-";
+                        let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
+                        htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
+                            <span style="color:var(--primary-light);">T${t}:</span>
+                            <span style="${colorPuesto}">${puesto}</span>
+                        </div>`;
+                    }
+                    htmlContent += `</div>`;
+                }
+                htmlContent += `</div>`;
+            }
+            
+            item.innerHTML = htmlTitle + htmlContent;
+            contenedor.appendChild(item);
+        });
+    }
 
     function borrarJornadaIndividual(id) {
         if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
@@ -1127,81 +1066,76 @@ function obtenerPuestoAyer(operario) {
             renderizarTablaContadores();
         }
     }
+
     function actualizarResumenIndividual() {
-    const ops = leerLista("listaOps");
-    const cargas = leerLista("listaCargas");
-    const contenedor = document.getElementById("contenedorResumenOperarios");
-    
-    if (!contenedor) return;
-    contenedor.innerHTML = "";
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorResumenOperarios");
+        
+        if (!contenedor) return;
+        contenedor.innerHTML = "";
 
-    if (ops.length === 0 || cargas.length === 0) return;
+        if (ops.length === 0 || cargas.length === 0) return;
 
-    // 1. Preparamos el cuadrante vacío para cada operario
-    let asignacionesPorOp = {};
-    ops.forEach(op => {
-        asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
-    });
+        let asignacionesPorOp = {};
+        ops.forEach(op => {
+            asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" };
+        });
 
-    // 2. Leemos directamente los selectores (<select>) dibujados en la pantalla
-    for (let t = 1; t <= 4; t++) {
-        cargas.forEach(carga => {
-            // Buscamos el select de este turno y esta carga específica
-            let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
-            if (selector) {
-                let opAsignado = selector.value;
-                // Si el operario existe en nuestra lista oficial, le asignamos la carga en este turno
-                if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
-                    asignacionesPorOp[opAsignado][t] = carga;
+        for (let t = 1; t <= 4; t++) {
+            cargas.forEach(carga => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                if (selector) {
+                    let opAsignado = selector.value;
+                    if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
+                        asignacionesPorOp[opAsignado][t] = carga;
+                    }
                 }
+            });
+        }
+
+        ops.forEach(op => {
+            const tarjeta = document.createElement("div");
+            tarjeta.style.background = "#050505";
+            tarjeta.style.border = "1px solid var(--border-color)";
+            tarjeta.style.borderRadius = "8px";
+            tarjeta.style.padding = "10px";
+            tarjeta.style.display = "flex";
+            tarjeta.style.flexDirection = "column";
+            tarjeta.style.gap = "6px";
+
+            let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
+            
+            for (let t = 1; t <= 4; t++) {
+                let puesto = asignacionesPorOp[op][t];
+                let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
+                
+                htmlCard += `
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                        <span style="color: var(--accent); font-weight: bold;">T${t}:</span>
+                        <span style="${estiloPuesto}">${puesto}</span>
+                    </div>`;
             }
+
+            tarjeta.innerHTML = htmlCard;
+            contenedor.appendChild(tarjeta);
         });
     }
 
-    // 3. Dibujamos las tarjetas individuales en el contenedor
-    ops.forEach(op => {
-        const tarjeta = document.createElement("div");
-        tarjeta.style.background = "#050505";
-        tarjeta.style.border = "1px solid var(--border-color)";
-        tarjeta.style.borderRadius = "8px";
-        tarjeta.style.padding = "10px";
-        tarjeta.style.display = "flex";
-        tarjeta.style.flexDirection = "column";
-        tarjeta.style.gap = "6px";
+    function rotarFilaHaciaArriba(inputElement) {
+        if (!inputElement.hasAttribute('readonly')) return;
 
-        let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
-        
-        for (let t = 1; t <= 4; t++) {
-            let puesto = asignacionesPorOp[op][t];
-            let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
-            
-            htmlCard += `
-                <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
-                    <span style="color: var(--accent); font-weight: bold;">T${t}:</span>
-                    <span style="${estiloPuesto}">${puesto}</span>
-                </div>`;
+        const filaActual = inputElement.parentElement;
+        const contenedor = filaActual.parentElement;
+        const filaAnterior = filaActual.previousElementSibling;
+
+        if (filaAnterior) {
+            contenedor.insertBefore(filaActual, filaAnterior);
+        } else {
+            contenedor.appendChild(filaActual);
         }
-
-        tarjeta.innerHTML = htmlCard;
-        contenedor.appendChild(tarjeta);
-    });
-}
-
-function rotarFilaHaciaArriba(inputElement) {
-    // Si la caja de texto no tiene el candado puesto (no es readonly), salimos para dejar escribir
-    if (!inputElement.hasAttribute('readonly')) return;
-
-    const filaActual = inputElement.parentElement;
-    const contenedor = filaActual.parentElement;
-    const filaAnterior = filaActual.previousElementSibling;
-
-    if (filaAnterior) {
-        contenedor.insertBefore(filaActual, filaAnterior);
-    } else {
-        contenedor.appendChild(filaActual);
+        procesarCambios();
     }
-    procesarCambios();
-}
 
     function exportarJornadaUnicaExcel(id) {
         const jornada = historialJornadas.find(j => j.id === id);
@@ -1221,12 +1155,9 @@ function rotarFilaHaciaArriba(inputElement) {
 
         let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
 
-        // Si estamos en el móvil/APK y el sistema soporta compartir
         if (navigator.share) {
             try {
                 const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
-                
-                // Intentamos compartirlo como un archivo real listo para Excel
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({
                         files: [file],
@@ -1234,22 +1165,19 @@ function rotarFilaHaciaArriba(inputElement) {
                         text: 'Aquí tienes el reporte de rotaciones.'
                     });
                 } else {
-                    // Si el contenedor de tu APK bloquea archivos, compartimos el texto formateado
                     navigator.share({ title: nombreArchivo, text: csvContent });
                 }
             } catch (err) {
-                // Segundo plan b por si falla el empaquetado del archivo
                 navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
             }
         } else {
-            // PLAN C: Si la APK es muy antigua y no tiene menú compartir, lo copia al portapapeles
             fallbackPortapapeles(csvContent);
         }
     }
 
     function fallbackPortapapeles(texto) {
         navigator.clipboard.writeText(texto).then(() => {
-            alert("📋 Tu APK bloquea las descargas directas, ¡pero hemos copiado los datos de la jornada al portapapeles! Ya puedes pegarlos en Excel, un correo o un bloc de notas.");
+            alert("📋 Datos copiados al portapapeles para pegar en Excel.");
         }).catch(() => {
             alert("No se ha podido exportar en este dispositivo.");
         });
@@ -1259,12 +1187,40 @@ function rotarFilaHaciaArriba(inputElement) {
         const jornada = historialJornadas.find(j => j.id === id);
         if(!jornada) return;
 
-        // Limpieza por si quedó algún modal fantasma anterior
-        const modalPrevio = document.getElementById('modal-pdf-view');
-        if(modalPrevio) modalPrevio.remove();
+        let htmlImprimir = `
+            <html>
+            <head>
+                <title>Reporte de Rotaciones - ${jornada.fecha}</title>
+                <style>
+                    body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; background: #fff; color: #000; }
+                    .titulo { font-size: 1.3rem; font-weight: bold; border-bottom: 3px solid #1e3a8a; padding-bottom: 6px; margin-bottom: 20px; text-transform: uppercase; }
+                    .seccion { font-weight: 800; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; letter-spacing: 0.5px; }
+                    .tabla { width: 100%; border-collapse: collapse; margin-bottom: 25px; page-break-inside: avoid; }
+                    .tabla th, .tabla td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 0.85rem; }
+                    .tabla th { background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
+                    .grid-ops { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; page-break-inside: avoid; }
+                    .card-op { border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background: #f8fafc; }
+                    .card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
+                </style>
+            </head>
+            <body>
+                <div class="titulo">📅 Control de Rotaciones: ${jornada.fecha} (${jornada.hora})</div>
+                <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${jornada.tipoHorario}</div>
+                
+                <div class="seccion">⏱️ Distribución de Cargas por Turnos</div>
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Puesto / Carga de Trabajo</th>
+                            <th>Turno 1</th>
+                            <th>Turno 2</th>
+                            <th>Turno 3</th>
+                            <th>Turno 4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
 
-        // 1. Procesamos las filas de la tabla de cargas
-        let filasCargas = '';
         let cargasAsignadas = new Set();
         for (let t = 1; t <= 4; t++) {
             if (jornada.datos && jornada.datos[t]) {
@@ -1277,103 +1233,51 @@ function rotarFilaHaciaArriba(inputElement) {
             let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
             let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
             let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
-            filasCargas += `<tr>
-                <td style="border:1px solid #cbd5e1; padding:7px; font-weight:bold; color:#000;">${carga}</td>
-                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t1}</td>
-                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t2}</td>
-                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t3}</td>
-                <td style="border:1px solid #cbd5e1; padding:7px; text-align:center; color:#000;">${t4}</td>
+            htmlImprimir += `<tr>
+                <td><strong>${carga}</strong></td>
+                <td>${t1}</td>
+                <td>${t2}</td>
+                <td>${t3}</td>
+                <td>${t4}</td>
             </tr>`;
         });
 
-        // 2. Procesamos el resumen de operarios
-        let bloquesOps = '';
+        htmlImprimir += `</tbody></table>`;
+
         if (jornada.resumenOps) {
+            htmlImprimir += `
+                <div class="seccion">📋 Resumen de Tareas por Operario</div>
+                <div class="grid-ops">
+            `;
             for (let op in jornada.resumenOps) {
-                bloquesOps += `
-                    <div style="border:1px solid #cbd5e1; padding:8px; border-radius:6px; background:#f8fafc; color:#000;">
-                        <div style="font-weight:bold; color:#1e3a8a; border-bottom:1px solid #e2e8f0; margin-bottom:4px; font-size:0.8rem; text-transform:uppercase;">👤 ${op}</div>
-                        <div style="font-size:0.75rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"} | <strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                        <div style="font-size:0.75rem;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"} | <strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
-                    </div>
-                `;
+                htmlImprimir += `<div class="card-op">
+                    <div class="card-op-title">👤 ${op}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
+                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
+                </div>`;
             }
+            htmlImprimir += `</div>`;
         }
 
-        // 3. Creamos el contenedor flotante (Modal) inmune a restricciones de APK
-        const modal = document.createElement('div');
-        modal.id = 'modal-pdf-view';
-        modal.style.position = 'fixed';
-        modal.style.top = '0'; modal.style.left = '0';
-        modal.style.width = '100%'; modal.style.height = '100%';
-        modal.style.backgroundColor = 'rgba(0,0,0,0.85)';
-        modal.style.zIndex = '99999';
-        modal.style.display = 'flex';
-        modal.style.flexDirection = 'column';
-        modal.style.padding = '12px';
-        modal.style.boxSizing = 'border-box';
+        htmlImprimir += `</body></html>`;
 
-        modal.innerHTML = `
-            <div style="display:flex; justify-content:space-between; background:#1e293b; padding:10px; border-radius:8px 8px 0 0; border-bottom:1px solid #334155;">
-                <button onclick="document.getElementById('modal-pdf-view').remove()" style="background:#ef4444; color:white; border:none; padding:6px 14px; border-radius:5px; font-weight:bold; font-size:0.8rem; cursor:pointer;">❌ Cerrar</button>
-                <span style="color:white; font-size:0.85rem; align-self:center; font-weight:bold; letter-spacing:0.5px;">VISTA DE JORNADA</span>
-                <button id="btn-copy-report-text" style="background:#2563eb; color:white; border:none; padding:6px 14px; border-radius:5px; font-weight:bold; font-size:0.8rem; cursor:pointer;">📋 Copiar</button>
-            </div>
-            
-            <div style="background:white; color:black; padding:16px; overflow-y:auto; flex-grow:1; border-radius:0 0 8px 8px; font-family:system-ui, -apple-system, sans-serif; box-sizing:border-box;">
-                <div style="font-size:1.1rem; font-weight:bold; border-bottom:3px solid #1e3a8a; padding-bottom:4px; margin-bottom:12px; color:#000; text-transform:uppercase;">📅 Reporte de Rotación</div>
-                <div style="font-size:0.8rem; margin-bottom:14px; color:#475569; line-height:1.4;">
-                    <strong>Fecha:</strong> ${jornada.fecha} (${jornada.hora})<br>
-                    <strong>Horario:</strong> ${jornada.tipoHorario}
-                </div>
-                
-                <div style="font-weight:bold; margin-bottom:6px; color:#1e3a8a; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.3px;">⏱️ Reparto de Cargas</div>
-                <table style="width:100%; border-collapse:collapse; margin-bottom:18px; font-size:0.75rem;">
-                    <thead>
-                        <tr style="background:#f1f5f9; color:#000;">
-                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:left;">Puesto</th>
-                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T1</th>
-                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T2</th>
-                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T3</th>
-                            <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">T4</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filasCargas}
-                    </tbody>
-                </table>
-
-                ${bloquesOps ? `
-                    <div style="font-weight:bold; margin-bottom:6px; color:#1e3a8a; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.3px;">📋 Tareas por Operario</div>
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        ${bloquesOps}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Lógica del botón de copia optimizado para texto plano legible
-        document.getElementById('btn-copy-report-text').addEventListener('click', () => {
-            let txt = `📋 JORNADA: ${jornada.fecha} (${jornada.hora})\n`;
-            txt += `Horario: ${jornada.tipoHorario}\n\n`;
-            txt += `--- RESUMEN DE OPERARIOS ---\n`;
-            if (jornada.resumenOps) {
-                for (let op in jornada.resumenOps) {
-                    txt += `👤 ${op}:\n`;
-                    txt += `  • T1: ${jornada.resumenOps[op][1] || "-"}\n`;
-                    txt += `  • T2: ${jornada.resumenOps[op][2] || "-"}\n`;
-                    txt += `  • T3: ${jornada.resumenOps[op][3] || "-"}\n`;
-                    txt += `  • T4: ${jornada.resumenOps[op][4] || "-"}\n`;
-                }
-            }
-            navigator.clipboard.writeText(txt).then(() => {
-                alert("✅ Estructura copiada al portapapeles.");
-            });
-        });
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0'; iframe.style.bottom = '0';
+        iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        
+        iframe.contentWindow.document.open();
+        iframe.contentWindow.document.write(htmlImprimir);
+        iframe.contentWindow.document.close();
+        
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            document.body.removeChild(iframe);
+        }, 300);
     }
-
 </script>
 </body>
 </html>
