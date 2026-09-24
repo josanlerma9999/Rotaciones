@@ -661,6 +661,14 @@
         cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
     }
+
+    function contarCargasQueSabe(op, cargas) {
+        let aptas = 0;
+        cargas.forEach(c => {
+            if (competencies[`${op}_X_${c}`] !== false) aptas++;
+        });
+        return aptas;
+    }
                 
     let matrizJornadaCalculada = {};
 
@@ -674,7 +682,7 @@
         const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
 
         matrizJornadaCalculada = {};
-        
+
         function yaLaHizoHoy(candidato, cargaToCheck, turnoActual) {
             for (let prevT = 1; prevT < turnoActual; prevT++) {
                 if (matrizJornadaCalculada[prevT] && 
@@ -692,10 +700,10 @@
         // PROCESADO TURNO A TURNO
         for (let t = 1; t <= 4; t++) {
             matrizJornadaCalculada[t] = {};
-            
+
             let manualOps = new Set();
             let manualCargas = new Set();
-            
+
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -719,7 +727,7 @@
                     let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
                     let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
                     if (vecesA !== vecesB) return vecesA - vecesB;
-                    
+
                     let idxCarga = cargas.indexOf(carga);
                     let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 7) % ops.length;
                     let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
@@ -737,7 +745,7 @@
                     huboMejora = false;
                     for (let carga of cargasLibres) {
                         if (matchCarga[carga]) continue; 
-                        
+
                         let visitados = new Set();
                         function dfs(c) {
                             for (let op of preferencias[c]) {
@@ -752,7 +760,7 @@
                             }
                             return false;
                         }
-                        
+
                         if (dfs(carga)) {
                             huboMejora = true;
                         }
@@ -760,15 +768,20 @@
                 }
             }
 
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
-            buscarAumentos((op, c) => !yaLaHizoHoy(op, c, t));
-            buscarAumentos((op, c) => true);
+            // REGLAS REVISADAS:
+            // 1. Operario apto, no hizo la carga ayer, y si sabe 3 o más tareas NO repite hoy. (Los de 1 o 2 tareas pueden repetir si es necesario).
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+
+            // 2. Operario apto, pero permitimos repetición si es necesario antes de recurrir a no aptos.
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+
+            // 3. Fallback estricto de aptos
+            buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
                 let opAsignado = matchCarga[carga];
                 if (opAsignado) {
-                    let alertaNaranja = !esAptoGlobal(opAsignado, carga) && !yaLaHizoHoy(opAsignado, carga, t);
+                    let alertaNaranja = !esAptoGlobal(opAsignado, carga);
                     matrizJornadaCalculada[t][carga] = { nombre: opAsignado, alerta: alertaNaranja, error: false };
                 } else {
                     matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
@@ -784,7 +797,7 @@
 
             cargas.forEach(carga => {
                 let res = matrizJornadaCalculada[t][carga] || { nombre: "No Apto", alerta: false, error: true };
-                
+
                 let hizoEstaCargaAyer = false;
                 if (res.nombre !== "No Apto") {
                     let puestosAyer = obtenerPuestoAyer(res.nombre);
@@ -800,9 +813,11 @@
                     }
                 }
 
-                let claseExtra = (hizoEstaCargaAyer || repeticionesHoy > 1) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
+                let esMultitarea = res.nombre !== "No Apto" && contarCargasQueSabe(res.nombre, cargas) >= 3;
+                let repeticionProhibida = esMultitarea && repeticionesHoy > 1;
 
-                // NUEVO: La función al cambiar un selector guarda la edición y recalcula los siguientes turnos automáticamente
+                let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
+
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
@@ -819,26 +834,23 @@
             });
 
             html += `</table>`;
-            
+
             if (t < 4) {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
             } else {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
             }
-            
+
             card.innerHTML = html;
             contenedor.appendChild(card);
         }
-        
+
         actualizarResumenIndividual();
     }
 
-    // NUEVA FUNCIÓN: Al cambiar cualquier opción del desplegable, fija el cambio y recalcula los turnos posteriores al instante
     function guardarEdicionManualYRecalcular(turnoEditado, cargaEditada, nuevoOperario) {
-        // 1. Guardar la modificación manual seleccionada por el usuario
         cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
 
-        // 2. Limpiar las fijaciones manuales de los turnos POSTERIORES para que el motor inteligente pueda re-rotar a la plantilla dinámicamente
         const cargas = leerLista("listaCargas");
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargas.forEach(c => {
@@ -846,16 +858,15 @@
             });
         }
 
-        // 3. Volver a calcular la jornada entera de manera fluida
         generarJornadaCompleta();
     }
 
     function obtenerPuestoAyer(operario) {
         if (!historialJornadas || historialJornadas.length === 0) return null;
-        
+
         const jornadaAyer = historialJornadas[0]; 
         if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
-        
+
         const puestosAyer = new Set();
         for (let t = 1; t <= 4; t++) {
             let puesto = jornadaAyer.resumenOps[operario][t];
@@ -976,7 +987,7 @@
 
         historialJornadas.unshift(nuevaJornada);
         localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-        
+
         alert("💾 ¡Guardado con éxito en contadores e Historial!");
         generarJornadaCompleta();
     }
@@ -993,7 +1004,7 @@
         historialJornadas.forEach(jornada => {
             const item = document.createElement("div");
             item.className = "history-item";
-            
+
             let htmlTitle = `<div class="history-item-title">
                 <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -1020,11 +1031,11 @@
             if (jornada.resumenOps) {
                 htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
                 htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
-                
+
                 for (let op in jornada.resumenOps) {
                     htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
                         <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
-                    
+
                     for (let t = 1; t <= 4; t++) {
                         let puesto = jornada.resumenOps[op][t] || "-";
                         let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
@@ -1037,7 +1048,7 @@
                 }
                 htmlContent += `</div>`;
             }
-            
+
             item.innerHTML = htmlTitle + htmlContent;
             contenedor.appendChild(item);
         });
@@ -1071,7 +1082,7 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorResumenOperarios");
-        
+
         if (!contenedor) return;
         contenedor.innerHTML = "";
 
@@ -1105,11 +1116,11 @@
             tarjeta.style.gap = "6px";
 
             let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
-            
+
             for (let t = 1; t <= 4; t++) {
                 let puesto = asignacionesPorOp[op][t];
                 let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
-                
+
                 htmlCard += `
                     <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
                         <span style="color: var(--accent); font-weight: bold;">T${t}:</span>
