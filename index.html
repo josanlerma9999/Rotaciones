@@ -694,6 +694,15 @@
             return false;
         }
 
+        // --- NUEVA FUNCIÓN DE COMPROBACIÓN TURNO CONSECUTIVO (T - 1) ---
+        function hizoEnTurnoAnterior(candidato, cargaToCheck, turnoActual) {
+            if (turnoActual === 1) return false; // En el primer turno no hay turno anterior hoy
+            let turnoAnterior = turnoActual - 1;
+            return (matrizJornadaCalculada[turnoAnterior] && 
+                    matrizJornadaCalculada[turnoAnterior][cargaToCheck] && 
+                    matrizJornadaCalculada[turnoAnterior][cargaToCheck].nombre === candidato);
+        }
+
         const esAptoGlobal = (op, c) => competencies[`${op}_X_${c}`] !== false;
         const hizoAyerGlobal = (op, c) => { let p = obtenerPuestoAyer(op); return p ? p.has(c) : false; };
 
@@ -768,12 +777,13 @@
                 }
             }
 
-            // REGLAS REVISADAS:
-            // 1. Operario apto, no hizo la carga ayer, y si sabe 3 o más tareas NO repite hoy. (Los de 1 o 2 tareas pueden repetir si es necesario).
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+            // REGLAS DE ASIGNACIÓN PRIORIZADAS:
+            
+            // 1. Prioridad máxima: Apto, no hizo la carga ayer, y no la repite si sabe 3+ cargas (evita repetición hoy Y en turnos consecutivos).
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || (!yaLaHizoHoy(op, c, t) && !hizoEnTurnoAnterior(op, c, t))));
 
-            // 2. Operario apto, pero permitimos repetición si es necesario antes de recurrir a no aptos.
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+            // 2. Si no es posible, se permite repetición en el día pero manteniendo la restricción de NO hacerla consecutiva (T-1) para polivalentes.
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !hizoEnTurnoAnterior(op, c, t)));
 
             // 3. Fallback estricto de aptos
             buscarAumentos((op, c) => esAptoGlobal(op, c));
@@ -805,16 +815,21 @@
                 }
 
                 let repeticionesHoy = 0;
+                let esConsecutivo = false;
+
                 if (res.nombre !== "No Apto") {
                     for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
                         if (matrizJornadaCalculada[turnoEval] && matrizJornadaCalculada[turnoEval][carga] && matrizJornadaCalculada[turnoEval][carga].nombre === res.nombre) {
                             repeticionesHoy++;
                         }
                     }
+                    if (t > 1 && matrizJornadaCalculada[t - 1] && matrizJornadaCalculada[t - 1][carga] && matrizJornadaCalculada[t - 1][carga].nombre === res.nombre) {
+                        esConsecutivo = true;
+                    }
                 }
 
                 let esMultitarea = res.nombre !== "No Apto" && contarCargasQueSabe(res.nombre, cargas) >= 3;
-                let repeticionProhibida = esMultitarea && repeticionesHoy > 1;
+                let repeticionProhibida = esMultitarea && (repeticionesHoy > 1 || esConsecutivo);
 
                 let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
