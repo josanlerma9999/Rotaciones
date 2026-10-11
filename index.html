@@ -724,12 +724,19 @@
             let preferencias = {};
             cargasLibres.forEach((carga) => {
                 preferencias[carga] = [...opsLibres].sort((a, b) => {
+                    // 1. Evitar repetir la misma carga hoy si es posible
+                    let yaHizoA = yaLaHizoHoy(a, carga, t) ? 1 : 0;
+                    let yaHizoB = yaLaHizoHoy(b, carga, t) ? 1 : 0;
+                    if (yaHizoA !== yaHizoB) return yaHizoA - yaHizoB;
+
+                    // 2. Prioridad por contador semanal
                     let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
                     let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
                     if (vecesA !== vecesB) return vecesA - vecesB;
 
+                    // 3. Desempate rotativo
                     let idxCarga = cargas.indexOf(carga);
-                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 7) % ops.length;
+                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1)) % ops.length;
                     let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
                     let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
                     return distA - distB;
@@ -768,14 +775,14 @@
                 }
             }
 
-            // REGLAS REVISADAS:
-            // 1. Operario apto, no hizo la carga ayer, y si sabe 3 o más tareas NO repite hoy. (Los de 1 o 2 tareas pueden repetir si es necesario).
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+            // REGLAS OPTIMIZADAS: Nadie repite hoy si tiene otra opción apta, sin excepción de polivalencia baja
+            // 1. Operario apto, no la hizo ayer, y no la ha hecho hoy
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && !yaLaHizoHoy(op, c, t));
 
-            // 2. Operario apto, pero permitimos repetición si es necesario antes de recurrir a no aptos.
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (contarCargasQueSabe(op, cargas) < 3 || !yaLaHizoHoy(op, c, t)));
+            // 2. Operario apto, no la ha hecho hoy (aunque la hiciera ayer)
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
 
-            // 3. Fallback estricto de aptos
+            // 3. Fallback estricto de aptos (permite repetición si no hay más remedio)
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -813,8 +820,7 @@
                     }
                 }
 
-                let esMultitarea = res.nombre !== "No Apto" && contarCargasQueSabe(res.nombre, cargas) >= 3;
-                let repeticionProhibida = esMultitarea && repeticionesHoy > 1;
+                let repeticionProhibida = res.nombre !== "No Apto" && repeticionesHoy > 1;
 
                 let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
