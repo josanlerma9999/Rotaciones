@@ -694,6 +694,18 @@
             return false;
         }
 
+        function contarVecesHoy(candidato, cargaToCheck, turnoHasta) {
+            let v = 0;
+            for (let prevT = 1; prevT <= turnoHasta; prevT++) {
+                if (matrizJornadaCalculada[prevT] && 
+                    matrizJornadaCalculada[prevT][cargaToCheck] && 
+                    matrizJornadaCalculada[prevT][cargaToCheck].nombre === candidato) {
+                    v++;
+                }
+            }
+            return v;
+        }
+
         const esAptoGlobal = (op, c) => competencies[`${op}_X_${c}`] !== false;
         const hizoAyerGlobal = (op, c) => { let p = obtenerPuestoAyer(op); return p ? p.has(c) : false; };
 
@@ -724,19 +736,29 @@
             let preferencias = {};
             cargasLibres.forEach((carga) => {
                 preferencias[carga] = [...opsLibres].sort((a, b) => {
-                    // 1. Evitar repetir la misma carga hoy si es posible
+                    // 1. Evitar repetir la misma carga hoy
                     let yaHizoA = yaLaHizoHoy(a, carga, t) ? 1 : 0;
                     let yaHizoB = yaLaHizoHoy(b, carga, t) ? 1 : 0;
                     if (yaHizoA !== yaHizoB) return yaHizoA - yaHizoB;
 
-                    // 2. Prioridad por contador semanal
+                    // 2. Desempate según veces asignado hoy en general (para repartir cargas equilibradamente)
+                    let totalA = 0, totalB = 0;
+                    for (let pt = 1; pt < t; pt++) {
+                        cargas.forEach(c => {
+                            if (matrizJornadaCalculada[pt] && matrizJornadaCalculada[pt][c] && matrizJornadaCalculada[pt][c].nombre === a) totalA++;
+                            if (matrizJornadaCalculada[pt] && matrizJornadaCalculada[pt][c] && matrizJornadaCalculada[pt][c].nombre === b) totalB++;
+                        });
+                    }
+                    if (totalA !== totalB) return totalA - totalB;
+
+                    // 3. Prioridad por contador semanal
                     let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
                     let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
                     if (vecesA !== vecesB) return vecesA - vecesB;
 
-                    // 3. Desempate rotativo
+                    // 4. Desempate rotativo
                     let idxCarga = cargas.indexOf(carga);
-                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1)) % ops.length;
+                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 3) % ops.length;
                     let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
                     let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
                     return distA - distB;
@@ -775,14 +797,14 @@
                 }
             }
 
-            // REGLAS OPTIMIZADAS: Nadie repite hoy si tiene otra opción apta, sin excepción de polivalencia baja
-            // 1. Operario apto, no la hizo ayer, y no la ha hecho hoy
+            // REGLAS OPTIMIZADAS
+            // Pasada 1: Apto, NO la hizo ayer, y NINGUNA repetición hoy
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !hizoAyerGlobal(op, c) && !yaLaHizoHoy(op, c, t));
 
-            // 2. Operario apto, no la ha hecho hoy (aunque la hiciera ayer)
+            // Pasada 2: Apto y NO la ha hecho hoy (aunque la hiciera ayer)
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
 
-            // 3. Fallback estricto de aptos (permite repetición si no hay más remedio)
+            // Pasada 3: Fallback estricto de aptos
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -794,6 +816,38 @@
                     matrizJornadaCalculada[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
             });
+
+            // --- ALGORITMO DE INTERCAMBIO INTELIGENTE (SWAPPING) ---
+            // Forzar rotación: Si un operario está repitiendo carga y sabe hacer otra disponible en este turno,
+            // intenta un trueque con otro operario asignado para romper la repetición.
+            if (t > 1) {
+                for (let c1 of cargasLibres) {
+                    let op1 = matrizJornadaCalculada[t][c1].nombre;
+                    if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
+
+                    // Si op1 ya hizo c1 antes en el día y sabe hacer otras cargas
+                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
+                        for (let c2 of cargasLibres) {
+                            if (c1 === c2) continue;
+                            let op2 = matrizJornadaCalculada[t][c2].nombre;
+                            if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
+
+                            // Evaluar trueque: op1 pasa a c2 y op2 pasa a c1
+                            let op1AptoC2 = esAptoGlobal(op1, c2);
+                            let op2AptoC1 = esAptoGlobal(op2, c1);
+                            let op1NoHizoC2Hoy = !yaLaHizoHoy(op1, c2, t);
+                            let op2NoHizoC1Hoy = !yaLaHizoHoy(op2, c1, t);
+
+                            if (op1AptoC2 && op2AptoC1 && (op1NoHizoC2Hoy || op2NoHizoC1Hoy)) {
+                                // Ejecutar intercambio
+                                matrizJornadaCalculada[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
+                                matrizJornadaCalculada[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Renderizado del HTML
