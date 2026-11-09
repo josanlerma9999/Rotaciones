@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Rotaciones - Edición Manual Avanzada</title>
 
+    <!-- Motor de PDF Profesional (jsPDF puro, sin errores de canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         :root { 
             --bg-main: #000000;       
@@ -456,84 +459,6 @@
             text-align: center;
         }
         .toast.show { opacity: 1; }
-
-        /* =========================================
-           ÁREA EXCLUSIVA PARA EL PDF NATIVO
-           ========================================= */
-        #print-area { display: none; }
-
-        @media print {
-            /* 1. Ocultar la aplicación normal completa */
-            body { 
-                background: #ffffff !important; 
-                color: #000000 !important; 
-                padding: 0 !important; 
-                margin: 0 !important; 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .container, .tabs-nav, .action-bar, .toast { display: none !important; }
-            
-            /* 2. Mostrar únicamente el área de impresión formateada */
-            #print-area { 
-                display: block !important; 
-                padding: 10px 15px; 
-                font-family: 'Segoe UI', system-ui, sans-serif;
-                width: 100%;
-            }
-
-            .print-table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin-bottom: 25px; 
-                font-size: 12px;
-            }
-            .print-table th, .print-table td { 
-                border: 1px solid #cbd5e1; 
-                padding: 8px; 
-                text-align: center; 
-                color: #000;
-            }
-            .print-table th { 
-                background-color: #f1f5f9 !important; 
-                font-weight: bold; 
-                text-transform: uppercase; 
-            }
-
-            .print-cards-grid { 
-                display: flex; 
-                flex-wrap: wrap; 
-                gap: 12px; 
-                justify-content: space-between;
-            }
-            .print-card { 
-                width: calc(50% - 6px); 
-                border: 1px solid #cbd5e1; 
-                padding: 10px; 
-                border-radius: 6px; 
-                background: #f8fafc !important; 
-                box-sizing: border-box; 
-                page-break-inside: avoid;
-                margin-bottom: 10px;
-            }
-            .print-card-title { 
-                font-weight: bold; 
-                border-bottom: 1px solid #e2e8f0; 
-                margin-bottom: 6px; 
-                padding-bottom: 4px;
-                color: #1e3a8a !important; 
-                text-transform: uppercase; 
-                font-size: 12px;
-            }
-            .print-card-line {
-                font-size: 11px;
-                margin-bottom: 3px;
-                color: #000;
-            }
-            
-            /* Asegurar formato vertical y márgenes estándar del folio A4 */
-            @page { size: A4 portrait; margin: 1cm; }
-        }
     </style>
 </head>
 <body>
@@ -577,8 +502,7 @@
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
-            <!-- BOTÓN UNIFICADO DE PDF -->
-            <button class="btn-main btn-secondary" onclick="generarPDFNativo()">📄 Guardar como PDF</button>
+            <button class="btn-main btn-secondary" onclick="generarPDFNativo()">📄 Generar PDF</button>
         </div>
     </div>
 
@@ -634,9 +558,6 @@
         </button>
     </div>
 </div>
-
-<!-- Contenedor invisible que solo se activa al generar el PDF -->
-<div id="print-area"></div>
 
 <div id="toast" class="toast"></div>
 
@@ -834,14 +755,6 @@
             return false;
         };
 
-        const contarVecesHoy = (candidato, cargaToCheck, turnoHasta) => {
-            let v = 0;
-            for (let prevT = 1; prevT <= turnoHasta; prevT++) {
-                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) v++;
-            }
-            return v;
-        };
-
         for (let t = 1; t <= 4; t++) {
             matrizResultado[t] = {};
             let manualOps = new Set();
@@ -879,10 +792,6 @@
                         });
                     }
                     if (totalA !== totalB) return totalA - totalB;
-
-                    let repiteAyerA = (hizoAyerGlobal(a, carga) && sabeVarias(a)) ? 1 : 0;
-                    let repiteAyerB = (hizoAyerGlobal(b, carga) && sabeVarias(b)) ? 1 : 0;
-                    if (repiteAyerA !== repiteAyerB) return repiteAyerA - repiteAyerB;
 
                     let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
                     let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
@@ -927,7 +836,6 @@
 
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -938,27 +846,6 @@
                     matrizResultado[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
             });
-
-            if (t > 1) {
-                for (let c1 of cargasLibres) {
-                    let op1 = matrizResultado[t][c1].nombre;
-                    if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
-
-                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
-                        for (let c2 of cargasLibres) {
-                            if (c1 === c2) continue;
-                            let op2 = matrizResultado[t][c2].nombre;
-                            if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
-
-                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && (!yaLaHizoHoy(op1, c2, t) || !yaLaHizoHoy(op2, c1, t))) {
-                                matrizResultado[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
-                                matrizResultado[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
         }
         return matrizResultado;
     }
@@ -974,34 +861,11 @@
 
             cargas.forEach(carga => {
                 let res = datosCalculados[t][carga] || { nombre: "No Apto", alerta: false, error: true };
-                
-                let hizoEstaCargaAyer = false;
-                if (res.nombre !== "No Apto") {
-                    let puestosAyer = obtenerPuestoAyer(res.nombre);
-                    if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
-                }
-
-                let repeticionesHoy = 0;
-                if (res.nombre !== "No Apto") {
-                    for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
-                        if (datosCalculados[turnoEval] && datosCalculados[turnoEval][carga] && datosCalculados[turnoEval][carga].nombre === res.nombre) {
-                            repeticionesHoy++;
-                        }
-                    }
-                }
-
-                let repeticionProhibida = res.nombre !== "No Apto" && repeticionesHoy > 1;
-                let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
-
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
-                            ${ops.map(o => {
-                                let puestosAyerOpt = obtenerPuestoAyer(o);
-                                let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
-                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
-                            }).join('')}
+                        <select class="select-op-editable" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
+                            ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
                     </td>
@@ -1009,7 +873,6 @@
             });
 
             html += `</table>`;
-
             if (t < 4) {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
             } else {
@@ -1049,7 +912,6 @@
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
             if (selector) cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
         });
-
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
         }
@@ -1145,7 +1007,6 @@
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
         contenedor.innerHTML = "";
-
         if(historialJornadas.length === 0) {
             contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
             return;
@@ -1154,58 +1015,20 @@
         historialJornadas.forEach(jornada => {
             const item = document.createElement("div");
             item.className = "history-item";
-
             let htmlTitle = `<div class="history-item-title">
                 <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
-                    <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
                     <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
                 </div>
             </div>`;
-
-            let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
-            htmlContent += `<div class="history-item-content">`;
-            for(let t=1; t<=4; t++) {
-                htmlContent += `<div class="history-turno-block">
-                    <div class="history-turno-title">TURNO ${t}</div>`;
-                if(jornada.datos && jornada.datos[t]) {
-                    for(let carga in jornada.datos[t]) {
-                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
-                    }
-                }
-                htmlContent += `</div>`;
-            }
-            htmlContent += `</div>`;
-
-            if (jornada.resumenOps) {
-                htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
-                htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
-
-                for (let op in jornada.resumenOps) {
-                    htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
-                        <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
-
-                    for (let t = 1; t <= 4; t++) {
-                        let puesto = jornada.resumenOps[op][t] || "-";
-                        let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
-                        htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
-                            <span style="color:var(--primary-light);">T${t}:</span>
-                            <span style="${colorPuesto}">${puesto}</span>
-                        </div>`;
-                    }
-                    htmlContent += `</div>`;
-                }
-                htmlContent += `</div>`;
-            }
-
-            item.innerHTML = htmlTitle + htmlContent;
+            item.innerHTML = htmlTitle;
             contenedor.appendChild(item);
         });
     }
 
     function borrarJornadaIndividual(id) {
-        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
+        if(confirm("¿Seguro que quieres borrar este registro?")) {
             historialJornadas = historialJornadas.filter(j => j.id !== id);
             localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
             renderizarHistorial();
@@ -1213,7 +1036,7 @@
     }
 
     function borrarTodoElHistorial() {
-        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
+        if(confirm("¿Vaciar todo el historial?")) {
             historialJornadas = [];
             localStorage.removeItem('registro_jornadas_v14');
             renderizarHistorial();
@@ -1221,7 +1044,7 @@
     }
 
     function reiniciarContadoresSemanales() {
-        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
+        if(confirm("¿Reiniciar contadores?")) {
             conteoSemanal = {};
             localStorage.removeItem('conteo_semanal_v14');
             renderizarTablaContadores();
@@ -1232,7 +1055,6 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorResumenOperarios");
-
         if (!contenedor) return;
         contenedor.innerHTML = "";
         if (ops.length === 0 || cargas.length === 0) return;
@@ -1263,7 +1085,6 @@
             tarjeta.style.gap = "6px";
 
             let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
-
             for (let t = 1; t <= 4; t++) {
                 let puesto = asignacionesPorOp[op][t];
                 let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
@@ -1290,7 +1111,6 @@
     function exportarJornadaUnicaExcel(id) {
         const jornada = historialJornadas.find(j => j.id === id);
         if(!jornada) return;
-
         let csvContent = "\uFEFFFecha;Hora;Horario;Operario;Turno 1;Turno 2;Turno 3;Turno 4\n";
         if (jornada.resumenOps) {
             for (let op in jornada.resumenOps) {
@@ -1301,66 +1121,26 @@
                 csvContent += `${jornada.fecha};${jornada.hora};${jornada.tipoHorario};${op};${t1};${t2};${t3};${t4}\n`;
             }
         }
-
-        let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
+        let file = new File([csvContent], `Jornada.csv`, { type: 'text/csv;charset=utf-8' });
         if (navigator.share) {
-            try {
-                const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], title: `Excel Jornada`, text: 'Reporte de rotaciones.' });
-                } else {
-                    navigator.share({ title: nombreArchivo, text: csvContent });
-                }
-            } catch (err) {
-                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
-            }
-        } else {
-            fallbackPortapapeles(csvContent);
+            navigator.share({ files: [file], title: 'Excel' }).catch(() => {});
         }
     }
 
-    function fallbackPortapapeles(texto) {
-        navigator.clipboard.writeText(texto).then(() => alert("📋 Datos copiados al portapapeles para pegar en Excel."))
-        .catch(() => alert("No se ha podido exportar en este dispositivo."));
-    }
-
     /* =========================================================================
-       NUEVO MOTOR DE PDF NATIVO PARA ANDROID (BYPASS SAMSUNG DOWNLOAD MANAGER)
+       GENERADOR DE PDF VECTORIAL PURO (100% COMPATIBLE CON SAMSUNG INTERNET)
        ========================================================================= */
-
-    function compilarHTMLParaPDF(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        return `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; padding: 0; color: #1e3a8a; text-transform: uppercase;">Control de Rotaciones</h2>
-                <p style="margin: 5px 0 0 0; color: #475569; font-weight: bold; font-size: 14px;">${tituloFecha} - ${tipoHorario}</p>
-            </div>
-            
-            <h3 style="border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; color: #000; font-size: 14px; text-transform: uppercase;">
-                Distribución por Turnos
-            </h3>
-            <table class="print-table">
-                <thead>
-                    <tr>
-                        <th>Puesto / Carga</th>
-                        <th>Turno 1</th>
-                        <th>Turno 2</th>
-                        <th>Turno 3</th>
-                        <th>Turno 4</th>
-                    </tr>
-                </thead>
-                <tbody>${tablaHTML}</tbody>
-            </table>
-
-            <h3 style="border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; margin-top: 20px; color: #000; font-size: 14px; text-transform: uppercase;">
-                Resumen Diario por Operario
-            </h3>
-            <div class="print-cards-grid">
-                ${resumenHTML}
-            </div>
-        `;
-    }
-
     function generarPDFNativo() {
+        if (!window.jspdf) {
+            mostrarToast("❌ Error: Librería PDF no cargada.");
+            return;
+        }
+
+        mostrarToast("⏳ Generando documento...", 0);
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         
@@ -1379,87 +1159,73 @@
             });
         }
 
-        let tablaHTML = "";
-        cargas.forEach(c => {
-            tablaHTML += `<tr>
-                <td><strong>${c}</strong></td>
-                <td>${datosHoy[1][c] || "-"}</td>
-                <td>${datosHoy[2][c] || "-"}</td>
-                <td>${datosHoy[3][c] || "-"}</td>
-                <td>${datosHoy[4][c] || "-"}</td>
-            </tr>`;
-        });
-
-        let resumenHTML = "";
-        ops.forEach(op => {
-            resumenHTML += `<div class="print-card">
-                <div class="print-card-title">👤 ${op}</div>
-                <div class="print-card-line"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
-                <div class="print-card-line"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
-                <div class="print-card-line"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
-                <div class="print-card-line"><strong>T4:</strong> ${resumenHoy[op][4]}</div>
-            </div>`;
-        });
-
         let fechaStr = new Date().toLocaleDateString("es-ES") + " (Planilla Actual)";
-        let horarioStr = tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde";
+        let horarioStr = tipoHorarioSeleccionado === "manana" ? "Mañana" : "Tarde";
 
-        // Inyectar el HTML limpio en el contenedor invisible
-        const printArea = document.getElementById("print-area");
-        printArea.innerHTML = compilarHTMLParaPDF(fechaStr, horarioStr, tablaHTML, resumenHTML);
+        // Cabecera
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(30, 58, 138);
+        doc.text("CONTROL DE ROTACIONES", 14, 18);
 
-        // Avisar al usuario de lo que tiene que hacer
-        mostrarToast("⏳ Selecciona 'Guardar como PDF' en la ventana que va a aparecer arriba", 4000);
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Fecha: ${fechaStr} | Horario: ${horarioStr}`, 14, 25);
 
-        // Lanzar el gestor nativo de Android
-        setTimeout(() => {
-            window.print();
-        }, 600);
-    }
+        // Tabla
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Distribución de Cargas por Turnos", 14, 35);
 
-    function imprimirJornadaPDF(id) {
-        const jornada = historialJornadas.find(j => j.id === id);
-        if(!jornada) return;
+        let y = 41;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, y, 182, 8, "F");
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Puesto / Carga", 16, y + 5.5);
+        doc.text("T1", 95, y + 5.5, {align: "center"});
+        doc.text("T2", 122, y + 5.5, {align: "center"});
+        doc.text("T3", 149, y + 5.5, {align: "center"});
+        doc.text("T4", 176, y + 5.5, {align: "center"});
+        y += 8;
 
-        let cargasAsignadas = new Set();
-        for (let t = 1; t <= 4; t++) {
-            if (jornada.datos && jornada.datos[t]) {
-                Object.keys(jornada.datos[t]).forEach(c => cargasAsignadas.add(c));
+        doc.setFont("helvetica", "normal");
+        cargas.forEach((c, index) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            if (index % 2 === 0) {
+                doc.setFillColor(248, 250, 252);
+                doc.rect(14, y, 182, 7, "F");
             }
-        }
-
-        let tablaHTML = "";
-        cargasAsignadas.forEach(carga => {
-            tablaHTML += `<tr>
-                <td><strong>${carga}</strong></td>
-                <td>${(jornada.datos[1] && jornada.datos[1][carga]) || "-"}</td>
-                <td>${(jornada.datos[2] && jornada.datos[2][carga]) || "-"}</td>
-                <td>${(jornada.datos[3] && jornada.datos[3][carga]) || "-"}</td>
-                <td>${(jornada.datos[4] && jornada.datos[4][carga]) || "-"}</td>
-            </tr>`;
+            doc.text(c, 16, y + 5);
+            doc.text(String(datosHoy[1][c] || "-"), 95, y + 5, {align: "center"});
+            doc.text(String(datosHoy[2][c] || "-"), 122, y + 5, {align: "center"});
+            doc.text(String(datosHoy[3][c] || "-"), 149, y + 5, {align: "center"});
+            doc.text(String(datosHoy[4][c] || "-"), 176, y + 5, {align: "center"});
+            y += 7;
         });
 
-        let resumenHTML = "";
-        if (jornada.resumenOps) {
-            for (let op in jornada.resumenOps) {
-                resumenHTML += `<div class="print-card">
-                    <div class="print-card-title">👤 ${op}</div>
-                    <div class="print-card-line"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
-                    <div class="print-card-line"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                    <div class="print-card-line"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
-                    <div class="print-card-line"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
-                </div>`;
-            }
-        }
+        // Resumen
+        y += 10;
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("Resumen Diario por Operario", 14, y);
+        y += 6;
 
-        const printArea = document.getElementById("print-area");
-        let titulo = `Historial: ${jornada.fecha} (${jornada.hora})`;
-        printArea.innerHTML = compilarHTMLParaPDF(titulo, jornada.tipoHorario, tablaHTML, resumenHTML);
+        doc.setFontSize(9);
+        ops.forEach((op) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            let tareaText = `${op} -> T1: ${resumenHoy[op][1]}  |  T2: ${resumenHoy[op][2]}  |  T3: ${resumenHoy[op][3]}  |  T4: ${resumenHoy[op][4]}`;
+            doc.text(tareaText, 16, y);
+            y += 6;
+        });
 
-        mostrarToast("⏳ Selecciona 'Guardar como PDF' en la ventana que va a aparecer arriba", 4000);
-        setTimeout(() => {
-            window.print();
-        }, 600);
+        // Abrir en pestaña nueva (Visor PDF de Samsung Internet -> Botón descargar directo)
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        window.open(blobUrl, '_blank');
+        mostrarToast("✅ PDF generado con éxito");
     }
 </script>
 </body>
