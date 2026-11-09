@@ -456,8 +456,12 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             font-size: 0.9rem;
             white-space: nowrap;
+            text-align: center;
         }
-        .toast.show { opacity: 1; }
+        .toast.show { 
+            opacity: 1; 
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
@@ -583,11 +587,14 @@
         catch (e) { return valorPorDefecto; }
     }
 
-    function mostrarToast(mensaje) {
+    function mostrarToast(mensajeHTML, duracion = 3000) {
         const toast = document.getElementById("toast");
-        toast.textContent = mensaje;
+        toast.innerHTML = mensajeHTML;
         toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3000);
+        if (window.toastTimeout) clearTimeout(window.toastTimeout);
+        if (duracion > 0) {
+            window.toastTimeout = setTimeout(() => toast.classList.remove("show"), duracion);
+        }
     }
 
     window.onload = function() {
@@ -1247,11 +1254,10 @@
         .catch(() => alert("No se ha podido exportar en este dispositivo."));
     }
 
-    // --- GENERADOR PDF COMPATIBLE CON MÓVILES (WEB SHARE + DOM MOUNTING) ---
+    // --- GENERADOR PDF GARANTIZADO EN NAVEGADOR SAMSUNG Y MÓVILES ---
     function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        mostrarToast("⏳ Generando PDF, un segundo...");
+        mostrarToast("⏳ Preparando PDF, un segundo...", 0);
 
-        // 1. Crear el contenedor temporal e insertarlo físicamente en el DOM (en segundo plano)
         let pdfDiv = document.createElement("div");
         pdfDiv.style.position = "absolute";
         pdfDiv.style.left = "-9999px";
@@ -1306,43 +1312,52 @@
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // 2. Generar el blob binario del PDF
-        html2pdf().set(opt).from(pdfDiv).outputPdf('blob').then(async function(pdfBlob) {
+        html2pdf().set(opt).from(pdfDiv).toPdf().get('jspdf').then(function(pdf) {
             if (document.body.contains(pdfDiv)) document.body.removeChild(pdfDiv);
 
-            const pdfFile = new File([pdfBlob], nombreArchivo, { type: 'application/pdf' });
-
-            // A) Intentar abrir el Menú de Compartir / Guardar Nativo de Android/iOS
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-                try {
-                    await navigator.share({
-                        files: [pdfFile],
-                        title: `Rotaciones ${tituloFecha}`,
-                        text: 'Aquí tienes la hoja de rotaciones.'
-                    });
-                    mostrarToast("✅ PDF generado correctamente");
-                    return;
-                } catch (shareErr) {
-                    if (shareErr.name === 'AbortError') return; // El usuario canceló la ventana desplegable
-                }
-            }
-
-            // B) Fallback para Ordenador / Navegadores estándar
+            const pdfBlob = pdf.output('blob');
             const blobUrl = URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = nombreArchivo;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
 
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-            mostrarToast("✅ PDF guardado en Descargas");
+            mostrarToast(`
+                <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+                    <span>✅ PDF generado correctamente</span>
+                    <button id="btnDescargaDirecta" style="background:#34d399; color:#000; padding:8px 14px; border:none; border-radius:6px; font-weight:800; font-size:0.85rem; cursor:pointer; margin-top:4px;">📥 ABRIR / DESCARGAR PDF</button>
+                </div>
+            `, 12000);
+
+            const btn = document.getElementById("btnDescargaDirecta");
+            if (btn) {
+                btn.onclick = function() {
+                    const pdfFile = new File([pdfBlob], nombreArchivo, { type: 'application/pdf' });
+                    
+                    // 1. Probar menú de compartir de Samsung/Android
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                        navigator.share({
+                            files: [pdfFile],
+                            title: `Rotaciones ${tituloFecha}`,
+                            text: 'Hoja de rotaciones'
+                        }).catch(() => {
+                            window.open(blobUrl, '_blank');
+                        });
+                    } else {
+                        // 2. Abrir Blob directo en el visor nativo de Samsung Internet
+                        const win = window.open(blobUrl, '_blank');
+                        if (!win) {
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = nombreArchivo;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        }
+                    }
+                };
+            }
 
         }).catch(err => {
             if (document.body.contains(pdfDiv)) document.body.removeChild(pdfDiv);
             console.error(err);
-            mostrarToast("❌ Error al generar el archivo PDF");
+            mostrarToast("❌ Error al generar el archivo PDF", 3000);
         });
     }
 
