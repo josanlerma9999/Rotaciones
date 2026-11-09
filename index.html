@@ -501,7 +501,7 @@
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
-            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">🖨️ Descargar PDF</button>
+            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">📄 Generar PDF</button>
         </div>
     </div>
 
@@ -587,7 +587,7 @@
         const toast = document.getElementById("toast");
         toast.textContent = mensaje;
         toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 2500);
+        setTimeout(() => toast.classList.remove("show"), 3000);
     }
 
     window.onload = function() {
@@ -1247,16 +1247,21 @@
         .catch(() => alert("No se ha podido exportar en este dispositivo."));
     }
 
-    // --- GENERADOR PDF REAL CON DESCARGA ---
+    // --- GENERADOR PDF COMPATIBLE CON MÓVILES (WEB SHARE + DOM MOUNTING) ---
     function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        mostrarToast("⏳ Generando PDF, espera un momento...");
-        
+        mostrarToast("⏳ Generando PDF, un segundo...");
+
+        // 1. Crear el contenedor temporal e insertarlo físicamente en el DOM (en segundo plano)
         let pdfDiv = document.createElement("div");
+        pdfDiv.style.position = "absolute";
+        pdfDiv.style.left = "-9999px";
+        pdfDiv.style.top = "-9999px";
+        pdfDiv.style.width = "750px";
         pdfDiv.style.padding = "25px";
         pdfDiv.style.background = "#ffffff";
         pdfDiv.style.color = "#000000";
         pdfDiv.style.fontFamily = "'Segoe UI', system-ui, sans-serif";
-        
+
         pdfDiv.innerHTML = `
             <div style="font-size: 1.4rem; font-weight: bold; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; color: #000;">
                 📅 Control de Rotaciones: ${tituloFecha}
@@ -1289,19 +1294,55 @@
             </div>
         `;
 
+        document.body.appendChild(pdfDiv);
+
+        let nombreArchivo = `Rotaciones_${tituloFecha.replace(/[\/ ()]/g, '-')}.pdf`;
+
         let opt = {
             margin:       10,
-            filename:     `Rotaciones_${tituloFecha.replace(/\//g, '-')}.pdf`,
+            filename:     nombreArchivo,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(pdfDiv).save().then(() => {
-            mostrarToast("✅ PDF descargado con éxito");
+        // 2. Generar el blob binario del PDF
+        html2pdf().set(opt).from(pdfDiv).outputPdf('blob').then(async function(pdfBlob) {
+            if (document.body.contains(pdfDiv)) document.body.removeChild(pdfDiv);
+
+            const pdfFile = new File([pdfBlob], nombreArchivo, { type: 'application/pdf' });
+
+            // A) Intentar abrir el Menú de Compartir / Guardar Nativo de Android/iOS
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                try {
+                    await navigator.share({
+                        files: [pdfFile],
+                        title: `Rotaciones ${tituloFecha}`,
+                        text: 'Aquí tienes la hoja de rotaciones.'
+                    });
+                    mostrarToast("✅ PDF generado correctamente");
+                    return;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return; // El usuario canceló la ventana desplegable
+                }
+            }
+
+            // B) Fallback para Ordenador / Navegadores estándar
+            const blobUrl = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+            mostrarToast("✅ PDF guardado en Descargas");
+
         }).catch(err => {
+            if (document.body.contains(pdfDiv)) document.body.removeChild(pdfDiv);
             console.error(err);
-            mostrarToast("❌ Error al descargar el PDF");
+            mostrarToast("❌ Error al generar el archivo PDF");
         });
     }
 
