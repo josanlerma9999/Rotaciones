@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Rotaciones - Edición Manual Avanzada</title>
-    
-    <!-- Librería para generar archivos PDF reales en móviles -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Motor de PDF Profesional (jsPDF puro) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root { 
@@ -458,10 +458,7 @@
             white-space: nowrap;
             text-align: center;
         }
-        .toast.show { 
-            opacity: 1; 
-            pointer-events: auto;
-        }
+        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -505,7 +502,7 @@
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
-            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">📄 Generar PDF</button>
+            <button class="btn-main btn-secondary" onclick="generarPDFPWA()">📄 Generar PDF (PWA)</button>
         </div>
     </div>
 
@@ -562,7 +559,6 @@
     </div>
 </div>
 
-<!-- Contenedor de Toast -->
 <div id="toast" class="toast"></div>
 
 <script>
@@ -587,9 +583,9 @@
         catch (e) { return valorPorDefecto; }
     }
 
-    function mostrarToast(mensajeHTML, duracion = 3000) {
+    function mostrarToast(mensaje, duracion = 3000) {
         const toast = document.getElementById("toast");
-        toast.innerHTML = mensajeHTML;
+        toast.innerHTML = mensaje;
         toast.classList.add("show");
         if (window.toastTimeout) clearTimeout(window.toastTimeout);
         if (duracion > 0) {
@@ -678,10 +674,7 @@
         const input = boton.parentElement.querySelector('.item-input');
         input.removeAttribute('readonly');
         input.focus();
-        
-        input.onblur = function() {
-            input.setAttribute('readonly', true);
-        };
+        input.onblur = function() { input.setAttribute('readonly', true); };
     }
 
     function leerLista(contenedorId) {
@@ -729,9 +722,7 @@
 
     function contarCargasQueSabe(op, cargas) {
         let aptas = 0;
-        cargas.forEach(c => {
-            if (competencies[`${op}_X_${c}`] !== false) aptas++;
-        });
+        cargas.forEach(c => { if (competencies[`${op}_X_${c}`] !== false) aptas++; });
         return aptas;
     }
 
@@ -762,14 +753,6 @@
                 if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) return true;
             }
             return false;
-        };
-
-        const contarVecesHoy = (candidato, cargaToCheck, turnoHasta) => {
-            let v = 0;
-            for (let prevT = 1; prevT <= turnoHasta; prevT++) {
-                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) v++;
-            }
-            return v;
         };
 
         for (let t = 1; t <= 4; t++) {
@@ -809,10 +792,6 @@
                         });
                     }
                     if (totalA !== totalB) return totalA - totalB;
-
-                    let repiteAyerA = (hizoAyerGlobal(a, carga) && sabeVarias(a)) ? 1 : 0;
-                    let repiteAyerB = (hizoAyerGlobal(b, carga) && sabeVarias(b)) ? 1 : 0;
-                    if (repiteAyerA !== repiteAyerB) return repiteAyerA - repiteAyerB;
 
                     let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
                     let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
@@ -857,7 +836,6 @@
 
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -868,27 +846,6 @@
                     matrizResultado[t][carga] = { nombre: "No Apto", alerta: false, error: true };
                 }
             });
-
-            if (t > 1) {
-                for (let c1 of cargasLibres) {
-                    let op1 = matrizResultado[t][c1].nombre;
-                    if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
-
-                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
-                        for (let c2 of cargasLibres) {
-                            if (c1 === c2) continue;
-                            let op2 = matrizResultado[t][c2].nombre;
-                            if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
-
-                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && (!yaLaHizoHoy(op1, c2, t) || !yaLaHizoHoy(op2, c1, t))) {
-                                matrizResultado[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
-                                matrizResultado[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
         }
         return matrizResultado;
     }
@@ -904,34 +861,11 @@
 
             cargas.forEach(carga => {
                 let res = datosCalculados[t][carga] || { nombre: "No Apto", alerta: false, error: true };
-                
-                let hizoEstaCargaAyer = false;
-                if (res.nombre !== "No Apto") {
-                    let puestosAyer = obtenerPuestoAyer(res.nombre);
-                    if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
-                }
-
-                let repeticionesHoy = 0;
-                if (res.nombre !== "No Apto") {
-                    for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
-                        if (datosCalculados[turnoEval] && datosCalculados[turnoEval][carga] && datosCalculados[turnoEval][carga].nombre === res.nombre) {
-                            repeticionesHoy++;
-                        }
-                    }
-                }
-
-                let repeticionProhibida = res.nombre !== "No Apto" && repeticionesHoy > 1;
-                let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
-
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
-                            ${ops.map(o => {
-                                let puestosAyerOpt = obtenerPuestoAyer(o);
-                                let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
-                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
-                            }).join('')}
+                        <select class="select-op-editable" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
+                            ${ops.map(o => `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}</option>`).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
                     </td>
@@ -939,7 +873,6 @@
             });
 
             html += `</table>`;
-
             if (t < 4) {
                 html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
             } else {
@@ -979,7 +912,6 @@
             let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
             if (selector) cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
         });
-
         for (let t = turnoEditado + 1; t <= 4; t++) {
             cargasEnTurno.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
         }
@@ -1075,7 +1007,6 @@
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
         contenedor.innerHTML = "";
-
         if(historialJornadas.length === 0) {
             contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
             return;
@@ -1084,58 +1015,20 @@
         historialJornadas.forEach(jornada => {
             const item = document.createElement("div");
             item.className = "history-item";
-
             let htmlTitle = `<div class="history-item-title">
                 <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
-                    <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
                     <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
                 </div>
             </div>`;
-
-            let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
-            htmlContent += `<div class="history-item-content">`;
-            for(let t=1; t<=4; t++) {
-                htmlContent += `<div class="history-turno-block">
-                    <div class="history-turno-title">TURNO ${t}</div>`;
-                if(jornada.datos && jornada.datos[t]) {
-                    for(let carga in jornada.datos[t]) {
-                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
-                    }
-                }
-                htmlContent += `</div>`;
-            }
-            htmlContent += `</div>`;
-
-            if (jornada.resumenOps) {
-                htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
-                htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
-
-                for (let op in jornada.resumenOps) {
-                    htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
-                        <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
-
-                    for (let t = 1; t <= 4; t++) {
-                        let puesto = jornada.resumenOps[op][t] || "-";
-                        let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
-                        htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
-                            <span style="color:var(--primary-light);">T${t}:</span>
-                            <span style="${colorPuesto}">${puesto}</span>
-                        </div>`;
-                    }
-                    htmlContent += `</div>`;
-                }
-                htmlContent += `</div>`;
-            }
-
-            item.innerHTML = htmlTitle + htmlContent;
+            item.innerHTML = htmlTitle;
             contenedor.appendChild(item);
         });
     }
 
     function borrarJornadaIndividual(id) {
-        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
+        if(confirm("¿Seguro que quieres borrar este registro?")) {
             historialJornadas = historialJornadas.filter(j => j.id !== id);
             localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
             renderizarHistorial();
@@ -1143,7 +1036,7 @@
     }
 
     function borrarTodoElHistorial() {
-        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
+        if(confirm("¿Vaciar todo el historial?")) {
             historialJornadas = [];
             localStorage.removeItem('registro_jornadas_v14');
             renderizarHistorial();
@@ -1151,7 +1044,7 @@
     }
 
     function reiniciarContadoresSemanales() {
-        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
+        if(confirm("¿Reiniciar contadores?")) {
             conteoSemanal = {};
             localStorage.removeItem('conteo_semanal_v14');
             renderizarTablaContadores();
@@ -1162,7 +1055,6 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorResumenOperarios");
-
         if (!contenedor) return;
         contenedor.innerHTML = "";
         if (ops.length === 0 || cargas.length === 0) return;
@@ -1193,7 +1085,6 @@
             tarjeta.style.gap = "6px";
 
             let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
-
             for (let t = 1; t <= 4; t++) {
                 let puesto = asignacionesPorOp[op][t];
                 let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
@@ -1220,7 +1111,6 @@
     function exportarJornadaUnicaExcel(id) {
         const jornada = historialJornadas.find(j => j.id === id);
         if(!jornada) return;
-
         let csvContent = "\uFEFFFecha;Hora;Horario;Operario;Turno 1;Turno 2;Turno 3;Turno 4\n";
         if (jornada.resumenOps) {
             for (let op in jornada.resumenOps) {
@@ -1231,167 +1121,26 @@
                 csvContent += `${jornada.fecha};${jornada.hora};${jornada.tipoHorario};${op};${t1};${t2};${t3};${t4}\n`;
             }
         }
-
-        let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
+        let file = new File([csvContent], `Jornada.csv`, { type: 'text/csv;charset=utf-8' });
         if (navigator.share) {
-            try {
-                const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], title: `Excel Jornada`, text: 'Reporte de rotaciones.' });
-                } else {
-                    navigator.share({ title: nombreArchivo, text: csvContent });
-                }
-            } catch (err) {
-                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
-            }
-        } else {
-            fallbackPortapapeles(csvContent);
+            navigator.share({ files: [file], title: 'Excel' }).catch(() => {});
         }
     }
 
-    function fallbackPortapapeles(texto) {
-        navigator.clipboard.writeText(texto).then(() => alert("📋 Datos copiados al portapapeles para pegar en Excel."))
-        .catch(() => alert("No se ha podido exportar en este dispositivo."));
-    }
-
-    // --- GENERADOR PDF GARANTIZADO EN MÓVILES ---
-    async function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        if (typeof html2pdf !== "function") {
-            mostrarToast("❌ No se ha podido cargar la librería PDF. Comprueba tu conexión.", 4000);
+    /* =========================================================================
+       MOTOR DE PDF COMPATIBLE CON PWA (USA EL COMPARTIR NATIVO DE ANDROID)
+       ========================================================================= */
+    function generarPDFPWA() {
+        if (!window.jspdf) {
+            mostrarToast("❌ Error: Librería PDF no cargada.");
             return;
         }
 
-        const nombreArchivo = `Rotaciones_${String(tituloFecha).replace(/[\/ ()]/g, '-')}.pdf`;
-        const pdfDiv = document.createElement("div");
-        const pantallaCarga = document.createElement("div");
+        mostrarToast("⏳ Creando archivo PDF...", 0);
 
-        pantallaCarga.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:10001;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;text-align:center;padding:20px;";
-        pantallaCarga.textContent = "⏳ Preparando PDF, un segundo...";
-        document.body.appendChild(pantallaCarga);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-        pdfDiv.style.cssText = "position:fixed;left:0;top:0;width:800px;padding:25px;background:#ffffff;color:#000000;font-family:'Segoe UI',Arial,sans-serif;z-index:10000;box-sizing:border-box;";
-        pdfDiv.innerHTML = `
-            <div style="font-size:1.4rem;font-weight:bold;border-bottom:2px solid #1e3a8a;padding-bottom:5px;margin-bottom:15px;text-transform:uppercase;color:#000;">
-                📅 Control de Rotaciones: ${tituloFecha}
-            </div>
-            <div style="font-size:0.95rem;margin-bottom:20px;font-weight:bold;color:#475569;">
-                Horario de Trabajo: ${tipoHorario}
-            </div>
-            <div style="font-weight:bold;margin-top:15px;margin-bottom:8px;text-transform:uppercase;font-size:0.95rem;color:#1e3a8a;">
-                ⏱️ Distribución de Cargas por Turnos
-            </div>
-            <table style="width:100%;border-collapse:collapse;margin-bottom:25px;">
-                <thead>
-                    <tr>
-                        <th style="border:1px solid #cbd5e1;padding:10px;background:#f1f5f9;font-weight:bold;text-transform:uppercase;font-size:0.8rem;text-align:left;color:#000;">Puesto / Carga</th>
-                        <th style="border:1px solid #cbd5e1;padding:10px;background:#f1f5f9;font-weight:bold;text-transform:uppercase;font-size:0.8rem;text-align:left;color:#000;">Turno 1</th>
-                        <th style="border:1px solid #cbd5e1;padding:10px;background:#f1f5f9;font-weight:bold;text-transform:uppercase;font-size:0.8rem;text-align:left;color:#000;">Turno 2</th>
-                        <th style="border:1px solid #cbd5e1;padding:10px;background:#f1f5f9;font-weight:bold;text-transform:uppercase;font-size:0.8rem;text-align:left;color:#000;">Turno 3</th>
-                        <th style="border:1px solid #cbd5e1;padding:10px;background:#f1f5f9;font-weight:bold;text-transform:uppercase;font-size:0.8rem;text-align:left;color:#000;">Turno 4</th>
-                    </tr>
-                </thead>
-                <tbody>${tablaHTML}</tbody>
-            </table>
-            <div style="font-weight:bold;margin-top:15px;margin-bottom:10px;text-transform:uppercase;font-size:0.95rem;color:#1e3a8a;">
-                📋 Resumen de Tareas por Operario
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;">
-                ${resumenHTML}
-            </div>
-        `;
-
-        document.body.appendChild(pdfDiv);
-
-        try {
-            const opcionesPDF = {
-                margin: 10,
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: "#ffffff",
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 800
-                },
-                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-                pagebreak: { mode: ["css", "legacy"] }
-            };
-
-            const pdf = await html2pdf().set(opcionesPDF).from(pdfDiv).toPdf().get("pdf");
-            const pdfBlob = pdf.output("blob");
-            const blobUrl = URL.createObjectURL(pdfBlob);
-
-            if (document.body.contains(pdfDiv)) pdfDiv.remove();
-            if (document.body.contains(pantallaCarga)) pantallaCarga.remove();
-
-            const modal = document.createElement("div");
-            modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif;";
-            modal.innerHTML = `
-                <div style="width:100%;max-width:360px;background:#111827;border:1px solid #334155;border-radius:14px;padding:22px;text-align:center;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.6);">
-                    <div style="font-size:1.1rem;font-weight:800;color:#34d399;margin-bottom:8px;">✅ PDF generado correctamente</div>
-                    <div style="font-size:.85rem;color:#cbd5e1;margin-bottom:18px;">${nombreArchivo}</div>
-                    <button id="pdfDescargar" style="width:100%;padding:13px;margin-bottom:9px;border:0;border-radius:8px;background:#059669;color:#fff;font-size:1rem;font-weight:800;">📥 Descargar PDF</button>
-                    <button id="pdfAbrir" style="width:100%;padding:13px;margin-bottom:9px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:1rem;font-weight:800;">📄 Abrir PDF</button>
-                    <button id="pdfCompartir" style="width:100%;padding:13px;margin-bottom:9px;border:0;border-radius:8px;background:#475569;color:#fff;font-size:1rem;font-weight:800;">↗️ Compartir PDF</button>
-                    <button id="pdfCerrar" style="width:100%;padding:11px;border:1px solid #64748b;border-radius:8px;background:transparent;color:#cbd5e1;font-size:.9rem;font-weight:700;">Cerrar</button>
-                    <div style="font-size:.72rem;color:#94a3b8;margin-top:12px;">Si la descarga no comienza, pulsa «Abrir PDF» y guárdalo desde el visor.</div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            const cerrarModal = () => {
-                if (document.body.contains(modal)) modal.remove();
-                URL.revokeObjectURL(blobUrl);
-            };
-
-            modal.querySelector("#pdfDescargar").addEventListener("click", () => {
-                const enlace = document.createElement("a");
-                enlace.href = blobUrl;
-                enlace.download = nombreArchivo;
-                enlace.style.display = "none";
-                document.body.appendChild(enlace);
-                enlace.click();
-                enlace.remove();
-            });
-
-            modal.querySelector("#pdfAbrir").addEventListener("click", () => {
-                const nuevaVentana = window.open(blobUrl, "_blank");
-                if (!nuevaVentana) {
-                    mostrarToast("Permite las ventanas emergentes para abrir el PDF.", 4000);
-                }
-            });
-
-            modal.querySelector("#pdfCompartir").addEventListener("click", async () => {
-                try {
-                    const archivoPDF = new File([pdfBlob], nombreArchivo, { type: "application/pdf" });
-                    if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [archivoPDF] }))) {
-                        await navigator.share({
-                            files: [archivoPDF],
-                            title: `Rotaciones ${tituloFecha}`,
-                            text: "Hoja de rotaciones"
-                        });
-                    } else {
-                        mostrarToast("La opción de compartir no está disponible en este navegador. Usa Descargar o Abrir PDF.", 4000);
-                    }
-                } catch (error) {
-                    if (error.name !== "AbortError") {
-                        mostrarToast("No se ha podido compartir. Prueba con Descargar PDF.", 4000);
-                    }
-                }
-            });
-
-            modal.querySelector("#pdfCerrar").addEventListener("click", cerrarModal);
-        } catch (error) {
-            console.error("Error al generar el PDF:", error);
-            mostrarToast("❌ Error al generar el archivo PDF. Inténtalo de nuevo.", 4000);
-        } finally {
-            if (document.body.contains(pdfDiv)) pdfDiv.remove();
-            if (document.body.contains(pantallaCarga)) pantallaCarga.remove();
-        }
-    }
-    function imprimirJornadaActual() {
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         
@@ -1410,81 +1159,96 @@
             });
         }
 
-        let tdStyle = "border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem; color: #000;";
-        let tablaHTML = "";
-        cargas.forEach(c => {
-            tablaHTML += `<tr>
-                <td style="${tdStyle}"><strong>${c}</strong></td>
-                <td style="${tdStyle}">${datosHoy[1][c] || "-"}</td>
-                <td style="${tdStyle}">${datosHoy[2][c] || "-"}</td>
-                <td style="${tdStyle}">${datosHoy[3][c] || "-"}</td>
-                <td style="${tdStyle}">${datosHoy[4][c] || "-"}</td>
-            </tr>`;
+        let fechaStr = new Date().toLocaleDateString("es-ES");
+        let horarioStr = tipoHorarioSeleccionado === "manana" ? "Mañana" : "Tarde";
+
+        // Dibujar PDF vectorial
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(30, 58, 138);
+        doc.text("CONTROL DE ROTACIONES", 14, 18);
+
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Fecha: ${fechaStr} | Horario: ${horarioStr}`, 14, 25);
+
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Distribución de Cargas por Turnos", 14, 35);
+
+        let y = 41;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(14, y, 182, 8, "F");
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Puesto / Carga", 16, y + 5.5);
+        doc.text("T1", 95, y + 5.5, {align: "center"});
+        doc.text("T2", 122, y + 5.5, {align: "center"});
+        doc.text("T3", 149, y + 5.5, {align: "center"});
+        doc.text("T4", 176, y + 5.5, {align: "center"});
+        y += 8;
+
+        doc.setFont("helvetica", "normal");
+        cargas.forEach((c, index) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            if (index % 2 === 0) {
+                doc.setFillColor(248, 250, 252);
+                doc.rect(14, y, 182, 7, "F");
+            }
+            doc.text(c, 16, y + 5);
+            doc.text(String(datosHoy[1][c] || "-"), 95, y + 5, {align: "center"});
+            doc.text(String(datosHoy[2][c] || "-"), 122, y + 5, {align: "center"});
+            doc.text(String(datosHoy[3][c] || "-"), 149, y + 5, {align: "center"});
+            doc.text(String(datosHoy[4][c] || "-"), 176, y + 5, {align: "center"});
+            y += 7;
         });
 
-        let cardStyle = "border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; background: #f8fafc; width: calc(50% - 6px); box-sizing: border-box; color: #000; page-break-inside: avoid;";
-        let cardTitleStyle = "font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.85rem;";
-        
-        let resumenHTML = "";
-        ops.forEach(op => {
-            resumenHTML += `<div style="${cardStyle}">
-                <div style="${cardTitleStyle}">👤 ${op}</div>
-                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
-                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
-                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
-                <div style="font-size:0.8rem;"><strong>T4:</strong> ${resumenHoy[op][4]}</div>
-            </div>`;
+        y += 10;
+        if (y > 250) { doc.addPage(); y = 20; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("Resumen Diario por Operario", 14, y);
+        y += 6;
+
+        doc.setFontSize(9);
+        ops.forEach((op) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            let tareaText = `${op} -> T1: ${resumenHoy[op][1]}  |  T2: ${resumenHoy[op][2]}  |  T3: ${resumenHoy[op][3]}  |  T4: ${resumenHoy[op][4]}`;
+            doc.text(tareaText, 16, y);
+            y += 6;
         });
 
-        let fechaStr = new Date().toLocaleDateString("es-ES") + " (Planilla Actual)";
-        let horarioStr = tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde";
-        generarPDFNativo(fechaStr, horarioStr, tablaHTML, resumenHTML);
+        // Generar archivo Blob y forzar apertura nativa por compartir para saltar restricciones PWA
+        const pdfBlob = doc.output('blob');
+        const nombreArchivo = `Rotaciones_${fechaStr.replace(/\//g, '-')}.pdf`;
+        const pdfFile = new File([pdfBlob], nombreArchivo, { type: 'application/pdf' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            navigator.share({
+                files: [pdfFile],
+                title: 'Control de Rotaciones',
+                text: 'Hoja de turnos y rotaciones.'
+            }).then(() => {
+                mostrarToast("✅ PDF compartido/guardado con éxito");
+            }).catch(() => {
+                // Fallback si el usuario cancela o hay fallo de permisos
+                forzarDescargaBlob(pdfBlob, nombreArchivo);
+            });
+        } else {
+            forzarDescargaBlob(pdfBlob, nombreArchivo);
+        }
     }
 
-    function imprimirJornadaPDF(id) {
-        const jornada = historialJornadas.find(j => j.id === id);
-        if(!jornada) return;
-
-        let cargasAsignadas = new Set();
-        for (let t = 1; t <= 4; t++) {
-            if (jornada.datos && jornada.datos[t]) {
-                Object.keys(jornada.datos[t]).forEach(c => cargasAsignadas.add(c));
-            }
-        }
-
-        let tdStyle = "border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem; color: #000;";
-        let tablaHTML = "";
-        cargasAsignadas.forEach(carga => {
-            let t1 = (jornada.datos && jornada.datos[1]) ? (jornada.datos[1][carga] || "-") : "-";
-            let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
-            let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
-            let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
-            tablaHTML += `<tr>
-                <td style="${tdStyle}"><strong>${carga}</strong></td>
-                <td style="${tdStyle}">${t1}</td>
-                <td style="${tdStyle}">${t2}</td>
-                <td style="${tdStyle}">${t3}</td>
-                <td style="${tdStyle}">${t4}</td>
-            </tr>`;
-        });
-
-        let cardStyle = "border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; background: #f8fafc; width: calc(50% - 6px); box-sizing: border-box; color: #000; page-break-inside: avoid;";
-        let cardTitleStyle = "font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.85rem;";
-        
-        let resumenHTML = "";
-        if (jornada.resumenOps) {
-            for (let op in jornada.resumenOps) {
-                resumenHTML += `<div style="${cardStyle}">
-                    <div style="${cardTitleStyle}">👤 ${op}</div>
-                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
-                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
-                </div>`;
-            }
-        }
-
-        generarPDFNativo(`${jornada.fecha} (${jornada.hora})`, jornada.tipoHorario, tablaHTML, resumenHTML);
+    function forzarDescargaBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        mostrarToast("✅ PDF descargado");
     }
 </script>
 </body>
