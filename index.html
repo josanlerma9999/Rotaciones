@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Rotaciones - Edición Manual Avanzada</title>
+    
+    <!-- Librería para generar archivos PDF reales en móviles -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         :root { 
             --bg-main: #000000;       
@@ -454,26 +458,6 @@
             white-space: nowrap;
         }
         .toast.show { opacity: 1; }
-
-        /* --- ESTILOS EXCLUSIVOS PARA NAVEGADORES MÓVILES (PDF NATIVO) --- */
-        #print-section { display: none; }
-        
-        @media print {
-            body { background: #ffffff !important; color: #000000 !important; margin: 0; padding: 0; }
-            .container, .tabs-nav, .toast { display: none !important; }
-            #print-section { display: block !important; padding: 15px; }
-            
-            .print-titulo { font-size: 1.4rem; font-weight: bold; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; color: #000; }
-            .print-seccion { font-weight: bold; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; }
-            .print-tabla { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; }
-            .print-tabla th, .print-tabla td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-size: 0.85rem; color: #000; }
-            .print-tabla th { background: #f1f5f9 !important; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #000; }
-            .print-grid-ops { display: flex; flex-wrap: wrap; gap: 10px; page-break-inside: avoid; }
-            .print-card-op { border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; background: #f8fafc !important; flex: 1 1 calc(50% - 10px); min-width: 140px; color: #000; }
-            .print-card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
-            
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
     </style>
 </head>
 <body>
@@ -517,7 +501,7 @@
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
-            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">🖨️ PDF Actual</button>
+            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">🖨️ Descargar PDF</button>
         </div>
     </div>
 
@@ -576,9 +560,6 @@
 
 <!-- Contenedor de Toast -->
 <div id="toast" class="toast"></div>
-
-<!-- Contenedor Oculto para Generar el PDF Navitamente -->
-<div id="print-section"></div>
 
 <script>
     let saltoInicialJornada = 0;
@@ -1266,29 +1247,62 @@
         .catch(() => alert("No se ha podido exportar en este dispositivo."));
     }
 
-    // --- SISTEMA PDF NATIVO PARA MÓVILES ---
+    // --- GENERADOR PDF REAL CON DESCARGA ---
     function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        let htmlImprimir = `
-            <div class="print-titulo">📅 Control de Rotaciones: ${tituloFecha}</div>
-            <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${tipoHorario}</div>
+        mostrarToast("⏳ Generando PDF, espera un momento...");
+        
+        let pdfDiv = document.createElement("div");
+        pdfDiv.style.padding = "25px";
+        pdfDiv.style.background = "#ffffff";
+        pdfDiv.style.color = "#000000";
+        pdfDiv.style.fontFamily = "'Segoe UI', system-ui, sans-serif";
+        
+        pdfDiv.innerHTML = `
+            <div style="font-size: 1.4rem; font-weight: bold; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; color: #000;">
+                📅 Control de Rotaciones: ${tituloFecha}
+            </div>
+            <div style="font-size: 0.95rem; margin-bottom: 20px; font-weight: bold; color: #475569;">
+                Horario de Trabajo: ${tipoHorario}
+            </div>
             
-            <div class="print-seccion">⏱️ Distribución de Cargas por Turnos</div>
-            <table class="print-tabla">
-                <thead><tr><th>Puesto / Carga</th><th>Turno 1</th><th>Turno 2</th><th>Turno 3</th><th>Turno 4</th></tr></thead>
+            <div style="font-weight: bold; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase; font-size: 0.95rem; color: #1e3a8a;">
+                ⏱️ Distribución de Cargas por Turnos
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #cbd5e1; padding: 10px; background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; text-align: left; color: #000;">Puesto / Carga</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 10px; background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; text-align: left; color: #000;">Turno 1</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 10px; background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; text-align: left; color: #000;">Turno 2</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 10px; background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; text-align: left; color: #000;">Turno 3</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 10px; background: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; text-align: left; color: #000;">Turno 4</th>
+                    </tr>
+                </thead>
                 <tbody>${tablaHTML}</tbody>
             </table>
             
-            <div class="print-seccion">📋 Resumen de Tareas por Operario</div>
-            <div class="print-grid-ops">${resumenHTML}</div>
+            <div style="font-weight: bold; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; font-size: 0.95rem; color: #1e3a8a;">
+                📋 Resumen de Tareas por Operario
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;">
+                ${resumenHTML}
+            </div>
         `;
 
-        let printDiv = document.getElementById('print-section');
-        printDiv.innerHTML = htmlImprimir;
-        
-        // El navegador detectará que llamamos a imprimir y usará los estilos de @media print
-        setTimeout(() => {
-            window.print();
-        }, 100);
+        let opt = {
+            margin:       10,
+            filename:     `Rotaciones_${tituloFecha.replace(/\//g, '-')}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(pdfDiv).save().then(() => {
+            mostrarToast("✅ PDF descargado con éxito");
+        }).catch(err => {
+            console.error(err);
+            mostrarToast("❌ Error al descargar el PDF");
+        });
     }
 
     function imprimirJornadaActual() {
@@ -1310,24 +1324,28 @@
             });
         }
 
+        let tdStyle = "border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem; color: #000;";
         let tablaHTML = "";
         cargas.forEach(c => {
             tablaHTML += `<tr>
-                <td><strong>${c}</strong></td>
-                <td>${datosHoy[1][c] || "-"}</td>
-                <td>${datosHoy[2][c] || "-"}</td>
-                <td>${datosHoy[3][c] || "-"}</td>
-                <td>${datosHoy[4][c] || "-"}</td>
+                <td style="${tdStyle}"><strong>${c}</strong></td>
+                <td style="${tdStyle}">${datosHoy[1][c] || "-"}</td>
+                <td style="${tdStyle}">${datosHoy[2][c] || "-"}</td>
+                <td style="${tdStyle}">${datosHoy[3][c] || "-"}</td>
+                <td style="${tdStyle}">${datosHoy[4][c] || "-"}</td>
             </tr>`;
         });
 
+        let cardStyle = "border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; background: #f8fafc; width: calc(50% - 6px); box-sizing: border-box; color: #000; page-break-inside: avoid;";
+        let cardTitleStyle = "font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.85rem;";
+        
         let resumenHTML = "";
         ops.forEach(op => {
-            resumenHTML += `<div class="print-card-op">
-                <div class="print-card-op-title">👤 ${op}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
+            resumenHTML += `<div style="${cardStyle}">
+                <div style="${cardTitleStyle}">👤 ${op}</div>
+                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
+                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
+                <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
                 <div style="font-size:0.8rem;"><strong>T4:</strong> ${resumenHoy[op][4]}</div>
             </div>`;
         });
@@ -1348,6 +1366,7 @@
             }
         }
 
+        let tdStyle = "border: 1px solid #cbd5e1; padding: 10px; font-size: 0.85rem; color: #000;";
         let tablaHTML = "";
         cargasAsignadas.forEach(carga => {
             let t1 = (jornada.datos && jornada.datos[1]) ? (jornada.datos[1][carga] || "-") : "-";
@@ -1355,22 +1374,25 @@
             let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
             let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
             tablaHTML += `<tr>
-                <td><strong>${carga}</strong></td>
-                <td>${t1}</td>
-                <td>${t2}</td>
-                <td>${t3}</td>
-                <td>${t4}</td>
+                <td style="${tdStyle}"><strong>${carga}</strong></td>
+                <td style="${tdStyle}">${t1}</td>
+                <td style="${tdStyle}">${t2}</td>
+                <td style="${tdStyle}">${t3}</td>
+                <td style="${tdStyle}">${t4}</td>
             </tr>`;
         });
 
+        let cardStyle = "border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; background: #f8fafc; width: calc(50% - 6px); box-sizing: border-box; color: #000; page-break-inside: avoid;";
+        let cardTitleStyle = "font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; color: #1e3a8a; text-transform: uppercase; font-size: 0.85rem;";
+        
         let resumenHTML = "";
         if (jornada.resumenOps) {
             for (let op in jornada.resumenOps) {
-                resumenHTML += `<div class="print-card-op">
-                    <div class="print-card-op-title">👤 ${op}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
+                resumenHTML += `<div style="${cardStyle}">
+                    <div style="${cardTitleStyle}">👤 ${op}</div>
+                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:3px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
                     <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
                 </div>`;
             }
