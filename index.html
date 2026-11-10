@@ -654,7 +654,7 @@
     const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
     const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
 
-    // Lector seguro que descompone strings JSON anidados sin romper la app
+    // Lector seguro que descompone JSONs anidados sin romper la ejecución
     function cargarDatosLocales(key, valorPorDefecto) {
         const data = localStorage.getItem(key);
         if (!data) return valorPorDefecto;
@@ -686,11 +686,10 @@
         let ops = cargarDatosLocales('hist_ops_v14', defaultOps);
         let cargas = cargarDatosLocales('hist_cargas_v14', defaultCargas);
 
-        // Validación estricta de listas
         if (!Array.isArray(ops) || ops.length === 0) ops = [...defaultOps];
         if (!Array.isArray(cargas) || cargas.length === 0) cargas = [...defaultCargas];
 
-        // AUTO-RECUPERACIÓN SEGURA de cargas de trabajo previas
+        // Recolectar automáticamente cargas registradas en la matriz y en el historial
         let conjuntoCargas = new Set(cargas);
 
         if (typeof competencies === 'object' && competencies !== null) {
@@ -780,7 +779,19 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
-        if(tabId === 'tab-historial') renderizarHistorial();
+
+        // Forzar actualización inmediata de datos al cambiar de vista
+        if (tabId === 'tab-jornada') {
+            generarJornadaCompleta();
+        } else if (tabId === 'tab-matriz') {
+            procesarCambios();
+        } else if (tabId === 'tab-resumen') {
+            actualizarResumenIndividual();
+        } else if (tabId === 'tab-contador') {
+            renderizarTablaContadores();
+        } else if (tabId === 'tab-historial') {
+            renderizarHistorial();
+        }
     }
 
     function seleccionarTipoHorario(tipo) {
@@ -920,6 +931,9 @@
             contenedor.innerHTML = "";
             return;
         }
+
+        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
 
         matrizJornadaCalculada = calcularLógicaMatriz(ops, cargas);
         renderizarJornadaHTML(ops, cargas, matrizJornadaCalculada, contenedor);
