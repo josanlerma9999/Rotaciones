@@ -581,803 +581,867 @@
 <div id="print-section"></div>
 
 <script>
-    let saltoInicialJornada = 0;
-    let competencies = {};
-    let historialJornadas = [];
-    let conteoSemanal = {}; 
-    let tipoHorarioSeleccionado = "manana"; 
-    let cambiosManualesUsuarios = {}; 
-    let matrizJornadaCalculada = {}; 
-
-    const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
-    const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
-
-    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
-    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
-
-    function cargarDatosLocales(key, valorPorDefecto) {
-        const data = localStorage.getItem(key);
-        if (!data) return valorPorDefecto;
-        try { return JSON.parse(data); } 
-        catch (e) { return valorPorDefecto; }
-    }
-
-    function mostrarToast(mensaje) {
-        const toast = document.getElementById("toast");
-        toast.textContent = mensaje;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 2500);
-    }
-
-    window.onload = function() {
-        competencies = cargarDatosLocales('hist_competencias_v14', {});
-        historialJornadas = cargarDatosLocales('registro_jornadas_v14', []);
-        conteoSemanal = cargarDatosLocales('conteo_semanal_v14', {});
-        
-        tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v14') || "manana";
-
-        let ops = cargarDatosLocales('hist_ops_v14', defaultOps);
-        let cargas = cargarDatosLocales('hist_cargas_v14', defaultCargas);
-
-        ops.forEach(v => agregarFila('listaOps', 'Operario', v));
-        cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
-
-        actualizarVisualBotonesHorario();
-        procesarCambios();
-    };
-
-    function cambiarPestaña(tabId, boton) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        boton.classList.add('active');
-        if(tabId === 'tab-historial') renderizarHistorial();
-    }
-
-    function seleccionarTipoHorario(tipo) {
-        tipoHorarioSeleccionado = tipo;
-        localStorage.setItem('tipo_horario_v14', tipo);
-        cambiosManualesUsuarios = {}; 
-        actualizarVisualBotonesHorario();
-        generarJornadaCompleta();
-    }
-
-    function actualizarVisualBotonesHorario() {
-        const btnM = document.getElementById("btnHorarioManana");
-        const btnT = document.getElementById("btnHorarioTarde");
-        btnM.className = "btn-schedule";
-        btnT.className = "btn-schedule";
-        if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
-        else btnT.classList.add("active-afternoon");
-    }
-
-    function agregarFila(contenedorId, tipo, valor = "") {
-        const contenedor = document.getElementById(contenedorId);
-        const row = document.createElement("div");
-        row.className = "item-row";
-        
-        row.innerHTML = `
-            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
-            <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
-            <button class="btn-del" onclick="eliminarItem(this, '${valor}')">🗑️</button>
-        `;
-        contenedor.appendChild(row);
-    }
-
-    function eliminarItem(botonDOM, valorBorrado) {
-        botonDOM.parentElement.remove();
-        
-        if (valorBorrado && valorBorrado.trim() !== "") {
-            Object.keys(competencies).forEach(key => {
-                if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
-                    delete competencies[key];
-                }
-            });
-            Object.keys(conteoSemanal).forEach(key => {
-                if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
-                    delete conteoSemanal[key];
-                }
-            });
-            
-            localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies));
-            localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
-        }
-        
-        procesarCambios();
-    }
-
-    function habilitarEdicionInput(boton) {
-        const input = boton.parentElement.querySelector('.item-input');
-        input.removeAttribute('readonly');
-        input.focus();
-        
-        input.onblur = function() {
-            input.setAttribute('readonly', true);
-        };
-    }
-
-    function leerLista(contenedorId) {
-        return Array.from(document.querySelectorAll(`#${contenedorId} .item-input`))
-            .map(i => i.value.trim())
-            .filter(v => v);
-    }
-
-    function procesarCambios() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        const contenedorMatriz = document.getElementById("contenedorMatriz");
-
-        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
-        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
-
-        if(ops.length === 0 || cargas.length === 0) return;
-
-        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
-        cargas.forEach(c => html += `<th>${c}</th>`);
-        html += `</tr></thead><tbody>`;
-
-        ops.forEach(op => {
-            html += `<tr><td>${op}</td>`;
-            cargas.forEach(c => {
-                let clv = `${op}_X_${c}`;
-                let check = (competencies[clv] !== false) ? "checked" : "";
-                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
-            });
-            html += `</tr>`;
-        });
-        html += `</tbody></table>`;
-        contenedorMatriz.innerHTML = html;
-
-        cambiosManualesUsuarios = {}; 
-        generarJornadaCompleta();
-        renderizarTablaContadores();
-    }
-
-    function cambiarCombinacion() {
-        saltoInicialJornada++;
-        cambiosManualesUsuarios = {}; 
-        generarJornadaCompleta();
-    }
-
-    function contarCargasQueSabe(op, cargas) {
-        let aptas = 0;
-        cargas.forEach(c => {
-            if (competencies[`${op}_X_${c}`] !== false) aptas++;
-        });
-        return aptas;
-    }
-
-    function generarJornadaCompleta() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        const contenedor = document.getElementById("contenedorJornada");
-        
-        if (ops.length === 0 || cargas.length === 0) {
-            contenedor.innerHTML = "";
-            return;
-        }
-
-        matrizJornadaCalculada = calcularLógicaMatriz(ops, cargas);
-        renderizarJornadaHTML(ops, cargas, matrizJornadaCalculada, contenedor);
-        actualizarResumenIndividual();
-    }
-
-    function calcularLógicaMatriz(ops, cargas) {
-        let matrizResultado = {};
-        
-        const esAptoGlobal = (op, c) => competencies[`${op}_X_${c}`] !== false;
-        const hizoAyerGlobal = (op, c) => { let p = obtenerPuestoAyer(op); return p ? p.has(c) : false; };
-        const sabeVarias = (op) => contarCargasQueSabe(op, cargas) > 1;
-        
-        const yaLaHizoHoy = (candidato, cargaToCheck, turnoActual) => {
-            for (let prevT = 1; prevT < turnoActual; prevT++) {
-                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) return true;
-            }
-            return false;
-        };
-
-        const contarVecesHoy = (candidato, cargaToCheck, turnoHasta) => {
-            let v = 0;
-            for (let prevT = 1; prevT <= turnoHasta; prevT++) {
-                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) v++;
-            }
-            return v;
-        };
-
-        for (let t = 1; t <= 4; t++) {
-            matrizResultado[t] = {};
-            let manualOps = new Set();
-            let manualCargas = new Set();
-
-            cargas.forEach(carga => {
-                let claveManual = `${t}_X_${carga}`;
-                if (cambiosManualesUsuarios[claveManual]) {
-                    let opManual = cambiosManualesUsuarios[claveManual];
-                    if (opManual !== "No Apto") manualOps.add(opManual);
-                    manualCargas.add(carga);
-                    matrizResultado[t][carga] = { 
-                        nombre: opManual, 
-                        alerta: (opManual !== "No Apto" && !esAptoGlobal(opManual, carga)),
-                        error: (opManual === "No Apto")
-                    };
-                }
-            });
-
-            let cargasLibres = cargas.filter(c => !manualCargas.has(c));
-            let opsLibres = ops.filter(o => !manualOps.has(o));
-            let preferencias = {};
-
-            cargasLibres.forEach((carga) => {
-                preferencias[carga] = [...opsLibres].sort((a, b) => {
-                    let yaHizoA = yaLaHizoHoy(a, carga, t) ? 1 : 0;
-                    let yaHizoB = yaLaHizoHoy(b, carga, t) ? 1 : 0;
-                    if (yaHizoA !== yaHizoB) return yaHizoA - yaHizoB;
-
-                    let totalA = 0, totalB = 0;
-                    for (let pt = 1; pt < t; pt++) {
-                        cargas.forEach(c => {
-                            if (matrizResultado[pt] && matrizResultado[pt][c] && matrizResultado[pt][c].nombre === a) totalA++;
-                            if (matrizResultado[pt] && matrizResultado[pt][c] && matrizResultado[pt][c].nombre === b) totalB++;
-                        });
-                    }
-                    if (totalA !== totalB) return totalA - totalB;
-
-                    let repiteAyerA = (hizoAyerGlobal(a, carga) && sabeVarias(a)) ? 1 : 0;
-                    let repiteAyerB = (hizoAyerGlobal(b, carga) && sabeVarias(b)) ? 1 : 0;
-                    if (repiteAyerA !== repiteAyerB) return repiteAyerA - repiteAyerB;
-
-                    let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
-                    let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
-                    if (vecesA !== vecesB) return vecesA - vecesB;
-
-                    let idxCarga = cargas.indexOf(carga);
-                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 3) % ops.length;
-                    let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
-                    let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
-                    return distA - distB;
-                });
-            });
-
-            let matchCarga = {}; 
-            let matchOp = {};
-
-            const buscarAumentos = (condicion) => {
-                let huboMejora = true;
-                while (huboMejora) {
-                    huboMejora = false;
-                    for (let carga of cargasLibres) {
-                        if (matchCarga[carga]) continue; 
-                        let visitados = new Set();
-                        
-                        const dfs = (c) => {
-                            for (let op of preferencias[c]) {
-                                if (condicion(op, c) && !visitados.has(op)) {
-                                    visitados.add(op);
-                                    if (!matchOp[op] || dfs(matchOp[op])) {
-                                        matchOp[op] = c;
-                                        matchCarga[c] = op;
-                                        return true;
-                                    }
-                                }
-                            }
-                            return false;
-                        };
-                        if (dfs(carga)) huboMejora = true;
-                    }
-                }
-            };
-
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
-            buscarAumentos((op, c) => esAptoGlobal(op, c));
-
-            cargasLibres.forEach(carga => {
-                let opAsignado = matchCarga[carga];
-                if (opAsignado) {
-                    matrizResultado[t][carga] = { nombre: opAsignado, alerta: !esAptoGlobal(opAsignado, carga), error: false };
-                } else {
-                    matrizResultado[t][carga] = { nombre: "No Apto", alerta: false, error: true };
-                }
-            });
-
-            if (t > 1) {
-                for (let c1 of cargasLibres) {
-                    let op1 = matrizResultado[t][c1].nombre;
-                    if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
-
-                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
-                        for (let c2 of cargasLibres) {
-                            if (c1 === c2) continue;
-                            let op2 = matrizResultado[t][c2].nombre;
-                            if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
-
-                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && (!yaLaHizoHoy(op1, c2, t) || !yaLaHizoHoy(op2, c1, t))) {
-                                matrizResultado[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
-                                matrizResultado[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return matrizResultado;
-    }
-
-    function renderizarJornadaHTML(ops, cargas, datosCalculados, contenedor) {
-        contenedor.innerHTML = "";
-        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
-
-        for (let t = 1; t <= 4; t++) {
-            const card = document.createElement("div");
-            card.className = "turno-card";
-            let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
-
-            cargas.forEach(carga => {
-                let res = datosCalculados[t][carga] || { nombre: "No Apto", alerta: false, error: true };
-                
-                let hizoEstaCargaAyer = false;
-                if (res.nombre !== "No Apto") {
-                    let puestosAyer = obtenerPuestoAyer(res.nombre);
-                    if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
-                }
-
-                let repeticionesHoy = 0;
-                if (res.nombre !== "No Apto") {
-                    for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
-                        if (datosCalculados[turnoEval] && datosCalculados[turnoEval][carga] && datosCalculados[turnoEval][carga].nombre === res.nombre) {
-                            repeticionesHoy++;
-                        }
-                    }
-                }
-
-                let repeticionProhibida = res.nombre !== "No Apto" && repeticionesHoy > 1;
-                let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
-
-                html += `<tr>
-                    <td class="carga-title">${carga}</td>
-                    <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
-                            ${ops.map(o => {
-                                let puestosAyerOpt = obtenerPuestoAyer(o);
-                                let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
-                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
-                            }).join('')}
-                            <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
-                        </select>
-                    </td>
-                </tr>`;
-            });
-
-            html += `</table>`;
-
-            if (t < 4) {
-                html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
-            } else {
-                html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
-            }
-
-            card.innerHTML = html;
-            contenedor.appendChild(card);
-        }
-    }
-
-    function guardarEdicionManualYRecalcular(turnoEditado, cargaEditada, nuevoOperario) {
-        cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
-        const cargas = leerLista("listaCargas");
-        for (let t = turnoEditado + 1; t <= 4; t++) {
-            cargas.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
-        }
-        generarJornadaCompleta();
-    }
-
-    function obtenerPuestoAyer(operario) {
-        if (!historialJornadas || historialJornadas.length === 0) return null;
-        const jornadaAyer = historialJornadas[0]; 
-        if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
-
-        const puestosAyer = new Set();
-        for (let t = 1; t <= 4; t++) {
-            let puesto = jornadaAyer.resumenOps[operario][t];
-            if (puesto && puesto !== "-") puestosAyer.add(puesto);
-        }
-        return puestosAyer;
-    }
-
-    function guardarTurnoYRecalcularSiguientes(turnoEditado) {
-        const cargasEnTurno = leerLista("listaCargas");
-        cargasEnTurno.forEach(c => {
-            let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
-            if (selector) cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
-        });
-
-        for (let t = turnoEditado + 1; t <= 4; t++) {
-            cargasEnTurno.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
-        }
-        generarJornadaCompleta();
-    }
-
-    function guardarTurnoFinal(turnoFinal) {
-        const cargasEnTurno = leerLista("listaCargas");
-        cargasEnTurno.forEach(c => {
-            let selector = document.querySelector(`select[data-turno="${turnoFinal}"][data-carga="${c}"]`);
-            if (selector) cambiosManualesUsuarios[`${turnoFinal}_X_${c}`] = selector.value;
-        });
-        generarJornadaCompleta();
-    }
-
-    function renderizarTablaContadores() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        const contenedor = document.getElementById("contenedorContador");
-        if(ops.length === 0 || cargas.length === 0) return;
-
-        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
-        cargas.forEach(c => html += `<th>${c}</th>`);
-        html += `</tr></thead><tbody>`;
-
-        ops.forEach(op => {
-            html += `<tr><td>${op}</td>`;
-            cargas.forEach(c => {
-                let clv = `${op}_X_${c}`;
-                let total = conteoSemanal[clv] || 0;
-                html += `<td class="count-number">${total}</td>`;
-            });
-            html += `</tr>`;
-        });
-        html += `</tbody></table>`;
-        contenedor.innerHTML = html;
-    }
-
-    function guardarEnHistorial() {
-        const selectores = document.querySelectorAll(".select-op-editable");
-        if(selectores.length === 0) return;
-
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-
-        selectores.forEach(select => {
-            let opAsignado = select.value;
-            let carga = select.dataset.carga;
-            if(opAsignado !== "No Apto") {
-                let clv = `${opAsignado}_X_${carga}`;
-                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
-                conteoSemanal[clv]++;
-            }
-        });
-        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
-        renderizarTablaContadores();
-
-        let copiaTurnos = {};
-        let resumenOperariosHoy = {};
-        ops.forEach(op => resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" });
-
-        for(let t=1; t<=4; t++) {
-            copiaTurnos[t] = {};
-            cargas.forEach(carga => {
-                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
-                if (selector) {
-                    let val = selector.value;
-                    copiaTurnos[t][carga] = val;
-                    if (val !== "No Apto" && resumenOperariosHoy[val]) {
-                        resumenOperariosHoy[val][t] = carga;
-                    }
-                }
-            });
-        }
-
-        let fechaActual = new Date();
-        let nuevaJornada = {
-            id: Date.now(),
-            fecha: fechaActual.toLocaleDateString("es-ES"),
-            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
-            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
-            datos: copiaTurnos,
-            resumenOps: resumenOperariosHoy
-        };
-
-        historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-
-        mostrarToast("💾 ¡Guardado con éxito!");
-        generarJornadaCompleta();
-    }
-
-    function renderizarHistorial() {
-        const contenedor = document.getElementById("contenedorHistorial");
-        contenedor.innerHTML = "";
-
-        if(historialJornadas.length === 0) {
-            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
-            return;
-        }
-
-        historialJornadas.forEach(jornada => {
-            const item = document.createElement("div");
-            item.className = "history-item";
-
-            let htmlTitle = `<div class="history-item-title">
-                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
-                    <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
-                    <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
-                </div>
-            </div>`;
-
-            let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
-            htmlContent += `<div class="history-item-content">`;
-            for(let t=1; t<=4; t++) {
-                htmlContent += `<div class="history-turno-block">
-                    <div class="history-turno-title">TURNO ${t}</div>`;
-                if(jornada.datos && jornada.datos[t]) {
-                    for(let carga in jornada.datos[t]) {
-                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
-                    }
-                }
-                htmlContent += `</div>`;
-            }
-            htmlContent += `</div>`;
-
-            if (jornada.resumenOps) {
-                htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
-                htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
-
-                for (let op in jornada.resumenOps) {
-                    htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
-                        <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
-
-                    for (let t = 1; t <= 4; t++) {
-                        let puesto = jornada.resumenOps[op][t] || "-";
-                        let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
-                        htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
-                            <span style="color:var(--primary-light);">T${t}:</span>
-                            <span style="${colorPuesto}">${puesto}</span>
-                        </div>`;
-                    }
-                    htmlContent += `</div>`;
-                }
-                htmlContent += `</div>`;
-            }
-
-            item.innerHTML = htmlTitle + htmlContent;
-            contenedor.appendChild(item);
-        });
-    }
-
-    function borrarJornadaIndividual(id) {
-        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
-            historialJornadas = historialJornadas.filter(j => j.id !== id);
-            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
-            renderizarHistorial();
-        }
-    }
-
-    function borrarTodoElHistorial() {
-        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
-            historialJornadas = [];
-            localStorage.removeItem('registro_jornadas_v14');
-            renderizarHistorial();
-        }
-    }
-
-    function reiniciarContadoresSemanales() {
-        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
-            conteoSemanal = {};
-            localStorage.removeItem('conteo_semanal_v14');
-            renderizarTablaContadores();
-        }
-    }
-
-    function actualizarResumenIndividual() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        const contenedor = document.getElementById("contenedorResumenOperarios");
-
-        if (!contenedor) return;
-        contenedor.innerHTML = "";
-        if (ops.length === 0 || cargas.length === 0) return;
-
-        let asignacionesPorOp = {};
-        ops.forEach(op => asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" });
-
-        for (let t = 1; t <= 4; t++) {
-            cargas.forEach(carga => {
-                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
-                if (selector) {
-                    let opAsignado = selector.value;
-                    if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
-                        asignacionesPorOp[opAsignado][t] = carga;
-                    }
-                }
-            });
-        }
-
-        ops.forEach(op => {
-            const tarjeta = document.createElement("div");
-            tarjeta.style.background = "#050505";
-            tarjeta.style.border = "1px solid var(--border-color)";
-            tarjeta.style.borderRadius = "8px";
-            tarjeta.style.padding = "10px";
-            tarjeta.style.display = "flex";
-            tarjeta.style.flexDirection = "column";
-            tarjeta.style.gap = "6px";
-
-            let htmlCard = `<div style="font-weight: 800; color: var(--primary-light); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; font-size: 0.9rem; text-transform: uppercase;">👤 ${op}</div>`;
-
-            for (let t = 1; t <= 4; t++) {
-                let puesto = asignacionesPorOp[op][t];
-                let estiloPuesto = puesto === "-" ? "color: var(--text-muted); font-weight: normal;" : "color: #ffffff; font-weight: 700;";
-                htmlCard += `<div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
-                        <span style="color: var(--accent); font-weight: bold;">T${t}:</span>
-                        <span style="${estiloPuesto}">${puesto}</span>
-                    </div>`;
-            }
-            tarjeta.innerHTML = htmlCard;
-            contenedor.appendChild(tarjeta);
-        });
-    }
-
-    function rotarFilaHaciaArriba(inputElement) {
-        if (!inputElement.hasAttribute('readonly')) return;
-        const filaActual = inputElement.parentElement;
-        const contenedor = filaActual.parentElement;
-        const filaAnterior = filaActual.previousElementSibling;
-        if (filaAnterior) contenedor.insertBefore(filaActual, filaAnterior);
-        else contenedor.appendChild(filaActual);
-        procesarCambios();
-    }
-
-    function exportarJornadaUnicaExcel(id) {
-        const jornada = historialJornadas.find(j => j.id === id);
-        if(!jornada) return;
-
-        let csvContent = "\uFEFFFecha;Hora;Horario;Operario;Turno 1;Turno 2;Turno 3;Turno 4\n";
-        if (jornada.resumenOps) {
-            for (let op in jornada.resumenOps) {
-                let t1 = jornada.resumenOps[op][1] || "-";
-                let t2 = jornada.resumenOps[op][2] || "-";
-                let t3 = jornada.resumenOps[op][3] || "-";
-                let t4 = jornada.resumenOps[op][4] || "-";
-                csvContent += `${jornada.fecha};${jornada.hora};${jornada.tipoHorario};${op};${t1};${t2};${t3};${t4}\n`;
-            }
-        }
-
-        let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
-        if (navigator.share) {
-            try {
-                const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], title: `Excel Jornada`, text: 'Reporte de rotaciones.' });
-                } else {
-                    navigator.share({ title: nombreArchivo, text: csvContent });
-                }
-            } catch (err) {
-                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
-            }
-        } else {
-            fallbackPortapapeles(csvContent);
-        }
-    }
-
-    function fallbackPortapapeles(texto) {
-        navigator.clipboard.writeText(texto).then(() => alert("📋 Datos copiados al portapapeles para pegar en Excel."))
-        .catch(() => alert("No se ha podido exportar en este dispositivo."));
-    }
-
-    // --- SISTEMA PDF NATIVO PARA MÓVILES ---
-    function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
-        let htmlImprimir = `
-            <div class="print-titulo">📅 Control de Rotaciones: ${tituloFecha}</div>
-            <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${tipoHorario}</div>
-            
-            <div class="print-seccion">⏱️ Distribución de Cargas por Turnos</div>
-            <table class="print-tabla">
-                <thead><tr><th>Puesto / Carga</th><th>Turno 1</th><th>Turno 2</th><th>Turno 3</th><th>Turno 4</th></tr></thead>
-                <tbody>${tablaHTML}</tbody>
-            </table>
-            
-            <div class="print-seccion">📋 Resumen de Tareas por Operario</div>
-            <div class="print-grid-ops">${resumenHTML}</div>
-        `;
-
-        let printDiv = document.getElementById('print-section');
-        printDiv.innerHTML = htmlImprimir;
-        
-        // El navegador detectará que llamamos a imprimir y usará los estilos de @media print
-        setTimeout(() => {
-            window.print();
-        }, 100);
-    }
-
-    function imprimirJornadaActual() {
-        const ops = leerLista("listaOps");
-        const cargas = leerLista("listaCargas");
-        
-        let datosHoy = {1:{}, 2:{}, 3:{}, 4:{}};
-        let resumenHoy = {};
-        ops.forEach(op => resumenHoy[op] = {1:"-", 2:"-", 3:"-", 4:"-"});
-
-        for(let t=1; t<=4; t++) {
-            cargas.forEach(c => {
-                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${c}"]`);
-                let val = selector ? selector.value : "-";
-                datosHoy[t][c] = val;
-                if(val !== "No Apto" && val !== "-" && resumenHoy[val]) {
-                    resumenHoy[val][t] = c;
-                }
-            });
-        }
-
-        let tablaHTML = "";
-        cargas.forEach(c => {
-            tablaHTML += `<tr>
-                <td><strong>${c}</strong></td>
-                <td>${datosHoy[1][c] || "-"}</td>
-                <td>${datosHoy[2][c] || "-"}</td>
-                <td>${datosHoy[3][c] || "-"}</td>
-                <td>${datosHoy[4][c] || "-"}</td>
-            </tr>`;
-        });
-
-        let resumenHTML = "";
-        ops.forEach(op => {
-            resumenHTML += `<div class="print-card-op">
-                <div class="print-card-op-title">👤 ${op}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
-                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
-                <div style="font-size:0.8rem;"><strong>T4:</strong> ${resumenHoy[op][4]}</div>
-            </div>`;
-        });
-
-        let fechaStr = new Date().toLocaleDateString("es-ES") + " (Planilla Actual)";
-        let horarioStr = tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde";
-        generarPDFNativo(fechaStr, horarioStr, tablaHTML, resumenHTML);
-    }
-
-    function imprimirJornadaPDF(id) {
-        const jornada = historialJornadas.find(j => j.id === id);
-        if(!jornada) return;
-
-        let cargasAsignadas = new Set();
-        for (let t = 1; t <= 4; t++) {
-            if (jornada.datos && jornada.datos[t]) {
-                Object.keys(jornada.datos[t]).forEach(c => cargasAsignadas.add(c));
-            }
-        }
-
-        let tablaHTML = "";
-        cargasAsignadas.forEach(carga => {
-            let t1 = (jornada.datos && jornada.datos[1]) ? (jornada.datos[1][carga] || "-") : "-";
-            let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
-            let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
-            let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
-            tablaHTML += `<tr>
-                <td><strong>${carga}</strong></td>
-                <td>${t1}</td>
-                <td>${t2}</td>
-                <td>${t3}</td>
-                <td>${t4}</td>
-            </tr>`;
-        });
-
-        let resumenHTML = "";
-        if (jornada.resumenOps) {
-            for (let op in jornada.resumenOps) {
-                resumenHTML += `<div class="print-card-op">
-                    <div class="print-card-op-title">👤 ${op}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
-                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
-                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
-                </div>`;
-            }
-        }
-
-        generarPDFNativo(`${jornada.fecha} (${jornada.hora})`, jornada.tipoHorario, tablaHTML, resumenHTML);
-    }
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fallo: ', err));
+        });
+    }
+
+    let saltoInicialJornada = 0;
+    let competencies = {};
+    let historialJornadas = [];
+    let conteoSemanal = {}; 
+    let tipoHorarioSeleccionado = "manana"; 
+    let cambiosManualesUsuarios = {}; 
+    let matrizJornadaCalculada = {}; 
+
+    const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
+    const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
+
+    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
+    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
+
+    function cargarDatosLocales(key, valorPorDefecto) {
+        const data = localStorage.getItem(key);
+        if (!data) return valorPorDefecto;
+        try { return JSON.parse(data); } 
+        catch (e) { return valorPorDefecto; }
+    }
+
+    function mostrarToast(mensaje) {
+        const toast = document.getElementById("toast");
+        toast.textContent = mensaje;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    window.onload = function() {
+        competencies = cargarDatosLocales('hist_competencias_v14', {});
+        historialJornadas = cargarDatosLocales('registro_jornadas_v14', []);
+        conteoSemanal = cargarDatosLocales('conteo_semanal_v14', {});
+        
+        tipoHorarioSeleccionado = localStorage.getItem('tipo_horario_v14') || "manana";
+
+        let ops = cargarDatosLocales('hist_ops_v14', defaultOps);
+        let cargas = cargarDatosLocales('hist_cargas_v14', defaultCargas);
+
+        // AUTO-RECUPERACIÓN: Extrae automáticamente tus cargas originales desde la matriz de polivalencia e historial
+        let conjuntoCargas = new Set(cargas);
+        
+        Object.keys(competencies).forEach(key => {
+            let partes = key.split('_X_');
+            if (partes.length === 2 && partes[1]) {
+                conjuntoCargas.add(partes[1]);
+            }
+        });
+
+        historialJornadas.forEach(j => {
+            if (j.datos) {
+                for (let t in j.datos) {
+                    Object.keys(j.datos[t]).forEach(c => conjuntoCargas.add(c));
+                }
+            }
+        });
+
+        cargas = Array.from(conjuntoCargas);
+
+        ops.forEach(v => agregarFila('listaOps', 'Operario', v));
+        cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
+
+        actualizarVisualBotonesHorario();
+        procesarCambios();
+    };
+
+    function exportarDatos() {
+        const data = {
+            competencias: localStorage.getItem('hist_competencias_v14'),
+            jornadas: localStorage.getItem('registro_jornadas_v14'),
+            conteo: localStorage.getItem('conteo_semanal_v14'),
+            ops: localStorage.getItem('hist_ops_v14'),
+            cargas: localStorage.getItem('hist_cargas_v14')
+        };
+        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Rotaciones_Backup_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.json`;
+        link.click();
+    }
+
+    function importarDatos(evento) {
+        const file = evento.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.competencias) localStorage.setItem('hist_competencias_v14', data.competencias);
+                if(data.jornadas) localStorage.setItem('registro_jornadas_v14', data.jornadas);
+                if(data.conteo) localStorage.setItem('conteo_semanal_v14', data.conteo);
+                if(data.ops) localStorage.setItem('hist_ops_v14', data.ops);
+                if(data.cargas) localStorage.setItem('hist_cargas_v14', data.cargas);
+                
+                alert("✅ Datos importados correctamente.");
+                location.reload();
+            } catch(err) {
+                alert("❌ Error al importar el archivo.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function cambiarPestaña(tabId, boton) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        boton.classList.add('active');
+        if(tabId === 'tab-historial') renderizarHistorial();
+    }
+
+    function seleccionarTipoHorario(tipo) {
+        tipoHorarioSeleccionado = tipo;
+        localStorage.setItem('tipo_horario_v14', tipo);
+        cambiosManualesUsuarios = {}; 
+        actualizarVisualBotonesHorario();
+        generarJornadaCompleta();
+    }
+
+    function actualizarVisualBotonesHorario() {
+        const btnM = document.getElementById("btnHorarioManana");
+        const btnT = document.getElementById("btnHorarioTarde");
+        btnM.className = "btn-schedule";
+        btnT.className = "btn-schedule";
+        if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
+        else btnT.classList.add("active-afternoon");
+    }
+
+    function agregarFila(contenedorId, tipo, valor = "") {
+        const contenedor = document.getElementById(contenedorId);
+        const row = document.createElement("div");
+        row.className = "item-row";
+        
+        row.innerHTML = `
+            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
+            <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
+            <button class="btn-del" onclick="eliminarItem(this, '${valor}')">🗑️</button>
+        `;
+        contenedor.appendChild(row);
+    }
+
+    function eliminarItem(botonDOM, valorBorrado) {
+        botonDOM.parentElement.remove();
+        
+        if (valorBorrado && valorBorrado.trim() !== "") {
+            Object.keys(competencies).forEach(key => {
+                if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
+                    delete competencies[key];
+                }
+            });
+            Object.keys(conteoSemanal).forEach(key => {
+                if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
+                    delete conteoSemanal[key];
+                }
+            });
+            
+            localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies));
+            localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+        }
+        
+        procesarCambios();
+    }
+
+    function habilitarEdicionInput(boton) {
+        const input = boton.parentElement.querySelector('.item-input');
+        input.removeAttribute('readonly');
+        input.focus();
+        
+        input.onblur = function() {
+            input.setAttribute('readonly', true);
+            procesarCambios();
+        };
+    }
+
+    function leerLista(contenedorId) {
+        return Array.from(document.querySelectorAll(`#${contenedorId} .item-input`))
+            .map(i => i.value.trim())
+            .filter(v => v);
+    }
+
+    function procesarCambios() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedorMatriz = document.getElementById("contenedorMatriz");
+
+        localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
+        localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
+
+        if(ops.length === 0 || cargas.length === 0) return;
+
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => html += `<th>${c}</th>`);
+        html += `</tr></thead><tbody>`;
+
+        ops.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clv = `${op}_X_${c}`;
+                let check = (competencies[clv] !== false) ? "checked" : "";
+                html += `<td><input type="checkbox" data-clave="${clv}" ${check} onchange="competencies[this.dataset.clave]=this.checked; localStorage.setItem('hist_competencias_v14', JSON.stringify(competencies)); generarJornadaCompleta();"></td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedorMatriz.innerHTML = html;
+
+        cambiosManualesUsuarios = {}; 
+        generarJornadaCompleta();
+        renderizarTablaContadores();
+    }
+
+    function cambiarCombinacion() {
+        saltoInicialJornada++;
+        cambiosManualesUsuarios = {}; 
+        generarJornadaCompleta();
+    }
+
+    function contarCargasQueSabe(op, cargas) {
+        let aptas = 0;
+        cargas.forEach(c => {
+            if (competencies[`${op}_X_${c}`] !== false) aptas++;
+        });
+        return aptas;
+    }
+
+    function generarJornadaCompleta() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorJornada");
+        
+        if (ops.length === 0 || cargas.length === 0) {
+            contenedor.innerHTML = "";
+            return;
+        }
+
+        matrizJornadaCalculada = calcularLógicaMatriz(ops, cargas);
+        renderizarJornadaHTML(ops, cargas, matrizJornadaCalculada, contenedor);
+        actualizarResumenIndividual();
+    }
+
+    function calcularLógicaMatriz(ops, cargas) {
+        let matrizResultado = {};
+        
+        const esAptoGlobal = (op, c) => competencies[`${op}_X_${c}`] !== false;
+        const hizoAyerGlobal = (op, c) => { let p = obtenerPuestoAyer(op); return p ? p.has(c) : false; };
+        const sabeVarias = (op) => contarCargasQueSabe(op, cargas) > 1;
+        
+        const yaLaHizoHoy = (candidato, cargaToCheck, turnoActual) => {
+            for (let prevT = 1; prevT < turnoActual; prevT++) {
+                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) return true;
+            }
+            return false;
+        };
+
+        const contarVecesHoy = (candidato, cargaToCheck, turnoHasta) => {
+            let v = 0;
+            for (let prevT = 1; prevT <= turnoHasta; prevT++) {
+                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) v++;
+            }
+            return v;
+        };
+
+        for (let t = 1; t <= 4; t++) {
+            matrizResultado[t] = {};
+            let manualOps = new Set();
+            let manualCargas = new Set();
+
+            cargas.forEach(carga => {
+                let claveManual = `${t}_X_${carga}`;
+                if (cambiosManualesUsuarios[claveManual]) {
+                    let opManual = cambiosManualesUsuarios[claveManual];
+                    if (opManual !== "No Apto") manualOps.add(opManual);
+                    manualCargas.add(carga);
+                    matrizResultado[t][carga] = { 
+                        nombre: opManual, 
+                        alerta: (opManual !== "No Apto" && !esAptoGlobal(opManual, carga)),
+                        error: (opManual === "No Apto")
+                    };
+                }
+            });
+
+            let cargasLibres = cargas.filter(c => !manualCargas.has(c));
+            let opsLibres = ops.filter(o => !manualOps.has(o));
+            let preferencias = {};
+
+            cargasLibres.forEach((carga) => {
+                preferencias[carga] = [...opsLibres].sort((a, b) => {
+                    let yaHizoA = yaLaHizoHoy(a, carga, t) ? 1 : 0;
+                    let yaHizoB = yaLaHizoHoy(b, carga, t) ? 1 : 0;
+                    if (yaHizoA !== yaHizoB) return yaHizoA - yaHizoB;
+
+                    let totalA = 0, totalB = 0;
+                    for (let pt = 1; pt < t; pt++) {
+                        cargas.forEach(c => {
+                            if (matrizResultado[pt] && matrizResultado[pt][c] && matrizResultado[pt][c].nombre === a) totalA++;
+                            if (matrizResultado[pt] && matrizResultado[pt][c] && matrizResultado[pt][c].nombre === b) totalB++;
+                        });
+                    }
+                    if (totalA !== totalB) return totalA - totalB;
+
+                    let repiteAyerA = (hizoAyerGlobal(a, carga) && sabeVarias(a)) ? 1 : 0;
+                    let repiteAyerB = (hizoAyerGlobal(b, carga) && sabeVarias(b)) ? 1 : 0;
+                    if (repiteAyerA !== repiteAyerB) return repiteAyerA - repiteAyerB;
+
+                    let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
+                    let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
+                    if (vecesA !== vecesB) return vecesA - vecesB;
+
+                    let idxCarga = cargas.indexOf(carga);
+                    let idealIndex = (idxCarga + saltoInicialJornada + (t - 1) * 3) % ops.length;
+                    let distA = (ops.indexOf(a) - idealIndex + ops.length) % ops.length;
+                    let distB = (ops.indexOf(b) - idealIndex + ops.length) % ops.length;
+                    return distA - distB;
+                });
+            });
+
+            let matchCarga = {}; 
+            let matchOp = {};
+
+            const buscarAumentos = (condicion) => {
+                let huboMejora = true;
+                while (huboMejora) {
+                    huboMejora = false;
+                    for (let carga of cargasLibres) {
+                        if (matchCarga[carga]) continue; 
+                        let visitados = new Set();
+                        
+                        const dfs = (c) => {
+                            for (let op of preferencias[c]) {
+                                if (condicion(op, c) && !visitados.has(op)) {
+                                    visitados.add(op);
+                                    if (!matchOp[op] || dfs(matchOp[op])) {
+                                        matchOp[op] = c;
+                                        matchCarga[c] = op;
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        };
+                        if (dfs(carga)) huboMejora = true;
+                    }
+                }
+            };
+
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
+            buscarAumentos((op, c) => esAptoGlobal(op, c));
+
+            cargasLibres.forEach(carga => {
+                let opAsignado = matchCarga[carga];
+                if (opAsignado) {
+                    matrizResultado[t][carga] = { nombre: opAsignado, alerta: !esAptoGlobal(opAsignado, carga), error: false };
+                } else {
+                    matrizResultado[t][carga] = { nombre: "No Apto", alerta: false, error: true };
+                }
+            });
+
+            if (t > 1) {
+                for (let c1 of cargasLibres) {
+                    let op1 = matrizResultado[t][c1].nombre;
+                    if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
+
+                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
+                        for (let c2 of cargasLibres) {
+                            if (c1 === c2) continue;
+                            let op2 = matrizResultado[t][c2].nombre;
+                            if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
+
+                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && (!yaLaHizoHoy(op1, c2, t) || !yaLaHizoHoy(op2, c1, t))) {
+                                matrizResultado[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
+                                matrizResultado[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return matrizResultado;
+    }
+
+    function renderizarJornadaHTML(ops, cargas, datosCalculados, contenedor) {
+        contenedor.innerHTML = "";
+        const horasActivas = (tipoHorarioSeleccionado === "manana") ? horasMañana : horasTarde;
+
+        for (let t = 1; t <= 4; t++) {
+            const card = document.createElement("div");
+            card.className = "turno-card";
+            let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
+
+            let opsAsignadosEnEsteTurno = [];
+
+            cargas.forEach(carga => {
+                let res = datosCalculados[t][carga] || { nombre: "No Apto", alerta: false, error: true };
+                if (res.nombre !== "No Apto") opsAsignadosEnEsteTurno.push(res.nombre);
+
+                let hizoEstaCargaAyer = false;
+                if (res.nombre !== "No Apto") {
+                    let puestosAyer = obtenerPuestoAyer(res.nombre);
+                    if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
+                }
+
+                let repeticionesHoy = 0;
+                if (res.nombre !== "No Apto") {
+                    for (let turnoEval = 1; turnoEval <= 4; turnoEval++) {
+                        if (datosCalculados[turnoEval] && datosCalculados[turnoEval][carga] && datosCalculados[turnoEval][carga].nombre === res.nombre) {
+                            repeticionesHoy++;
+                        }
+                    }
+                }
+
+                let repeticionProhibida = res.nombre !== "No Apto" && repeticionesHoy > 1;
+                let claseExtra = (hizoEstaCargaAyer || repeticionProhibida) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
+
+                html += `<tr>
+                    <td class="carga-title">${carga}</td>
+                    <td>
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualYRecalcular(${t}, '${carga}', this.value)">
+                            ${ops.map(o => {
+                                let puestosAyerOpt = obtenerPuestoAyer(o);
+                                let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
+                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
+                            }).join('')}
+                            <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
+                        </select>
+                    </td>
+                </tr>`;
+            });
+
+            html += `</table>`;
+
+            let libres = ops.filter(o => !opsAsignadosEnEsteTurno.includes(o));
+            if (libres.length > 0) {
+                html += `<div class="turno-libres"><strong>Libres en este turno:</strong> ${libres.join(', ')}</div>`;
+            }
+
+            if (t < 4) {
+                html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
+            } else {
+                html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
+            }
+
+            card.innerHTML = html;
+            contenedor.appendChild(card);
+        }
+    }
+
+    function guardarEdicionManualYRecalcular(turnoEditado, cargaEditada, nuevoOperario) {
+        cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
+        const cargas = leerLista("listaCargas");
+        for (let t = turnoEditado + 1; t <= 4; t++) {
+            cargas.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
+        }
+        generarJornadaCompleta();
+    }
+
+    function obtenerPuestoAyer(operario) {
+        if (!historialJornadas || historialJornadas.length === 0) return null;
+        const jornadaAyer = historialJornadas[0]; 
+        if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
+
+        const puestosAyer = new Set();
+        for (let t = 1; t <= 4; t++) {
+            let puesto = jornadaAyer.resumenOps[operario][t];
+            if (puesto && puesto !== "-") puestosAyer.add(puesto);
+        }
+        return puestosAyer;
+    }
+
+    function guardarTurnoYRecalcularSiguientes(turnoEditado) {
+        const cargasEnTurno = leerLista("listaCargas");
+        cargasEnTurno.forEach(c => {
+            let selector = document.querySelector(`select[data-turno="${turnoEditado}"][data-carga="${c}"]`);
+            if (selector) cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = selector.value;
+        });
+
+        for (let t = turnoEditado + 1; t <= 4; t++) {
+            cargasEnTurno.forEach(c => delete cambiosManualesUsuarios[`${t}_X_${c}`]);
+        }
+        generarJornadaCompleta();
+    }
+
+    function guardarTurnoFinal(turnoFinal) {
+        const cargasEnTurno = leerLista("listaCargas");
+        cargasEnTurno.forEach(c => {
+            let selector = document.querySelector(`select[data-turno="${turnoFinal}"][data-carga="${c}"]`);
+            if (selector) cambiosManualesUsuarios[`${turnoFinal}_X_${c}`] = selector.value;
+        });
+        generarJornadaCompleta();
+    }
+
+    function renderizarTablaContadores() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorContador");
+        if(ops.length === 0 || cargas.length === 0) return;
+
+        let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
+        cargas.forEach(c => html += `<th>${c}</th>`);
+        html += `</tr></thead><tbody>`;
+
+        ops.forEach(op => {
+            html += `<tr><td>${op}</td>`;
+            cargas.forEach(c => {
+                let clv = `${op}_X_${c}`;
+                let total = conteoSemanal[clv] || 0;
+                html += `<td class="count-number">${total}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        contenedor.innerHTML = html;
+    }
+
+    function guardarEnHistorial() {
+        const selectores = document.querySelectorAll(".select-op-editable");
+        if(selectores.length === 0) return;
+
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+
+        selectores.forEach(select => {
+            let opAsignado = select.value;
+            let carga = select.dataset.carga;
+            if(opAsignado !== "No Apto") {
+                let clv = `${opAsignado}_X_${carga}`;
+                if(!conteoSemanal[clv]) conteoSemanal[clv] = 0;
+                conteoSemanal[clv]++;
+            }
+        });
+        localStorage.setItem('conteo_semanal_v14', JSON.stringify(conteoSemanal));
+        renderizarTablaContadores();
+
+        let copiaTurnos = {};
+        let resumenOperariosHoy = {};
+        ops.forEach(op => resumenOperariosHoy[op] = { 1: "-", 2: "-", 3: "-", 4: "-" });
+
+        for(let t=1; t<=4; t++) {
+            copiaTurnos[t] = {};
+            cargas.forEach(carga => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                if (selector) {
+                    let val = selector.value;
+                    copiaTurnos[t][carga] = val;
+                    if (val !== "No Apto" && resumenOperariosHoy[val]) {
+                        resumenOperariosHoy[val][t] = carga;
+                    }
+                }
+            });
+        }
+
+        let fechaActual = new Date();
+        let nuevaJornada = {
+            id: Date.now(),
+            fecha: fechaActual.toLocaleDateString("es-ES"),
+            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
+            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
+            datos: copiaTurnos,
+            resumenOps: resumenOperariosHoy
+        };
+
+        historialJornadas.unshift(nuevaJornada);
+        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+
+        mostrarToast("💾 ¡Guardado con éxito!");
+        generarJornadaCompleta();
+    }
+
+    function renderizarHistorial() {
+        const contenedor = document.getElementById("contenedorHistorial");
+        contenedor.innerHTML = "";
+
+        if(historialJornadas.length === 0) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">No hay jornadas guardadas todavía.</div>`;
+            return;
+        }
+
+        historialJornadas.forEach(jornada => {
+            const item = document.createElement("div");
+            item.className = "history-item";
+
+            let htmlTitle = `<div class="history-item-title">
+                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
+                    <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 PDF</button>
+                    <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
+                </div>
+            </div>`;
+
+            let htmlContent = `<div style="font-weight:700; color:var(--text-muted); font-size:0.75rem; margin-bottom:6px; text-transform:uppercase;">⏱️ Distribución por Turnos:</div>`;
+            htmlContent += `<div class="history-item-content">`;
+            for(let t=1; t<=4; t++) {
+                htmlContent += `<div class="history-turno-block">
+                    <div class="history-turno-title">TURNO ${t}</div>`;
+                if(jornada.datos && jornada.datos[t]) {
+                    for(let carga in jornada.datos[t]) {
+                        htmlContent += `<div class="history-linea">${carga}: <strong>${jornada.datos[t][carga]}</strong></div>`;
+                    }
+                }
+                htmlContent += `</div>`;
+            }
+            htmlContent += `</div>`;
+
+            if (jornada.resumenOps) {
+                htmlContent += `<div style="font-weight:700; color:var(--primary-light); font-size:0.75rem; margin:12px 0 6px 0; text-transform:uppercase; border-top:1px dashed #1f2937; padding-top:8px;">📋 Resumen Diario por Operario:</div>`;
+                htmlContent += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">`;
+
+                for (let op in jornada.resumenOps) {
+                    htmlContent += `<div style="background:#000; padding:6px; border-radius:6px; border:1px solid #1f2937;">
+                        <div style="font-weight:800; color:var(--accent); font-size:0.75rem; margin-bottom:4px; text-transform:uppercase;">👤 ${op}</div>`;
+
+                    for (let t = 1; t <= 4; t++) {
+                        let puesto = jornada.resumenOps[op][t] || "-";
+                        let colorPuesto = puesto === "-" ? "color:var(--text-muted);" : "color:#fff; font-weight:700;";
+                        htmlContent += `<div style="font-size:0.72rem; display:flex; justify-content:space-between; margin-bottom:1px;">
+                            <span style="color:var(--primary-light);">T${t}:</span>
+                            <span style="${colorPuesto}">${puesto}</span>
+                        </div>`;
+                    }
+                    htmlContent += `</div>`;
+                }
+                htmlContent += `</div>`;
+            }
+
+            item.innerHTML = htmlTitle + htmlContent;
+            contenedor.appendChild(item);
+        });
+    }
+
+    function borrarJornadaIndividual(id) {
+        if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
+            historialJornadas = historialJornadas.filter(j => j.id !== id);
+            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+            renderizarHistorial();
+        }
+    }
+
+    function borrarTodoElHistorial() {
+        if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas? (Los contadores semanales no se borrarán)")) {
+            historialJornadas = [];
+            localStorage.removeItem('registro_jornadas_v14');
+            renderizarHistorial();
+        }
+    }
+
+    function reiniciarContadoresSemanales() {
+        if(confirm("¿Reiniciar la semana? Se pondrán a cero todas las estadísticas numéricas.")) {
+            conteoSemanal = {};
+            localStorage.removeItem('conteo_semanal_v14');
+            renderizarTablaContadores();
+        }
+    }
+
+    function actualizarResumenIndividual() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        const contenedor = document.getElementById("contenedorResumenOperarios");
+
+        if (!contenedor) return;
+        contenedor.innerHTML = "";
+        if (ops.length === 0 || cargas.length === 0) return;
+
+        let asignacionesPorOp = {};
+        ops.forEach(op => asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" });
+
+        for (let t = 1; t <= 4; t++) {
+            cargas.forEach(carga => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                if (selector) {
+                    let opAsignado = selector.value;
+                    if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
+                        asignacionesPorOp[opAsignado][t] = carga;
+                    }
+                }
+            });
+        }
+
+        ops.forEach(op => {
+            const tarjeta = document.createElement("div");
+            tarjeta.className = "tarjeta-resumen";
+
+            let htmlCard = `<div class="tarjeta-resumen-header">👤 ${op}</div>`;
+
+            for (let t = 1; t <= 4; t++) {
+                let puesto = asignacionesPorOp[op][t];
+                let clasePuesto = puesto === "-" ? "tarjeta-resumen-vacio" : "tarjeta-resumen-puesto";
+                htmlCard += `<div class="tarjeta-resumen-fila">
+                        <span class="tarjeta-resumen-turno">T${t}:</span>
+                        <span class="${clasePuesto}">${puesto}</span>
+                    </div>`;
+            }
+            tarjeta.innerHTML = htmlCard;
+            contenedor.appendChild(tarjeta);
+        });
+    }
+
+    function rotarFilaHaciaArriba(inputElement) {
+        if (!inputElement.hasAttribute('readonly')) return;
+        const filaActual = inputElement.parentElement;
+        const contenedor = filaActual.parentElement;
+        const filaAnterior = filaActual.previousElementSibling;
+        if (filaAnterior) contenedor.insertBefore(filaActual, filaAnterior);
+        else contenedor.appendChild(filaActual);
+        procesarCambios();
+    }
+
+    function exportarJornadaUnicaExcel(id) {
+        const jornada = historialJornadas.find(j => j.id === id);
+        if(!jornada) return;
+
+        let csvContent = "\uFEFFFecha;Hora;Horario;Operario;Turno 1;Turno 2;Turno 3;Turno 4\n";
+        if (jornada.resumenOps) {
+            for (let op in jornada.resumenOps) {
+                let t1 = jornada.resumenOps[op][1] || "-";
+                let t2 = jornada.resumenOps[op][2] || "-";
+                let t3 = jornada.resumenOps[op][3] || "-";
+                let t4 = jornada.resumenOps[op][4] || "-";
+                csvContent += `${jornada.fecha};${jornada.hora};${jornada.tipoHorario};${op};${t1};${t2};${t3};${t4}\n`;
+            }
+        }
+
+        let nombreArchivo = `Jornada_${jornada.fecha.replace(/\//g, '-')}.csv`;
+        if (navigator.share) {
+            try {
+                const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: `Excel Jornada`, text: 'Reporte de rotaciones.' });
+                } else {
+                    navigator.share({ title: nombreArchivo, text: csvContent });
+                }
+            } catch (err) {
+                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
+            }
+        } else {
+            fallbackPortapapeles(csvContent);
+        }
+    }
+
+    function fallbackPortapapeles(texto) {
+        navigator.clipboard.writeText(texto).then(() => alert("📋 Datos copiados al portapapeles para pegar en Excel."))
+        .catch(() => alert("No se ha podido exportar en este dispositivo."));
+    }
+
+    function generarPDFNativo(tituloFecha, tipoHorario, tablaHTML, resumenHTML) {
+        let htmlImprimir = `
+            <div class="print-titulo">📅 Control de Rotaciones: ${tituloFecha}</div>
+            <div style="font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; color: #475569;">Horario de Trabajo: ${tipoHorario}</div>
+            
+            <div class="print-seccion">⏱️ Distribución de Cargas por Turnos</div>
+            <table class="print-tabla">
+                <thead><tr><th>Puesto / Carga</th><th>Turno 1</th><th>Turno 2</th><th>Turno 3</th><th>Turno 4</th></tr></thead>
+                <tbody>${tablaHTML}</tbody>
+            </table>
+            
+            <div class="print-seccion">📋 Resumen de Tareas por Operario</div>
+            <div class="print-grid-ops">${resumenHTML}</div>
+        `;
+
+        let printDiv = document.getElementById('print-section');
+        printDiv.innerHTML = htmlImprimir;
+        
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
+
+    function imprimirJornadaActual() {
+        const ops = leerLista("listaOps");
+        const cargas = leerLista("listaCargas");
+        
+        let datosHoy = {1:{}, 2:{}, 3:{}, 4:{}};
+        let resumenHoy = {};
+        ops.forEach(op => resumenHoy[op] = {1:"-", 2:"-", 3:"-", 4:"-"});
+
+        for(let t=1; t<=4; t++) {
+            cargas.forEach(c => {
+                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${c}"]`);
+                let val = selector ? selector.value : "-";
+                datosHoy[t][c] = val;
+                if(val !== "No Apto" && val !== "-" && resumenHoy[val]) {
+                    resumenHoy[val][t] = c;
+                }
+            });
+        }
+
+        let tablaHTML = "";
+        cargas.forEach(c => {
+            tablaHTML += `<tr>
+                <td><strong>${c}</strong></td>
+                <td>${datosHoy[1][c] || "-"}</td>
+                <td>${datosHoy[2][c] || "-"}</td>
+                <td>${datosHoy[3][c] || "-"}</td>
+                <td>${datosHoy[4][c] || "-"}</td>
+            </tr>`;
+        });
+
+        let resumenHTML = "";
+        ops.forEach(op => {
+            resumenHTML += `<div class="print-card-op">
+                <div class="print-card-op-title">👤 ${op}</div>
+                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${resumenHoy[op][1]}</div>
+                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${resumenHoy[op][2]}</div>
+                <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${resumenHoy[op][3]}</div>
+                <div style="font-size:0.8rem;"><strong>T4:</strong> ${resumenHoy[op][4]}</div>
+            </div>`;
+        });
+
+        let fechaStr = new Date().toLocaleDateString("es-ES") + " (Planilla Actual)";
+        let horarioStr = tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde";
+        generarPDFNativo(fechaStr, horarioStr, tablaHTML, resumenHTML);
+    }
+
+    function imprimirJornadaPDF(id) {
+        const jornada = historialJornadas.find(j => j.id === id);
+        if(!jornada) return;
+
+        let cargasAsignadas = new Set();
+        for (let t = 1; t <= 4; t++) {
+            if (jornada.datos && jornada.datos[t]) {
+                Object.keys(jornada.datos[t]).forEach(c => cargasAsignadas.add(c));
+            }
+        }
+
+        let tablaHTML = "";
+        cargasAsignadas.forEach(carga => {
+            let t1 = (jornada.datos && jornada.datos[1]) ? (jornada.datos[1][carga] || "-") : "-";
+            let t2 = (jornada.datos && jornada.datos[2]) ? (jornada.datos[2][carga] || "-") : "-";
+            let t3 = (jornada.datos && jornada.datos[3]) ? (jornada.datos[3][carga] || "-") : "-";
+            let t4 = (jornada.datos && jornada.datos[4]) ? (jornada.datos[4][carga] || "-") : "-";
+            tablaHTML += `<tr>
+                <td><strong>${carga}</strong></td>
+                <td>${t1}</td>
+                <td>${t2}</td>
+                <td>${t3}</td>
+                <td>${t4}</td>
+            </tr>`;
+        });
+
+        let resumenHTML = "";
+        if (jornada.resumenOps) {
+            for (let op in jornada.resumenOps) {
+                resumenHTML += `<div class="print-card-op">
+                    <div class="print-card-op-title">👤 ${op}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T1:</strong> ${jornada.resumenOps[op][1] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T2:</strong> ${jornada.resumenOps[op][2] || "-"}</div>
+                    <div style="font-size:0.8rem; margin-bottom:2px;"><strong>T3:</strong> ${jornada.resumenOps[op][3] || "-"}</div>
+                    <div style="font-size:0.8rem;"><strong>T4:</strong> ${jornada.resumenOps[op][4] || "-"}</div>
+                </div>`;
+            }
+        }
+
+        generarPDFNativo(`${jornada.fecha} (${jornada.hora})`, jornada.tipoHorario, tablaHTML, resumenHTML);
+    }
 </script>
 </body>
 </html>
