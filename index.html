@@ -1,583 +1,636 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control de Rotaciones - Edición Manual Avanzada</title>
-    <style>
-        :root { 
-            --bg-main: #000000;       
-            --bg-card: #111827;       
-            --primary: #3b82f6;       
-            --primary-light: #22d3ee; 
-            --accent: #f59e0b;        
-            --text-main: #ffffff;     
-            --text-muted: #94a3b8;    
-            --success: #10b981; 
-            --danger: #f43f5e; 
-            --border-color: #1f2937;
-        }
-        
-        * { box-sizing: border-box; }
-        
-        html { font-size: 14px; }
-        
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background-color: var(--bg-main); 
-            color: var(--text-main); 
-            padding: 12px; 
-            margin: 0; 
-            padding-bottom: 105px; 
-            font-size: 0.85rem; 
-        }
-        
-        .container { 
-            max-width: 1200px; 
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 100px);
-        }
-        
-        .main-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 0 12px 0;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control de Rotaciones - Edición Manual Avanzada</title>
 
-        .main-header h1 {
-            margin: 0;
-            font-size: 1.05rem; 
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-            line-height: 1.3;
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 5px;
-            text-align: center;
-            width: 100%;
-            max-width: 85%;
-        }
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2065/2065224.png">
 
-        .schedule-selector {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .btn-schedule {
-            background: #111827;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            flex: 1;
-            max-width: 140px;
-        }
-        .btn-schedule.active-day {
-            background: #1e3a8a;
-            color: #60a5fa;
-            border-color: #3b82f6;
-        }
-        .btn-schedule.active-afternoon {
-            background: #2e1065;
-            color: #c084fc;
-            border-color: #a855f7;
-        }
+    <style>
+        :root { 
+            --bg-main: #000000;       
+            --bg-card: #111827;       
+            --primary: #3b82f6;       
+            --primary-light: #22d3ee; 
+            --accent: #f59e0b;        
+            --text-main: #ffffff;     
+            --text-muted: #94a3b8;    
+            --success: #10b981; 
+            --danger: #f43f5e; 
+            --border-color: #1f2937;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        html { font-size: 14px; }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            padding: 12px; 
+            margin: 0; 
+            padding-bottom: 105px; 
+            font-size: 0.85rem; 
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 100px);
+        }
+        
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0 12px 0;
+        }
 
-        .tabs-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; right: 0; 
-            background: #0a0a0a; 
-            display: flex; 
-            justify-content: space-around;
-            padding: 8px 4px; 
-            border-top: 1px solid #222;
-            z-index: 9999;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
-        }
-        
-        .tab-btn { 
-            flex: 1; 
-            border: none; 
-            background: transparent; 
-            color: var(--text-muted); 
-            cursor: pointer; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 4px; 
-            font-size: 0.62rem;
-            font-weight: 700;
-            transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .tab-btn .icon { font-size: 1.45rem !important; } 
-        .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
+        .main-header h1 {
+            margin: 0;
+            font-size: 1.05rem; 
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 5px;
+            text-align: center;
+            width: 100%;
+            max-width: 85%;
+        }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
+        .schedule-selector {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn-schedule {
+            background: #111827;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 140px;
+        }
+        .btn-schedule.active-day {
+            background: #1e3a8a;
+            color: #60a5fa;
+            border-color: #3b82f6;
+        }
+        .btn-schedule.active-afternoon {
+            background: #2e1065;
+            color: #c084fc;
+            border-color: #a855f7;
+        }
 
-        .config-grid { 
-            display: flex; 
-            gap: 12px; 
-            overflow-x: auto; 
-            overflow-y: hidden; 
-            scroll-behavior: smooth; 
-            scroll-snap-type: x mandatory;
-            padding: 5px 5px 15px 5px;
-            -webkit-overflow-scrolling: touch;
-            flex-grow: 1;
-            touch-action: pan-x; 
-        }
-        .config-grid::-webkit-scrollbar { display: none; }
+        .tabs-nav { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; right: 0; 
+            background: #0a0a0a; 
+            display: flex; 
+            justify-content: space-around;
+            padding: 8px 4px; 
+            border-top: 1px solid #222;
+            z-index: 9999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+        }
+        
+        .tab-btn { 
+            flex: 1; 
+            border: none; 
+            background: transparent; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 4px; 
+            font-size: 0.62rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .tab-btn .icon { font-size: 1.45rem !important; } 
+        .tab-btn.active { color: var(--primary-light); transform: scale(1.05); }
 
-        .section-box { 
-            background: var(--bg-card); border-radius: 12px; padding: 14px; border: 1px solid var(--border-color);
-            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; flex-direction: column; flex-grow: 1; }
 
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
-        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        .item-list { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            flex-grow: 1;
-            overflow-y: auto; 
-            max-height: calc(100vh - 270px); 
-            padding-right: 4px; 
-        }
-        .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
-        
-        #listaOps .item-input, #listaCargas .item-input { 
-            flex: 1; 
-            padding: 10px 12px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 8px; 
-            font-size: 0.9rem; 
-            background: #000; 
-            font-weight: 800; 
-            cursor: pointer;
-            -webkit-user-select: none; 
-            user-select: none;
-            -webkit-tap-highlight-color: transparent; 
-        }
-        #listaOps .item-input { color: var(--primary-light); }
-        #listaCargas .item-input { color: #fff; }
+        .config-grid { 
+            display: flex; 
+            gap: 12px; 
+            overflow-x: auto; 
+            overflow-y: hidden; 
+            scroll-behavior: smooth; 
+            scroll-snap-type: x mandatory;
+            padding: 5px 5px 15px 5px;
+            -webkit-overflow-scrolling: touch;
+            flex-grow: 1;
+            touch-action: pan-x; 
+        }
+        .config-grid::-webkit-scrollbar { display: none; }
 
-        .btn-edit-text { 
-            background: #1f2937; 
-            color: #a5f3fc; 
-            border: 1px solid #0891b2; 
-            padding: 0; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            width: 36px; 
-            height: 36px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 0.9rem; 
-            flex-shrink: 0; 
-        }
+        .section-box { 
+            background: var(--bg-card); border-radius: 12px; padding: 14px; border: 1px solid var(--border-color);
+            flex: 0 0 calc(100% - 10px); scroll-snap-align: center;   
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
+        }
 
-        .item-input:focus { border-color: var(--primary-light); outline: none; }
-        
-        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .section-title { font-weight: 800; color: var(--primary-light); font-size: 0.95rem; }
+        .btn-add { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .item-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            flex-grow: 1;
+            overflow-y: auto; 
+            max-height: calc(100vh - 270px); 
+            padding-right: 4px; 
+        }
+        .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
+        
+        #listaOps .item-input, #listaCargas .item-input { 
+            flex: 1; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            background: #000; 
+            font-weight: 800; 
+            cursor: pointer;
+            -webkit-user-select: none; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        #listaOps .item-input { color: var(--primary-light); }
+        #listaCargas .item-input { color: #fff; }
 
-        .matrix-container { 
-            overflow-x: auto; 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px;
-            -webkit-overflow-scrolling: touch;
-            width: 100%;
-        }
+        .btn-edit-text { 
+            background: #1f2937; 
+            color: #a5f3fc; 
+            border: 1px solid #0891b2; 
+            padding: 0; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            width: 36px; 
+            height: 36px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.9rem; 
+            flex-shrink: 0; 
+        }
 
-        .matrix-table { 
-            width: max-content; 
-            min-width: 100%;
-            border-collapse: collapse; 
-            table-layout: fixed; 
-        }
+        .item-input:focus { border-color: var(--primary-light); outline: none; }
+        
+        .btn-del { background: #2a1f08; color: var(--accent); border: 1px solid #78350f; padding: 0; border-radius: 50%; cursor: pointer; font-weight: bold; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
 
-        .matrix-table tr { height: 46px !important; max-height: 46px !important; }
-        
-        .matrix-table th { 
-            background: #111827; 
-            color: var(--text-muted); 
-            font-size: 0.68rem; 
-            padding: 4px 6px; 
-            height: 46px;
-            border: 1px solid var(--border-color); 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            text-align: center;
-            white-space: normal !important; 
-            word-break: break-word;
-            line-height: 1.1;
-            display: table-cell;
-            vertical-align: middle;
-            width: 150px !important; 
-            min-width: 150px !important;
-            max-width: 150px !important;
-            box-sizing: border-box;
-        }
+        .matrix-container { 
+            overflow-x: auto; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
 
-        .matrix-table th:first-child,
-        .matrix-table td:first-child {
-            width: 120px !important;
-            min-width: 120px !important;
-            max-width: 120px !important;
-            height: 46px !important;
-            max-height: 46px !important;
-            text-align: left; 
-            font-weight: 700; 
-            background: #050505 !important; 
-            color: var(--primary-light); 
-            position: sticky; 
-            left: 0; 
-            z-index: 10; 
-            border-right: 2px solid var(--border-color);
-            padding-left: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: table-cell; 
-            vertical-align: middle;
-            font-size: 0.8rem;
-        }
+        .matrix-table { 
+            width: max-content; 
+            min-width: 100%;
+            border-collapse: collapse; 
+            table-layout: fixed; 
+        }
 
-        .matrix-table td { 
-            padding: 0 8px; 
-            text-align: center; 
-            border: 1px solid var(--border-color); 
-            font-size: 0.85rem; 
-            color: #ffffff;
-            white-space: nowrap;
-            box-sizing: border-box;
-            height: 46px !important;
-            max-height: 46px !important;
-            width: 150px;
-            min-width: 150px;
-            max-width: 150px;
-            display: table-cell;
-            vertical-align: middle;
-        }
-        
-        .count-number { 
-            font-weight: 900; 
-            color: var(--accent) !important; 
-            font-size: 1rem !important; 
-            text-align: center;
-            display: inline-block;
-            width: 100%;
-        }
+        .matrix-table tr { height: 46px !important; max-height: 46px !important; }
+        
+        .matrix-table th { 
+            background: #111827; 
+            color: var(--text-muted); 
+            font-size: 0.68rem; 
+            padding: 4px 6px; 
+            height: 46px;
+            border: 1px solid var(--border-color); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            text-align: center;
+            white-space: normal !important; 
+            word-break: break-word;
+            line-height: 1.1;
+            display: table-cell;
+            vertical-align: middle;
+            width: 150px !important; 
+            min-width: 150px !important;
+            max-width: 150px !important;
+            box-sizing: border-box;
+        }
 
-        .matrix-table input[type="checkbox"] { 
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-color: #1f2937; 
-            margin: 0 auto !important; 
-            display: block !important;
-            width: 22px !important;  
-            height: 22px !important; 
-            min-width: 22px !important; 
-            min-height: 22px !important;
-            max-width: 22px !important;
-            max-height: 22px !important;
-            border: 2px solid var(--border-color) !important; 
-            border-radius: 6px !important; 
-            cursor: pointer;
-            position: relative;
-            box-sizing: border-box;
-            transition: background-color 0.2s ease;
-        }
+        .matrix-table th:first-child,
+        .matrix-table td:first-child {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            height: 46px !important;
+            max-height: 46px !important;
+            text-align: left; 
+            font-weight: 700; 
+            background: #050505 !important; 
+            color: var(--primary-light); 
+            position: sticky; 
+            left: 0; 
+            z-index: 10; 
+            border-right: 2px solid var(--border-color);
+            padding-left: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: table-cell; 
+            vertical-align: middle;
+            font-size: 0.8rem;
+        }
 
-        .matrix-table input[type="checkbox"]:checked {
-            background-color: var(--primary-light) !important; 
-            border-color: var(--primary-light) !important;
-        }
+        .matrix-table td { 
+            padding: 0 8px; 
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            font-size: 0.85rem; 
+            color: #ffffff;
+            white-space: nowrap;
+            box-sizing: border-box;
+            height: 46px !important;
+            max-height: 46px !important;
+            width: 150px;
+            min-width: 150px;
+            max-width: 150px;
+            display: table-cell;
+            vertical-align: middle;
+        }
+        
+        .count-number { 
+            font-weight: 900; 
+            color: var(--accent) !important; 
+            font-size: 1rem !important; 
+            text-align: center;
+            display: inline-block;
+            width: 100%;
+        }
 
-        .matrix-table input[type="checkbox"]:checked::after {
-            content: '';
-            position: absolute;
-            left: 6px;
-            top: 1px;
-            width: 4px;
-            height: 9px;
-            border: solid #000000; 
-            border-width: 0 3px 3px 0;
-            transform: rotate(45deg);
-        }
+        .matrix-table input[type="checkbox"] { 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #1f2937; 
+            margin: 0 auto !important; 
+            display: block !important;
+            width: 22px !important;  
+            height: 22px !important; 
+            min-width: 22px !important; 
+            min-height: 22px !important;
+            max-width: 22px !important;
+            max-height: 22px !important;
+            border: 2px solid var(--border-color) !important; 
+            border-radius: 6px !important; 
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease;
+        }
 
-        .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
-        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
-        .btn-secondary { background: #334155; color: white; }
-        .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
+        .matrix-table input[type="checkbox"]:checked {
+            background-color: var(--primary-light) !important; 
+            border-color: var(--primary-light) !important;
+        }
 
-        .jornada-grid { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            overflow-y: auto;       
-            overflow-x: hidden;     
-            padding: 5px 5px 80px 5px; 
-            max-height: calc(100vh - 200px); 
-            -webkit-overflow-scrolling: touch;
-        }
+        .matrix-table input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 1px;
+            width: 4px;
+            height: 9px;
+            border: solid #000000; 
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
 
-        .turno-card { 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            overflow: hidden; 
-            flex: 0 0 auto; 
-            width: 100%;    
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-        }
+        .action-bar { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .btn-main { border: none; padding: 10px 16px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; transition: all 0.2s; justify-content: center; }
+        .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
+        .btn-secondary { background: #334155; color: white; border: 1px solid #475569; }
+        .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
 
-        @media (min-width: 900px) {
-            .jornada-grid { 
-                display: grid; 
-                grid-template-columns: repeat(4, 1fr); 
-                overflow-y: visible;
-                max-height: none;
-            }
-        }
+        .jornada-grid { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto;       
+            overflow-x: hidden;     
+            padding: 5px 5px 80px 5px; 
+            max-height: calc(100vh - 200px); 
+            -webkit-overflow-scrolling: touch;
+        }
 
-        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
-        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
-        
-        .results-table { width: 100%; border-collapse: collapse; }
-        .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-        
-        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
-        
-        .select-op-editable {
-            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
-            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
-            -webkit-appearance: none; appearance: none;
-        }
-        .select-op-editable option { background: #111827; color: #fff; }
-        .select-op-editable.op-alert { color: var(--accent); }
-        .select-op-editable.op-error { color: var(--danger); }
+        .turno-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            flex: 0 0 auto; 
+            width: 100%;    
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
 
-        .btn-save-turno {
-            background: #111827;
-            color: #60a5fa;
-            border: none;
-            border-top: 1px solid var(--border-color);
-            padding: 12px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .btn-save-turno:hover { background: #1e3a8a; color: #ffffff; }
+        @media (min-width: 900px) {
+            .jornada-grid { 
+                display: grid; 
+                grid-template-columns: repeat(4, 1fr); 
+                overflow-y: visible;
+                max-height: none;
+            }
+        }
 
-        .history-header { 
-            display: flex; 
-            flex-direction: row; 
-            align-items: center; 
-            justify-content: space-between; 
-            margin-bottom: 15px; 
-            gap: 10px; 
-            width: 100%;
-        }
-        .history-header .section-title { font-size: 0.88rem; white-space: nowrap; font-weight: 800; }
-        .btn-counter-reset {
-            background: #2a1f08; 
-            color: var(--accent); 
-            border: 1px solid #78350f; 
-            padding: 6px 10px; 
-            font-size: 0.78rem; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold;
-            white-space: nowrap;
-            flex-shrink: 0; 
-        }
+        .turno-header { background: #050505; color: var(--accent); padding: 10px; text-align: center; font-weight: 800; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
+        .turno-header span { color: #ffffff; display: block; font-size: 0.75rem; margin-top: 2px; font-weight: 600; opacity: 0.8; }
+        
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+        
+        .carga-title { font-weight: 800; color: #ffffff; font-size: 0.9rem; letter-spacing: -0.3px; }
+        
+        .select-op-editable {
+            background: transparent; color: var(--primary-light); border: none; font-weight: 800; font-size: 0.9rem;
+            width: 100%; cursor: pointer; outline: none; font-family: inherit; text-transform: uppercase;
+            -webkit-appearance: none; appearance: none;
+        }
+        .select-op-editable option { background: #111827; color: #fff; }
+        .select-op-editable.op-alert { color: var(--accent); }
+        .select-op-editable.op-error { color: var(--danger); }
 
-        .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
-        .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
-        .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 4px; display: flex; justify-content: space-between; }
-        .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
-        @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
-        .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
-        .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
-        .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
-        .history-linea strong { color: #fff; }
+        .turno-libres { 
+            padding: 8px 10px; 
+            background: #0f172a; 
+            font-size: 0.75rem; 
+            color: var(--text-muted); 
+            border-top: 1px solid var(--border-color); 
+        }
+        .turno-libres strong { color: #cbd5e1; }
 
-        .toast {
-            position: fixed; 
-            bottom: 80px; 
-            left: 50%; 
-            transform: translateX(-50%);
-            background: #065f46; 
-            color: #34d399; 
-            padding: 12px 24px;
-            border: 1px solid #059669;
-            border-radius: 8px; 
-            font-weight: bold; 
-            opacity: 0; 
-            pointer-events: none;
-            transition: opacity 0.3s ease-in-out; 
-            z-index: 10000; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-        .toast.show { opacity: 1; }
+        .btn-save-turno {
+            background: #111827;
+            color: #60a5fa;
+            border: none;
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-save-turno:hover { background: #1e3a8a; color: #ffffff; }
 
-        /* --- ESTILOS EXCLUSIVOS PARA NAVEGADORES MÓVILES (PDF NATIVO) --- */
-        #print-section { display: none; }
-        
-        @media print {
-            body { background: #ffffff !important; color: #000000 !important; margin: 0; padding: 0; }
-            .container, .tabs-nav, .toast { display: none !important; }
-            #print-section { display: block !important; padding: 15px; }
-            
-            .print-titulo { font-size: 1.4rem; font-weight: bold; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; color: #000; }
-            .print-seccion { font-weight: bold; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; }
-            .print-tabla { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; }
-            .print-tabla th, .print-tabla td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-size: 0.85rem; color: #000; }
-            .print-tabla th { background: #f1f5f9 !important; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #000; }
-            .print-grid-ops { display: flex; flex-wrap: wrap; gap: 10px; page-break-inside: avoid; }
-            .print-card-op { border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; background: #f8fafc !important; flex: 1 1 calc(50% - 10px); min-width: 140px; color: #000; }
-            .print-card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
-            
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
-    </style>
+        .tarjeta-resumen { 
+            background: #050505; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+        }
+        .tarjeta-resumen-header { 
+            font-weight: 800; 
+            color: var(--primary-light); 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 4px; 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+        }
+        .tarjeta-resumen-fila { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 0.78rem; 
+        }
+        .tarjeta-resumen-turno { color: var(--accent); font-weight: bold; }
+        .tarjeta-resumen-puesto { color: #ffffff; font-weight: 700; }
+        .tarjeta-resumen-vacio { color: var(--text-muted); font-weight: normal; }
+
+        .history-header { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            gap: 10px; 
+            width: 100%;
+        }
+        .history-header .section-title { font-size: 0.88rem; white-space: nowrap; font-weight: 800; }
+        .btn-counter-reset {
+            background: #2a1f08; 
+            color: var(--accent); 
+            border: 1px solid #78350f; 
+            padding: 6px 10px; 
+            font-size: 0.78rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0; 
+        }
+
+        .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
+        .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
+        .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
+        @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
+        .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
+        .history-turno-title { font-weight: 800; color: var(--primary-light); font-size: 0.75rem; margin-bottom: 4px; }
+        .history-linea { font-size: 0.75rem; color: #ccc; margin-bottom: 2px; }
+        .history-linea strong { color: #fff; }
+
+        .toast {
+            position: fixed; 
+            bottom: 80px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: #065f46; 
+            color: #34d399; 
+            padding: 12px 24px;
+            border: 1px solid #059669;
+            border-radius: 8px; 
+            font-weight: bold; 
+            opacity: 0; 
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out; 
+            z-index: 10000; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+
+        #print-section { display: none; }
+        
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; margin: 0; padding: 0; }
+            .container, .tabs-nav, .toast { display: none !important; }
+            #print-section { display: block !important; padding: 15px; }
+            
+            .print-titulo { font-size: 1.4rem; font-weight: bold; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; color: #000; }
+            .print-seccion { font-weight: bold; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9rem; color: #1e3a8a; }
+            .print-tabla { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; }
+            .print-tabla th, .print-tabla td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-size: 0.85rem; color: #000; }
+            .print-tabla th { background: #f1f5f9 !important; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: #000; }
+            .print-grid-ops { display: flex; flex-wrap: wrap; gap: 10px; page-break-inside: avoid; }
+            .print-card-op { border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; background: #f8fafc !important; flex: 1 1 calc(50% - 10px); min-width: 140px; color: #000; }
+            .print-card-op-title { font-weight: bold; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; color: #1e3a8a; text-transform: uppercase; font-size: 0.8rem; }
+            
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="main-header">
-        <h1>Control de Rotaciones</h1>
-    </div>
+    <div class="main-header">
+        <h1>Control de Rotaciones</h1>
+    </div>
 
-    <div id="tab-config" class="tab-content active">
-        <div class="config-grid" id="contenedorConfig">
-            <div class="section-box">
-                <div class="section-header">
-                    <span class="section-title">👷 Operarios en turno</span>
-                    <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
-                </div>
-                <div id="listaOps" class="item-list"></div>
-            </div>
-            <div class="section-box">
-                <div class="section-header">
-                    <span class="section-title">📦 Cargas de Trabajo</span>
-                    <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
-                </div>
-                <div id="listaCargas" class="item-list"></div>
-            </div>
-        </div>
-    </div>
+    <div id="tab-config" class="tab-content active">
+        <!-- Bloque de Copias de Seguridad -->
+        <div class="section-box" style="margin-bottom: 12px; padding: 10px 14px; flex: 0 0 auto;">
+            <div class="section-header" style="margin-bottom: 8px;">
+                <span class="section-title">💾 Copias de Seguridad</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-main btn-secondary" style="flex: 1; padding: 8px;" onclick="exportarDatos()">📥 Exportar</button>
+                <label class="btn-main btn-primary" style="flex: 1; padding: 8px; margin: 0; cursor: pointer;">
+                    📤 Importar
+                    <input type="file" id="fileImport" accept=".json" style="display: none;" onchange="importarDatos(event)">
+                </label>
+            </div>
+        </div>
 
-    <div id="tab-matriz" class="tab-content">
-        <div class="matrix-container" id="contenedorMatriz"></div>
-    </div>
+        <div class="config-grid" id="contenedorConfig">
+            <div class="section-box">
+                <div class="section-header">
+                    <span class="section-title">👷 Operarios en turno</span>
+                    <button class="btn-add" onclick="agregarFila('listaOps', 'Operario')">+ Añadir</button>
+                </div>
+                <div id="listaOps" class="item-list"></div>
+            </div>
+            <div class="section-box">
+                <div class="section-header">
+                    <span class="section-title">📦 Cargas de Trabajo</span>
+                    <button class="btn-add" onclick="agregarFila('listaCargas', 'Carga')">+ Añadir</button>
+                </div>
+                <div id="listaCargas" class="item-list"></div>
+            </div>
+        </div>
+    </div>
 
-    <div id="tab-jornada" class="tab-content">
-        <div class="schedule-selector">
-            <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
-            <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
-        </div>
+    <div id="tab-matriz" class="tab-content">
+        <div class="matrix-container" id="contenedorMatriz"></div>
+    </div>
 
-        <div class="jornada-grid" id="contenedorJornada"></div>
+    <div id="tab-jornada" class="tab-content">
+        <div class="schedule-selector">
+            <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
+            <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
+        </div>
 
-        <div class="action-bar">
-            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
-            <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
-            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">🖨️ PDF Actual</button>
-        </div>
-    </div>
+        <div class="jornada-grid" id="contenedorJornada"></div>
 
-    <div id="tab-resumen" class="tab-content">
-        <div class="section-box" style="flex: 1 0 auto;">
-            <div class="section-header">
-                <span class="section-title">📋 Resumen Individual por Operario</span>
-            </div>
-            <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;"></div>
-        </div>
-    </div>
+        <div class="action-bar">
+            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
+            <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
+            <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">🖨️ PDF Actual</button>
+        </div>
+    </div>
 
-    <div id="tab-contador" class="tab-content">
-        <div class="history-header">
-            <span class="section-title">📊 Veces por Puesto</span>
-            <button class="btn-counter-reset" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
-        </div>
-        <div class="matrix-container" id="contenedorContador"></div>
-    </div>
+    <div id="tab-resumen" class="tab-content">
+        <div class="section-box" style="flex: 1 0 auto;">
+            <div class="section-header">
+                <span class="section-title">📋 Resumen Individual por Operario</span>
+            </div>
+            <div id="contenedorResumenOperarios" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding-top: 5px;"></div>
+        </div>
+    </div>
 
-    <div id="tab-historial" class="tab-content">
-        <div class="history-header">
-            <span class="section-title">📂 Historial de Jornadas</span>
-            <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar Todo</button>
-        </div>
-        <div id="contenedorHistorial" class="history-list"></div>
-    </div>
+    <div id="tab-contador" class="tab-content">
+        <div class="history-header">
+            <span class="section-title">📊 Veces por Puesto</span>
+            <button class="btn-counter-reset" onclick="reiniciarContadoresSemanales()">🔄 Nueva Semana</button>
+        </div>
+        <div class="matrix-container" id="contenedorContador"></div>
+    </div>
 
-    <div class="tabs-nav">
-        <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
-            <span class="icon">⚙️</span>
-            <span>Configurar</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
-            <span class="icon">🛠️</span>
-            <span>Polivalencia</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
-            <span class="icon">📅</span>
-            <span>Turnos</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-resumen', this)">
-            <span class="icon">📋</span>
-            <span>Resumen</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
-            <span class="icon">📊</span>
-            <span>Contador</span>
-        </button>
-        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
-            <span class="icon">📂</span>
-            <span>Historial</span>
-        </button>
-    </div>
+    <div id="tab-historial" class="tab-content">
+        <div class="history-header">
+            <span class="section-title">📂 Historial de Jornadas</span>
+            <button class="btn-clear-hist" onclick="borrarTodoElHistorial()">🗑️ Vaciar Todo</button>
+        </div>
+        <div id="contenedorHistorial" class="history-list"></div>
+    </div>
+
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="cambiarPestaña('tab-config', this)">
+            <span class="icon">⚙️</span>
+            <span>Configurar</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-matriz', this)">
+            <span class="icon">🛠️</span>
+            <span>Polivalencia</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-jornada', this)">
+            <span class="icon">📅</span>
+            <span>Turnos</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-resumen', this)">
+            <span class="icon">📋</span>
+            <span>Resumen</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-contador', this)">
+            <span class="icon">📊</span>
+            <span>Contador</span>
+        </button>
+        <button class="tab-btn" onclick="cambiarPestaña('tab-historial', this)">
+            <span class="icon">📂</span>
+            <span>Historial</span>
+        </button>
+    </div>
 </div>
 
-<!-- Contenedor de Toast -->
 <div id="toast" class="toast"></div>
-
-<!-- Contenedor Oculto para Generar el PDF Navitamente -->
 <div id="print-section"></div>
 
 <script>
@@ -601,11 +654,19 @@
     const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
     const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
 
+    // Lector seguro que descompone strings JSON anidados sin romper la app
     function cargarDatosLocales(key, valorPorDefecto) {
         const data = localStorage.getItem(key);
         if (!data) return valorPorDefecto;
-        try { return JSON.parse(data); } 
-        catch (e) { return valorPorDefecto; }
+        try {
+            let parsed = JSON.parse(data);
+            if (typeof parsed === 'string') {
+                try { parsed = JSON.parse(parsed); } catch(e){}
+            }
+            return (parsed !== null && parsed !== undefined) ? parsed : valorPorDefecto;
+        } catch (e) {
+            return valorPorDefecto;
+        }
     }
 
     function mostrarToast(mensaje) {
@@ -625,25 +686,42 @@
         let ops = cargarDatosLocales('hist_ops_v14', defaultOps);
         let cargas = cargarDatosLocales('hist_cargas_v14', defaultCargas);
 
-        // AUTO-RECUPERACIÓN: Extrae automáticamente tus cargas originales desde la matriz de polivalencia e historial
-        let conjuntoCargas = new Set(cargas);
-        
-        Object.keys(competencies).forEach(key => {
-            let partes = key.split('_X_');
-            if (partes.length === 2 && partes[1]) {
-                conjuntoCargas.add(partes[1]);
-            }
-        });
+        // Validación estricta de listas
+        if (!Array.isArray(ops) || ops.length === 0) ops = [...defaultOps];
+        if (!Array.isArray(cargas) || cargas.length === 0) cargas = [...defaultCargas];
 
-        historialJornadas.forEach(j => {
-            if (j.datos) {
-                for (let t in j.datos) {
-                    Object.keys(j.datos[t]).forEach(c => conjuntoCargas.add(c));
+        // AUTO-RECUPERACIÓN SEGURA de cargas de trabajo previas
+        let conjuntoCargas = new Set(cargas);
+
+        if (typeof competencies === 'object' && competencies !== null) {
+            Object.keys(competencies).forEach(key => {
+                let partes = key.split('_X_');
+                if (partes.length === 2 && partes[1] && partes[1].trim() !== '') {
+                    conjuntoCargas.add(partes[1].trim());
                 }
-            }
-        });
+            });
+        }
+
+        if (Array.isArray(historialJornadas)) {
+            historialJornadas.forEach(j => {
+                if (j && j.datos) {
+                    for (let t in j.datos) {
+                        if (j.datos[t]) {
+                            Object.keys(j.datos[t]).forEach(c => {
+                                if (c && c.trim() !== '') conjuntoCargas.add(c.trim());
+                            });
+                        }
+                    }
+                }
+            });
+        }
 
         cargas = Array.from(conjuntoCargas);
+
+        const contOps = document.getElementById('listaOps');
+        const contCargas = document.getElementById('listaCargas');
+        if (contOps) contOps.innerHTML = "";
+        if (contCargas) contCargas.innerHTML = "";
 
         ops.forEach(v => agregarFila('listaOps', 'Operario', v));
         cargas.forEach(v => agregarFila('listaCargas', 'Carga', v));
@@ -654,13 +732,13 @@
 
     function exportarDatos() {
         const data = {
-            competencias: localStorage.getItem('hist_competencias_v14'),
-            jornadas: localStorage.getItem('registro_jornadas_v14'),
-            conteo: localStorage.getItem('conteo_semanal_v14'),
-            ops: localStorage.getItem('hist_ops_v14'),
-            cargas: localStorage.getItem('hist_cargas_v14')
+            competencias: cargarDatosLocales('hist_competencias_v14', {}),
+            jornadas: cargarDatosLocales('registro_jornadas_v14', []),
+            conteo: cargarDatosLocales('conteo_semanal_v14', {}),
+            ops: cargarDatosLocales('hist_ops_v14', []),
+            cargas: cargarDatosLocales('hist_cargas_v14', [])
         };
-        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `Rotaciones_Backup_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.json`;
@@ -674,16 +752,24 @@
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(data.competencias) localStorage.setItem('hist_competencias_v14', data.competencias);
-                if(data.jornadas) localStorage.setItem('registro_jornadas_v14', data.jornadas);
-                if(data.conteo) localStorage.setItem('conteo_semanal_v14', data.conteo);
-                if(data.ops) localStorage.setItem('hist_ops_v14', data.ops);
-                if(data.cargas) localStorage.setItem('hist_cargas_v14', data.cargas);
                 
-                alert("✅ Datos importados correctamente.");
+                const guardarLimpio = (clave, valor) => {
+                    if (valor !== undefined && valor !== null) {
+                        if (typeof valor === 'string') localStorage.setItem(clave, valor);
+                        else localStorage.setItem(clave, JSON.stringify(valor));
+                    }
+                };
+
+                guardarLimpio('hist_competencias_v14', data.competencias);
+                guardarLimpio('registro_jornadas_v14', data.jornadas);
+                guardarLimpio('conteo_semanal_v14', data.conteo);
+                guardarLimpio('hist_ops_v14', data.ops);
+                guardarLimpio('hist_cargas_v14', data.cargas);
+                
+                alert("✅ Copia de seguridad importada correctamente.");
                 location.reload();
             } catch(err) {
-                alert("❌ Error al importar el archivo.");
+                alert("❌ El archivo JSON no tiene un formato válido.");
             }
         };
         reader.readAsText(file);
@@ -708,6 +794,7 @@
     function actualizarVisualBotonesHorario() {
         const btnM = document.getElementById("btnHorarioManana");
         const btnT = document.getElementById("btnHorarioTarde");
+        if (!btnM || !btnT) return;
         btnM.className = "btn-schedule";
         btnT.className = "btn-schedule";
         if(tipoHorarioSeleccionado === "manana") btnM.classList.add("active-day");
@@ -716,21 +803,28 @@
 
     function agregarFila(contenedorId, tipo, valor = "") {
         const contenedor = document.getElementById(contenedorId);
+        if (!contenedor) return;
         const row = document.createElement("div");
         row.className = "item-row";
         
+        let valorEscapado = String(valor).replace(/"/g, '&quot;');
+        
         row.innerHTML = `
-            <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
+            <input type="text" class="item-input" value="${valorEscapado}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
             <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
-            <button class="btn-del" onclick="eliminarItem(this, '${valor}')">🗑️</button>
+            <button class="btn-del" onclick="eliminarItem(this)">🗑️</button>
         `;
         contenedor.appendChild(row);
     }
 
-    function eliminarItem(botonDOM, valorBorrado) {
-        botonDOM.parentElement.remove();
+    function eliminarItem(botonDOM) {
+        const row = botonDOM.parentElement;
+        const input = row.querySelector('.item-input');
+        const valorBorrado = input ? input.value.trim() : "";
+
+        row.remove();
         
-        if (valorBorrado && valorBorrado.trim() !== "") {
+        if (valorBorrado !== "") {
             Object.keys(competencies).forEach(key => {
                 if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
                     delete competencies[key];
@@ -774,7 +868,12 @@
         localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
         localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
 
-        if(ops.length === 0 || cargas.length === 0) return;
+        if(!contenedorMatriz) return;
+        if(ops.length === 0 || cargas.length === 0) {
+            contenedorMatriz.innerHTML = "";
+            document.getElementById("contenedorJornada").innerHTML = "";
+            return;
+        }
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
@@ -816,6 +915,7 @@
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorJornada");
         
+        if (!contenedor) return;
         if (ops.length === 0 || cargas.length === 0) {
             contenedor.innerHTML = "";
             return;
@@ -1083,7 +1183,11 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         const contenedor = document.getElementById("contenedorContador");
-        if(ops.length === 0 || cargas.length === 0) return;
+        if(!contenedor) return;
+        if(ops.length === 0 || cargas.length === 0) {
+            contenedor.innerHTML = "";
+            return;
+        }
 
         let html = `<table class="matrix-table"><thead><tr><th>Operario</th>`;
         cargas.forEach(c => html += `<th>${c}</th>`);
@@ -1158,6 +1262,7 @@
 
     function renderizarHistorial() {
         const contenedor = document.getElementById("contenedorHistorial");
+        if (!contenedor) return;
         contenedor.innerHTML = "";
 
         if(historialJornadas.length === 0) {
@@ -1348,11 +1453,10 @@
         `;
 
         let printDiv = document.getElementById('print-section');
-        printDiv.innerHTML = htmlImprimir;
-        
-        setTimeout(() => {
-            window.print();
-        }, 100);
+        if (printDiv) {
+            printDiv.innerHTML = htmlImprimir;
+            setTimeout(() => { window.print(); }, 100);
+        }
     }
 
     function imprimirJornadaActual() {
