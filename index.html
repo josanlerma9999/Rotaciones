@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control de Rotaciones - Edición Manual Avanzada</title>
-    
+
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -166,7 +166,7 @@
             gap: 8px; 
             flex-grow: 1;
             overflow-y: auto; 
-            max-height: calc(100vh - 350px); 
+            max-height: calc(100vh - 270px); 
             padding-right: 4px; 
         }
         .item-row { display: flex; gap: 8px; align-items: center; width: 100%; }
@@ -755,22 +755,15 @@
         row.innerHTML = `
             <input type="text" class="item-input" value="${valor}" placeholder="Escribir..." oninput="procesarCambios()" onclick="rotarFilaHaciaArriba(this)" readonly>
             <button class="btn-edit-text" onclick="habilitarEdicionInput(this)">✏️</button>
-            <button class="btn-del" onclick="eliminarItem(this)">🗑️</button>
+            <button class="btn-del" onclick="eliminarItem(this, '${valor}')">🗑️</button>
         `;
         contenedor.appendChild(row);
-        if(valor === "") {
-            habilitarEdicionInput(row.querySelector('.btn-edit-text'));
-        }
     }
 
-    function eliminarItem(botonDOM) {
-        const row = botonDOM.parentElement;
-        const input = row.querySelector('.item-input');
-        const valorBorrado = input ? input.value.trim() : "";
-
-        row.remove();
+    function eliminarItem(botonDOM, valorBorrado) {
+        botonDOM.parentElement.remove();
         
-        if (valorBorrado !== "") {
+        if (valorBorrado && valorBorrado.trim() !== "") {
             Object.keys(competencies).forEach(key => {
                 if(key.startsWith(`${valorBorrado}_X_`) || key.endsWith(`_X_${valorBorrado}`)) {
                     delete competencies[key];
