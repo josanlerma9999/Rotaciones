@@ -1,0 +1,17 @@
+{
+  "name": "Control de Rotaciones",
+  "short_name": "Rotaciones",
+  "description": "App de gestión de turnos y polivalencia",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2065/2065224.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
