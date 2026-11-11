@@ -526,15 +526,15 @@
     </div>
 
     <div id="tab-config" class="tab-content active">
-        <!-- Bloque de Copias de Seguridad -->
-        <div class="section-box" style="margin-bottom: 12px; padding: 10px 14px; flex: 0 0 auto;">
+        <!-- Bloque de Copias de Seguridad (Exportar / Importar) -->
+        <div class="section-box" style="margin-bottom: 12px; padding: 12px 14px; flex: 0 0 auto; display: block !important;">
             <div class="section-header" style="margin-bottom: 8px;">
                 <span class="section-title">💾 Copias de Seguridad</span>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-main btn-secondary" style="flex: 1; padding: 8px;" onclick="exportarDatos()">📥 Exportar</button>
-                <label class="btn-main btn-primary" style="flex: 1; padding: 8px; margin: 0; cursor: pointer;">
-                    📤 Importar
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-main btn-secondary" style="flex: 1; padding: 10px; font-size: 0.85rem;" onclick="exportarDatos()">📥 Exportar JSON</button>
+                <label class="btn-main btn-primary" style="flex: 1; padding: 10px; font-size: 0.85rem; margin: 0; cursor: pointer; text-align: center;">
+                    📤 Importar JSON
                     <input type="file" id="fileImport" accept=".json" style="display: none;" onchange="importarDatos(event)">
                 </label>
             </div>
@@ -651,10 +651,19 @@
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
 
-    const defaultOps = ["Óscar", "Manuel", "Sara", "Cesar", "Cristian", "Mario", "Nara", "Operario 8"];
-    const defaultCargas = ["Carga 1", "Carga 2", "Carga 3", "Carga 4"];
+    const defaultOps = ["ADRI", "YLENIA", "ANDRÉS", "FRANCO", "Óscar"];
+    const defaultCargas = [
+        "Montante A Inf Izq", 
+        "Montante A Inf Der", 
+        "Montaje Batería", 
+        "Manguitos", 
+        "Bandeja batería", 
+        "Listón", 
+        "Acon. Conexiones", 
+        "Manipulador Alfombra", 
+        "Masa Convertidor"
+    ];
 
-    // Lector seguro que descompone JSONs anidados sin romper la ejecución
     function cargarDatosLocales(key, valorPorDefecto) {
         const data = localStorage.getItem(key);
         if (!data) return valorPorDefecto;
@@ -689,7 +698,6 @@
         if (!Array.isArray(ops) || ops.length === 0) ops = [...defaultOps];
         if (!Array.isArray(cargas) || cargas.length === 0) cargas = [...defaultCargas];
 
-        // Recolectar automáticamente cargas registradas en la matriz y en el historial
         let conjuntoCargas = new Set(cargas);
 
         if (typeof competencies === 'object' && competencies !== null) {
@@ -737,7 +745,19 @@
             ops: cargarDatosLocales('hist_ops_v14', []),
             cargas: cargarDatosLocales('hist_cargas_v14', [])
         };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const strData = JSON.stringify(data, null, 2);
+        const blob = new Blob([strData], { type: "application/json" });
+
+        if (navigator.share && window.File) {
+            try {
+                const file = new File([blob], `Rotaciones_Backup.json`, { type: 'application/json' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: 'Copia de Seguridad Rotaciones' });
+                    return;
+                }
+            } catch(e) {}
+        }
+
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `Rotaciones_Backup_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.json`;
@@ -780,7 +800,6 @@
         document.getElementById(tabId).classList.add('active');
         boton.classList.add('active');
 
-        // Forzar actualización inmediata de datos al cambiar de vista
         if (tabId === 'tab-jornada') {
             generarJornadaCompleta();
         } else if (tabId === 'tab-matriz') {
@@ -949,7 +968,9 @@
         
         const yaLaHizoHoy = (candidato, cargaToCheck, turnoActual) => {
             for (let prevT = 1; prevT < turnoActual; prevT++) {
-                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) return true;
+                if (matrizResultado[prevT] && matrizResultado[prevT][cargaToCheck] && matrizResultado[prevT][cargaToCheck].nombre === candidato) {
+                    return true;
+                }
             }
             return false;
         };
@@ -987,9 +1008,9 @@
 
             cargasLibres.forEach((carga) => {
                 preferencias[carga] = [...opsLibres].sort((a, b) => {
-                    let yaHizoA = yaLaHizoHoy(a, carga, t) ? 1 : 0;
-                    let yaHizoB = yaLaHizoHoy(b, carga, t) ? 1 : 0;
-                    if (yaHizoA !== yaHizoB) return yaHizoA - yaHizoB;
+                    let repiteHoyA = (yaLaHizoHoy(a, carga, t) && sabeVarias(a)) ? 1 : 0;
+                    let repiteHoyB = (yaLaHizoHoy(b, carga, t) && sabeVarias(b)) ? 1 : 0;
+                    if (repiteHoyA !== repiteHoyB) return repiteHoyA - repiteHoyB;
 
                     let totalA = 0, totalB = 0;
                     for (let pt = 1; pt < t; pt++) {
@@ -1047,7 +1068,7 @@
 
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
-            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && (!yaLaHizoHoy(op, c, t) || !sabeVarias(op)));
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -1064,13 +1085,13 @@
                     let op1 = matrizResultado[t][c1].nombre;
                     if (op1 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c1}`]) continue;
 
-                    if (contarVecesHoy(op1, c1, t) > 1 && contarCargasQueSabe(op1, cargas) > 1) {
+                    if (yaLaHizoHoy(op1, c1, t) && sabeVarias(op1)) {
                         for (let c2 of cargasLibres) {
                             if (c1 === c2) continue;
                             let op2 = matrizResultado[t][c2].nombre;
                             if (op2 === "No Apto" || cambiosManualesUsuarios[`${t}_X_${c2}`]) continue;
 
-                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && (!yaLaHizoHoy(op1, c2, t) || !yaLaHizoHoy(op2, c1, t))) {
+                            if (esAptoGlobal(op1, c2) && esAptoGlobal(op2, c1) && !yaLaHizoHoy(op1, c2, t) && !yaLaHizoHoy(op2, c1, t)) {
                                 matrizResultado[t][c1] = { nombre: op2, alerta: !esAptoGlobal(op2, c1), error: false };
                                 matrizResultado[t][c2] = { nombre: op1, alerta: !esAptoGlobal(op1, c2), error: false };
                                 break;
@@ -1435,15 +1456,11 @@
                 const file = new File([csvContent], nombreArchivo, { type: 'text/csv;charset=utf-8' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({ files: [file], title: `Excel Jornada`, text: 'Reporte de rotaciones.' });
-                } else {
-                    navigator.share({ title: nombreArchivo, text: csvContent });
+                    return;
                 }
-            } catch (err) {
-                navigator.share({ title: nombreArchivo, text: csvContent }).catch(() => fallbackPortapapeles(csvContent));
-            }
-        } else {
-            fallbackPortapapeles(csvContent);
+            } catch (err) {}
         }
+        fallbackPortapapeles(csvContent);
     }
 
     function fallbackPortapapeles(texto) {
@@ -1469,7 +1486,7 @@
         let printDiv = document.getElementById('print-section');
         if (printDiv) {
             printDiv.innerHTML = htmlImprimir;
-            setTimeout(() => { window.print(); }, 100);
+            setTimeout(() => { window.print(); }, 150);
         }
     }
 
