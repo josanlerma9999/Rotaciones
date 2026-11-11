@@ -732,16 +732,17 @@
             try {
                 const file = new File([blob], nombreArchivo, { type: 'application/json' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file], title: 'Copia de Seguridad Rotaciones' });
+                    navigator.share({ 
+                        files: [file], 
+                        title: 'Copia de Seguridad Rotaciones',
+                        text: 'Archivo JSON de respaldo de la polivalencia y turnos.' 
+                    }).catch(() => {});
                     return;
                 }
             } catch(e) {}
         }
 
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = nombreArchivo;
-        link.click();
+        compartirTextoNativo(strData, nombreArchivo);
     }
 
     function importarDatos(evento) {
