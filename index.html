@@ -537,6 +537,7 @@
         <div class="jornada-grid" id="contenedorJornada"></div>
 
         <div class="action-bar">
+            <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
             <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">📄 Compartir / PDF</button>
         </div>
@@ -872,6 +873,12 @@
         cambiosManualesUsuarios = {}; 
         generarJornadaCompleta();
         renderizarTablaContadores();
+    }
+
+    function cambiarCombinacion() {
+        saltoInicialJornada++;
+        cambiosManualesUsuarios = {}; 
+        generarJornadaCompleta();
     }
 
     function contarCargasQueSabe(op, cargas) {
@@ -1268,7 +1275,6 @@
                         <span class="${clasePuesto}">${puesto}</span>
                     </div>`;
             }
-            tarjeta.htmlCard = htmlCard;
             tarjeta.innerHTML = htmlCard;
             contenedor.appendChild(tarjeta);
         });
