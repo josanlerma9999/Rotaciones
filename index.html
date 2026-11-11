@@ -1252,16 +1252,20 @@
                 }
             });
         }
-
         let fechaActual = new Date();
+        let tipoHorarioTexto = "☀️ Mañana";
+        if (tipoHorarioSeleccionado === "tarde") tipoHorarioTexto = "🌙 Tarde";
+        if (tipoHorarioSeleccionado === "noche") tipoHorarioTexto = "🌑 Noche";
+
         let nuevaJornada = {
             id: Date.now(),
             fecha: fechaActual.toLocaleDateString("es-ES"),
             hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
-            tipoHorario: tipoHorarioSeleccionado === "manana" ? "☀️ Mañana" : "🌙 Tarde",
+            tipoHorario: tipoHorarioTexto,
             datos: copiaTurnos,
             resumenOps: resumenOperariosHoy
         };
+       
 
         historialJornadas.unshift(nuevaJornada);
         localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
