@@ -1140,12 +1140,6 @@
                 html += `<div class="turno-libres"><strong>Libres en este turno:</strong> ${libres.join(', ')}</div>`;
             }
 
-            if (t < 4) {
-                html += `<button class="btn-save-turno" onclick="guardarTurnoYRecalcularSiguientes(${t})">💾 Guardar Turno ${t} y Calcular Siguientes</button>`;
-            } else {
-                html += `<button class="btn-save-turno" onclick="guardarTurnoFinal(${t})">💾 Fijar Cambios Turno 4</button>`;
-            }
-
             card.innerHTML = html;
             contenedor.appendChild(card);
         }
