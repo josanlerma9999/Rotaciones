@@ -631,7 +631,20 @@
     ];
 
     function cargarDatosLocales(key, valorPorDefecto) {
-        const data = localStorage.getItem(key);
+        let data = localStorage.getItem(key);
+        
+        // Rescatamos el historial de las versiones anteriores si es necesario
+        if (!data) {
+            let base = key.replace('_v14', '');
+            data = localStorage.getItem(base + '_v13') || 
+                   localStorage.getItem(base + '_v12') || 
+                   localStorage.getItem(base);
+            
+            if (data) {
+                localStorage.setItem(key, data);
+            }
+        }
+
         if (!data) return valorPorDefecto;
         try {
             let parsed = JSON.parse(data);
@@ -1246,35 +1259,55 @@
         contenedor.innerHTML = "";
         if (ops.length === 0 || cargas.length === 0) return;
 
-        let asignacionesPorOp = {};
-        ops.forEach(op => asignacionesPorOp[op] = { 1: "-", 2: "-", 3: "-", 4: "-" });
-
-        for (let t = 1; t <= 4; t++) {
-            cargas.forEach(carga => {
-                let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
-                if (selector) {
-                    let opAsignado = selector.value;
-                    if (opAsignado && opAsignado !== "No Apto" && asignacionesPorOp[opAsignado]) {
-                        asignacionesPorOp[opAsignado][t] = carga;
-                    }
-                }
-            });
-        }
-
         ops.forEach(op => {
             const tarjeta = document.createElement("div");
             tarjeta.className = "tarjeta-resumen";
 
             let htmlCard = `<div class="tarjeta-resumen-header">👤 ${op}</div>`;
 
+            // 1. Mostrar la planificación ACTUAL (Hoy)
+            let currentDay = { 1: "-", 2: "-", 3: "-", 4: "-" };
             for (let t = 1; t <= 4; t++) {
-                let puesto = asignacionesPorOp[op][t];
+                cargas.forEach(carga => {
+                    let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
+                    if (selector && selector.value === op) currentDay[t] = carga;
+                });
+            }
+
+            htmlCard += `<div style="font-size:0.75rem; color:var(--primary-light); margin: 6px 0 4px 0; font-weight:bold; border-bottom:1px solid #333; padding-bottom:2px;">PLAN ACTUAL</div>`;
+            for (let t = 1; t <= 4; t++) {
+                let puesto = currentDay[t];
                 let clasePuesto = puesto === "-" ? "tarjeta-resumen-vacio" : "tarjeta-resumen-puesto";
                 htmlCard += `<div class="tarjeta-resumen-fila">
                         <span class="tarjeta-resumen-turno">T${t}:</span>
                         <span class="${clasePuesto}">${puesto}</span>
                     </div>`;
             }
+
+            // 2. Mostrar un resumen de los DÍAS ANTERIORES (últimos 3 guardados en historial)
+            let diasPrevios = historialJornadas.slice(0, 3);
+            if (diasPrevios.length > 0) {
+                htmlCard += `<div style="font-size:0.75rem; color:var(--accent); margin: 12px 0 4px 0; font-weight:bold; border-bottom:1px solid #333; padding-bottom:2px;">DÍAS ANTERIORES</div>`;
+                
+                diasPrevios.forEach(jornada => {
+                    let asignacionesOpAyer = jornada.resumenOps ? jornada.resumenOps[op] : null;
+                    if (asignacionesOpAyer) {
+                        htmlCard += `<div style="font-size:0.7rem; color:#cbd5e1; margin-top:6px; font-weight:bold;">📅 ${jornada.fecha} (${jornada.tipoHorario})</div>`;
+                        let tuvoTurnos = false;
+                        for (let t = 1; t <= 4; t++) {
+                            let puesto = asignacionesOpAyer[t] || "-";
+                            if (puesto !== "-") {
+                                tuvoTurnos = true;
+                                htmlCard += `<div class="tarjeta-resumen-fila"><span class="tarjeta-resumen-turno" style="color:#64748b;">T${t}:</span><span class="tarjeta-resumen-puesto" style="color:#94a3b8;">${puesto}</span></div>`;
+                            }
+                        }
+                        if (!tuvoTurnos) {
+                            htmlCard += `<div class="tarjeta-resumen-fila"><span class="tarjeta-resumen-vacio">Sin cargas asignadas</span></div>`;
+                        }
+                    }
+                });
+            }
+
             tarjeta.innerHTML = htmlCard;
             contenedor.appendChild(tarjeta);
         });
