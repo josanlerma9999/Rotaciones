@@ -73,7 +73,7 @@
             display: flex;
             justify-content: center;
             gap: 6px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         .btn-schedule {
             background: #111827;
@@ -103,6 +103,109 @@
             background: #1e293b;
             color: #38bdf8;
             border-color: #0284c7;
+        }
+
+        /* Banner de edición de jornada guardada */
+        .edit-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #2a1f08;
+            border: 1px solid var(--accent);
+            color: #fbbf24;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .edit-banner.active {
+            display: flex;
+        }
+        .btn-cancel-edit {
+            background: #451a03;
+            color: #fde68a;
+            border: 1px solid #b45309;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Panel de bajas y rebalanceo */
+        .baja-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .baja-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .baja-label {
+            font-weight: 800;
+            color: #fda4af;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+        .baja-select {
+            background: #050505;
+            color: #ffffff;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            flex: 1;
+            min-width: 95px;
+            outline: none;
+        }
+        .btn-rebalance {
+            background: #7f1d1d;
+            color: #fecdd3;
+            border: 1px solid var(--danger);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .baja-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .baja-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #271c1c;
+            border: 1px solid #9f1239;
+            color: #fda4af;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+        .baja-chip button {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-weight: 900;
+            cursor: pointer;
+            padding: 0 2px;
+            font-size: 0.8rem;
         }
 
         .tabs-nav { 
@@ -343,6 +446,7 @@
         .btn-primary { background: #1e3a8a; color: #60a5fa; border: 1px solid #3b82f6; }
         .btn-secondary { background: #334155; color: white; border: 1px solid #475569; }
         .btn-success { background: #065f46; color: #34d399; border: 1px solid #059669; }
+        .btn-update { background: #78350f; color: #fde68a; border: 1px solid #f59e0b; }
 
         .jornada-grid { 
             display: flex; 
@@ -351,7 +455,7 @@
             overflow-y: auto;       
             overflow-x: hidden;     
             padding: 5px 5px 80px 5px; 
-            max-height: calc(100vh - 200px); 
+            max-height: calc(100vh - 260px); 
             -webkit-overflow-scrolling: touch;
         }
 
@@ -401,6 +505,13 @@
             border-top: 1px solid var(--border-color); 
         }
         .turno-libres strong { color: #cbd5e1; }
+        .turno-bajas {
+            padding: 6px 10px;
+            background: #271c1c;
+            font-size: 0.75rem;
+            color: #fda4af;
+            border-top: 1px solid #4c0519;
+        }
 
         .tarjeta-resumen { 
             background: #050505; 
@@ -454,7 +565,7 @@
         .btn-clear-hist { background: #271c1c; color: var(--danger); border: 1px solid #7f1d1d; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; }
         .history-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
-        .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .history-item-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #1f2937; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
         .history-item-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 0.8rem; }
         @media (min-width: 600px) { .history-item-content { grid-template-columns: repeat(4, 1fr); } }
         .history-turno-block { background: #000; padding: 6px; border-radius: 6px; border: 1px solid #1f2937; }
@@ -528,17 +639,37 @@
     </div>
 
     <div id="tab-jornada" class="tab-content">
+        <div id="bannerEdicion" class="edit-banner">
+            <span id="textoBannerEdicion">✏️ Editando jornada guardada</span>
+            <button class="btn-cancel-edit" onclick="cancelarEdicionJornada()">✖ Cancelar</button>
+        </div>
+
         <div class="schedule-selector">
             <button id="btnHorarioManana" class="btn-schedule active-day" onclick="seleccionarTipoHorario('manana')">☀️ Mañana</button>
             <button id="btnHorarioTarde" class="btn-schedule" onclick="seleccionarTipoHorario('tarde')">🌙 Tarde</button>
             <button id="btnHorarioNoche" class="btn-schedule" onclick="seleccionarTipoHorario('noche')">🌑 Noche</button>
         </div>
 
+        <div class="baja-panel">
+            <div class="baja-controls">
+                <span class="baja-label">🤒 Baja:</span>
+                <select id="selectOpBaja" class="baja-select"></select>
+                <select id="selectTurnoBaja" class="baja-select">
+                    <option value="1">Desde Turno 1</option>
+                    <option value="2" selected>Desde Turno 2</option>
+                    <option value="3">Desde Turno 3</option>
+                    <option value="4">Desde Turno 4</option>
+                </select>
+                <button class="btn-rebalance" onclick="aplicarBajaYRebalancear()">⚡ Rebalancear</button>
+            </div>
+            <div id="listaBajasActivas" class="baja-chips" style="display: none;"></div>
+        </div>
+
         <div class="jornada-grid" id="contenedorJornada"></div>
 
         <div class="action-bar">
             <button class="btn-main btn-primary" onclick="cambiarCombinacion()">🔄 Combinación</button>
-            <button class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
+            <button id="btnGuardarJornada" class="btn-main btn-success" onclick="guardarEnHistorial()">💾 Guardar Hoy</button>
             <button class="btn-main btn-secondary" onclick="imprimirJornadaActual()">📄 Compartir / PDF</button>
         </div>
     </div>
@@ -613,6 +744,12 @@
     let cambiosManualesUsuarios = {}; 
     let matrizJornadaCalculada = {}; 
 
+    // Variables para edición de jornada guardada y bajas en turno
+    let editandoJornadaId = null;
+    let plantillaEditada = null;
+    let turnoRebalanceoMinimo = 5;
+    let bajasPorTurno = { 1: [], 2: [], 3: [], 4: [] };
+
     const horasMañana = ["05:45 - 08:00", "08:00 - 10:20", "10:20 - 12:00", "12:00 - 14:00"];
     const horasTarde = ["13:45 - 16:20", "16:20 - 18:00", "18:00 - 20:00", "20:00 - 22:00"];
     const horasNoche = ["21:45 - 00:00", "00:00 - 02:20", "02:20 - 04:00", "04:00 - 06:00"];
@@ -633,7 +770,6 @@
     function cargarDatosLocales(key, valorPorDefecto) {
         let data = localStorage.getItem(key);
         
-        // Rescatamos el historial de las versiones anteriores si es necesario
         if (!data) {
             let base = key.replace('_v14', '');
             data = localStorage.getItem(base + '_v13') || 
@@ -772,7 +908,7 @@
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
-        boton.classList.add('active');
+        if (boton) boton.classList.add('active');
 
         if (tabId === 'tab-jornada') generarJornadaCompleta();
         else if (tabId === 'tab-matriz') procesarCambios();
@@ -784,7 +920,9 @@
     function seleccionarTipoHorario(tipo) {
         tipoHorarioSeleccionado = tipo;
         localStorage.setItem('tipo_horario_v14', tipo);
-        cambiosManualesUsuarios = {}; 
+        if (!editandoJornadaId) {
+            cambiosManualesUsuarios = {}; 
+        }
         actualizarVisualBotonesHorario();
         generarJornadaCompleta();
     }
@@ -883,7 +1021,9 @@
         html += `</tbody></table>`;
         contenedorMatriz.innerHTML = html;
 
-        cambiosManualesUsuarios = {}; 
+        if (!editandoJornadaId) {
+            cambiosManualesUsuarios = {};
+        }
         generarJornadaCompleta();
         renderizarTablaContadores();
     }
@@ -891,6 +1031,9 @@
     function cambiarCombinacion() {
         saltoInicialJornada++;
         cambiosManualesUsuarios = {}; 
+        if (editandoJornadaId && turnoRebalanceoMinimo > 4) {
+            turnoRebalanceoMinimo = 1;
+        }
         generarJornadaCompleta();
     }
 
@@ -900,6 +1043,128 @@
             if (competencies[`${op}_X_${c}`] !== false) aptas++;
         });
         return aptas;
+    }
+
+    // --- GESTIÓN DE MODO EDICIÓN Y BAJAS EN TURNO ---
+
+    function editarJornadaHistorial(id) {
+        const jornada = historialJornadas.find(j => j.id === id);
+        if (!jornada) return;
+
+        editandoJornadaId = jornada.id;
+        plantillaEditada = JSON.parse(JSON.stringify(jornada.datos || {}));
+        turnoRebalanceoMinimo = 5; // Mantiene intactos los 4 turnos guardados hasta que el usuario edite o rebalancee
+        cambiosManualesUsuarios = {};
+        bajasPorTurno = { 1: [], 2: [], 3: [], 4: [] };
+
+        if (jornada.tipoHorario && jornada.tipoHorario.includes("Tarde")) {
+            tipoHorarioSeleccionado = "tarde";
+        } else if (jornada.tipoHorario && jornada.tipoHorario.includes("Noche")) {
+            tipoHorarioSeleccionado = "noche";
+        } else {
+            tipoHorarioSeleccionado = "manana";
+        }
+        actualizarVisualBotonesHorario();
+
+        const btnTabTurnos = document.querySelectorAll('.tab-btn')[2];
+        cambiarPestaña('tab-jornada', btnTabTurnos);
+        mostrarToast(`✏️ Editando jornada del ${jornada.fecha}`);
+    }
+
+    function cancelarEdicionJornada() {
+        editandoJornadaId = null;
+        plantillaEditada = null;
+        turnoRebalanceoMinimo = 5;
+        cambiosManualesUsuarios = {};
+        bajasPorTurno = { 1: [], 2: [], 3: [], 4: [] };
+        generarJornadaCompleta();
+        mostrarToast("Edición cancelada");
+    }
+
+    function aplicarBajaYRebalancear() {
+        const selectOp = document.getElementById("selectOpBaja");
+        const selectTurno = document.getElementById("selectTurnoBaja");
+        if (!selectOp || !selectTurno) return;
+
+        const opBaja = selectOp.value;
+        const desdeTurno = parseInt(selectTurno.value, 10);
+        if (!opBaja || isNaN(desdeTurno)) return;
+
+        for (let t = desdeTurno; t <= 4; t++) {
+            if (!bajasPorTurno[t].includes(opBaja)) {
+                bajasPorTurno[t].push(opBaja);
+            }
+            // Limpiar asignaciones manuales previas de este operario desde el turno de baja
+            Object.keys(cambiosManualesUsuarios).forEach(clave => {
+                if (clave.startsWith(`${t}_X_`) && cambiosManualesUsuarios[clave] === opBaja) {
+                    delete cambiosManualesUsuarios[clave];
+                }
+            });
+        }
+
+        if (desdeTurno < turnoRebalanceoMinimo) {
+            turnoRebalanceoMinimo = desdeTurno;
+        }
+
+        generarJornadaCompleta();
+        mostrarToast(`⚡ Rebalanceado desde Turno ${desdeTurno} (Baja: ${opBaja})`);
+    }
+
+    function quitarBajaOperario(opBaja) {
+        for (let t = 1; t <= 4; t++) {
+            bajasPorTurno[t] = bajasPorTurno[t].filter(o => o !== opBaja);
+        }
+        generarJornadaCompleta();
+    }
+
+    function actualizarUIModoEdicion(ops) {
+        const banner = document.getElementById("bannerEdicion");
+        const textoBanner = document.getElementById("textoBannerEdicion");
+        const btnGuardar = document.getElementById("btnGuardarJornada");
+        const selectOpBaja = document.getElementById("selectOpBaja");
+        const contChips = document.getElementById("listaBajasActivas");
+
+        if (banner && textoBanner && btnGuardar) {
+            if (editandoJornadaId !== null) {
+                const jornada = historialJornadas.find(j => j.id === editandoJornadaId);
+                banner.classList.add("active");
+                textoBanner.textContent = jornada 
+                    ? `✏️ Editando: ${jornada.fecha} (${jornada.tipoHorario})` 
+                    : `✏️ Editando jornada guardada`;
+                btnGuardar.className = "btn-main btn-update";
+                btnGuardar.innerHTML = "💾 Actualizar Jornada";
+            } else {
+                banner.classList.remove("active");
+                btnGuardar.className = "btn-main btn-success";
+                btnGuardar.innerHTML = "💾 Guardar Hoy";
+            }
+        }
+
+        if (selectOpBaja) {
+            const valorPrevio = selectOpBaja.value;
+            selectOpBaja.innerHTML = ops.map(op => `<option value="${op}">${op}</option>`).join('');
+            if (ops.includes(valorPrevio)) selectOpBaja.value = valorPrevio;
+        }
+
+        if (contChips) {
+            let resumenBajas = {};
+            for (let t = 1; t <= 4; t++) {
+                (bajasPorTurno[t] || []).forEach(op => {
+                    if (!resumenBajas[op]) resumenBajas[op] = t;
+                });
+            }
+            const opsConBaja = Object.keys(resumenBajas);
+            if (opsConBaja.length === 0) {
+                contChips.style.display = "none";
+                contChips.innerHTML = "";
+            } else {
+                contChips.style.display = "flex";
+                contChips.innerHTML = opsConBaja.map(op => {
+                    let opEsc = op.replace(/'/g, "\\'");
+                    return `<span class="baja-chip">🤒 ${op} (desde T${resumenBajas[op]}) <button onclick="quitarBajaOperario('${opEsc}')" title="Quitar baja">✖</button></span>`;
+                }).join('');
+            }
+        }
     }
 
     function generarJornadaCompleta() {
@@ -916,6 +1181,7 @@
         localStorage.setItem('hist_ops_v14', JSON.stringify(ops));
         localStorage.setItem('hist_cargas_v14', JSON.stringify(cargas));
 
+        actualizarUIModoEdicion(ops);
         matrizJornadaCalculada = calcularLógicaMatriz(ops, cargas);
         renderizarJornadaHTML(ops, cargas, matrizJornadaCalculada, contenedor);
         actualizarResumenIndividual();
@@ -934,11 +1200,25 @@
             return false;
         };
 
+        const obtenerConteoAjustado = (op, carga) => {
+            let base = parseInt(conteoSemanal[`${op}_X_${carga}`]) || 0;
+            if (editandoJornadaId !== null && plantillaEditada) {
+                for (let pt = 1; pt <= 4; pt++) {
+                    if (plantillaEditada[pt] && plantillaEditada[pt][carga] === op) {
+                        base = Math.max(0, base - 1);
+                    }
+                }
+            }
+            return base;
+        };
+
         for (let t = 1; t <= 4; t++) {
             matrizResultado[t] = {};
             let manualOps = new Set();
             let manualCargas = new Set();
+            let ausentesEnEsteTurno = new Set(bajasPorTurno[t] || []);
 
+            // 1. Cambios manuales realizados por el usuario
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -953,8 +1233,33 @@
                 }
             });
 
+            // 2. Si estamos editando una jornada guardada, conservar intactos los turnos anteriores al rebalanceo
+            if (plantillaEditada && t < turnoRebalanceoMinimo) {
+                cargas.forEach(carga => {
+                    if (!manualCargas.has(carga) && plantillaEditada[t] && plantillaEditada[t][carga] !== undefined) {
+                        let opGuardado = plantillaEditada[t][carga];
+                        if (opGuardado !== "No Apto" && !ausentesEnEsteTurno.has(opGuardado) && !manualOps.has(opGuardado) && ops.includes(opGuardado)) {
+                            manualOps.add(opGuardado);
+                            manualCargas.add(carga);
+                            matrizResultado[t][carga] = {
+                                nombre: opGuardado,
+                                alerta: !esAptoGlobal(opGuardado, carga),
+                                error: false
+                            };
+                        } else if (opGuardado === "No Apto") {
+                            manualCargas.add(carga);
+                            matrizResultado[t][carga] = {
+                                nombre: "No Apto",
+                                alerta: false,
+                                error: true
+                            };
+                        }
+                    }
+                });
+            }
+
             let cargasLibres = cargas.filter(c => !manualCargas.has(c));
-            let opsLibres = ops.filter(o => !manualOps.has(o));
+            let opsLibres = ops.filter(o => !manualOps.has(o) && !ausentesEnEsteTurno.has(o));
             let preferencias = {};
 
             cargasLibres.forEach((carga) => {
@@ -972,8 +1277,8 @@
                     }
                     if (totalA !== totalB) return totalA - totalB;
 
-                    let vecesA = parseInt(conteoSemanal[`${a}_X_${carga}`]) || 0;
-                    let vecesB = parseInt(conteoSemanal[`${b}_X_${carga}`]) || 0;
+                    let vecesA = obtenerConteoAjustado(a, carga);
+                    let vecesB = obtenerConteoAjustado(b, carga);
                     if (vecesA !== vecesB) return vecesA - vecesB;
 
                     let idxCarga = cargas.indexOf(carga);
@@ -1041,6 +1346,7 @@
             let html = `<div class="turno-header">TURNO ${t} <span>⏱️ ${horasActivas[t-1]}</span></div><table class="results-table">`;
 
             let opsAsignadosEnEsteTurno = [];
+            let ausentesTurno = bajasPorTurno[t] || [];
 
             cargas.forEach(carga => {
                 let res = datosCalculados[t][carga] || { nombre: "No Apto", alerta: false, error: true };
@@ -1053,15 +1359,17 @@
                 }
 
                 let claseExtra = hizoEstaCargaAyer ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
+                let cargaEscapada = carga.replace(/'/g, "\\'");
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualEnMemoria(${t}, '${carga}', this.value)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualEnMemoria(${t}, '${cargaEscapada}', this.value)">
                             ${ops.map(o => {
                                 let puestosAyerOpt = obtenerPuestoAyer(o);
                                 let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
-                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}</option>`;
+                                let marcaBaja = ausentesTurno.includes(o) ? " 🤒 (Baja)" : "";
+                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}${marcaBaja}</option>`;
                             }).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -1071,9 +1379,12 @@
 
             html += `</table>`;
 
-            let libres = ops.filter(o => !opsAsignadosEnEsteTurno.includes(o));
+            let libres = ops.filter(o => !opsAsignadosEnEsteTurno.includes(o) && !ausentesTurno.includes(o));
             if (libres.length > 0) {
                 html += `<div class="turno-libres"><strong>Libres en este turno:</strong> ${libres.join(', ')}</div>`;
+            }
+            if (ausentesTurno.length > 0) {
+                html += `<div class="turno-bajas"><strong>🤒 Baja en este turno:</strong> ${ausentesTurno.join(', ')}</div>`;
             }
 
             card.innerHTML = html;
@@ -1083,13 +1394,18 @@
 
     function guardarEdicionManualEnMemoria(turnoEditado, cargaEditada, nuevoOperario) {
         cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
+        if (nuevoOperario !== "No Apto" && bajasPorTurno[turnoEditado]) {
+            bajasPorTurno[turnoEditado] = bajasPorTurno[turnoEditado].filter(o => o !== nuevoOperario);
+        }
         generarJornadaCompleta();
     }
 
     function obtenerPuestoAyer(operario) {
         if (!historialJornadas || historialJornadas.length === 0) return null;
-        const jornadaAyer = historialJornadas[0]; 
-        if (!jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
+        const jornadaAyer = editandoJornadaId !== null 
+            ? historialJornadas.find(j => j.id !== editandoJornadaId) 
+            : historialJornadas[0]; 
+        if (!jornadaAyer || !jornadaAyer.resumenOps || !jornadaAyer.resumenOps[operario]) return null;
 
         const puestosAyer = new Set();
         for (let t = 1; t <= 4; t++) {
@@ -1133,6 +1449,29 @@
         const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
 
+        // Si estamos editando una jornada existente, restamos primero sus conteos anteriores del contador semanal
+        let indiceEditado = -1;
+        if (editandoJornadaId !== null) {
+            indiceEditado = historialJornadas.findIndex(j => j.id === editandoJornadaId);
+            if (indiceEditado !== -1 && historialJornadas[indiceEditado].datos) {
+                const datosAnteriores = historialJornadas[indiceEditado].datos;
+                for (let t = 1; t <= 4; t++) {
+                    if (datosAnteriores[t]) {
+                        for (let cargaAnt in datosAnteriores[t]) {
+                            let opAnt = datosAnteriores[t][cargaAnt];
+                            if (opAnt && opAnt !== "No Apto") {
+                                let clvAnt = `${opAnt}_X_${cargaAnt}`;
+                                if (conteoSemanal[clvAnt]) {
+                                    conteoSemanal[clvAnt] = Math.max(0, conteoSemanal[clvAnt] - 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sumar los conteos de la planificación actual en pantalla
         selectores.forEach(select => {
             let opAsignado = select.value;
             let carga = select.dataset.carga;
@@ -1167,21 +1506,44 @@
         if (tipoHorarioSeleccionado === "tarde") tipoHorarioTexto = "🌙 Tarde";
         if (tipoHorarioSeleccionado === "noche") tipoHorarioTexto = "🌑 Noche";
 
-        let fechaActual = new Date();
-        let nuevaJornada = {
-            id: Date.now(),
-            fecha: fechaActual.toLocaleDateString("es-ES"),
-            hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
-            tipoHorario: tipoHorarioTexto,
-            datos: copiaTurnos,
-            resumenOps: resumenOperariosHoy
-        };
+        if (indiceEditado !== -1) {
+            // Actualizar el registro existente en el historial
+            historialJornadas[indiceEditado].tipoHorario = tipoHorarioTexto;
+            historialJornadas[indiceEditado].datos = copiaTurnos;
+            historialJornadas[indiceEditado].resumenOps = resumenOperariosHoy;
+            historialJornadas[indiceEditado].editado = true;
 
-        historialJornadas.unshift(nuevaJornada);
-        localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
 
-        mostrarToast("💾 ¡Guardado con éxito!");
-        generarJornadaCompleta();
+            editandoJornadaId = null;
+            plantillaEditada = null;
+            turnoRebalanceoMinimo = 5;
+            cambiosManualesUsuarios = {};
+            bajasPorTurno = { 1: [], 2: [], 3: [], 4: [] };
+
+            mostrarToast("✅ ¡Jornada actualizada con éxito!");
+            generarJornadaCompleta();
+        } else {
+            // Crear nuevo registro del día
+            let fechaActual = new Date();
+            let nuevaJornada = {
+                id: Date.now(),
+                fecha: fechaActual.toLocaleDateString("es-ES"),
+                hora: fechaActual.toLocaleTimeString("es-ES", {hour: '2-digit', minute:'2-digit'}),
+                tipoHorario: tipoHorarioTexto,
+                datos: copiaTurnos,
+                resumenOps: resumenOperariosHoy
+            };
+
+            historialJornadas.unshift(nuevaJornada);
+            localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
+
+            bajasPorTurno = { 1: [], 2: [], 3: [], 4: [] };
+            cambiosManualesUsuarios = {};
+
+            mostrarToast("💾 ¡Guardado con éxito!");
+            generarJornadaCompleta();
+        }
     }
 
     function renderizarHistorial() {
@@ -1197,10 +1559,12 @@
         historialJornadas.forEach(jornada => {
             const item = document.createElement("div");
             item.className = "history-item";
+            let etiquetaEditado = jornada.editado ? ` <span style="color:#34d399; font-size:0.72rem;">(Editado)</span>` : "";
 
             let htmlTitle = `<div class="history-item-title">
-                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}</span>
+                <span>📅 ${jornada.fecha} (${jornada.hora}) - ${jornada.tipoHorario}${etiquetaEditado}</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
+                    <button style="background:transparent; border:none; color:#fbbf24; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="editarJornadaHistorial(${jornada.id})">✏️ Editar</button>
                     <button style="background:transparent; border:none; color:#34d399; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="exportarJornadaUnicaExcel(${jornada.id})">📊 Excel</button>
                     <button style="background:transparent; border:none; color:#60a5fa; font-weight:bold; cursor:pointer; font-size:0.78rem;" onclick="imprimirJornadaPDF(${jornada.id})">📄 Compartir</button>
                     <button style="background:transparent; border:none; color:var(--danger); font-weight:bold; cursor:pointer;" onclick="borrarJornadaIndividual(${jornada.id})">❌</button>
@@ -1228,6 +1592,9 @@
 
     function borrarJornadaIndividual(id) {
         if(confirm("¿Seguro que quieres borrar este registro del historial?")) {
+            if (editandoJornadaId === id) {
+                cancelarEdicionJornada();
+            }
             historialJornadas = historialJornadas.filter(j => j.id !== id);
             localStorage.setItem('registro_jornadas_v14', JSON.stringify(historialJornadas));
             renderizarHistorial();
@@ -1236,6 +1603,9 @@
 
     function borrarTodoElHistorial() {
         if(confirm("¿Seguro que quieres vaciar todo el historial de jornadas?")) {
+            if (editandoJornadaId !== null) {
+                cancelarEdicionJornada();
+            }
             historialJornadas = [];
             localStorage.removeItem('registro_jornadas_v14');
             renderizarHistorial();
@@ -1268,6 +1638,9 @@
             // 1. Mostrar la planificación ACTUAL (Hoy)
             let currentDay = { 1: "-", 2: "-", 3: "-", 4: "-" };
             for (let t = 1; t <= 4; t++) {
+                if ((bajasPorTurno[t] || []).includes(op)) {
+                    currentDay[t] = "🤒 Baja";
+                }
                 cargas.forEach(carga => {
                     let selector = document.querySelector(`select[data-turno="${t}"][data-carga="${carga}"]`);
                     if (selector && selector.value === op) currentDay[t] = carga;
@@ -1278,14 +1651,18 @@
             for (let t = 1; t <= 4; t++) {
                 let puesto = currentDay[t];
                 let clasePuesto = puesto === "-" ? "tarjeta-resumen-vacio" : "tarjeta-resumen-puesto";
+                let estiloExtra = puesto === "🤒 Baja" ? "style='color:#fda4af;'" : "";
                 htmlCard += `<div class="tarjeta-resumen-fila">
                         <span class="tarjeta-resumen-turno">T${t}:</span>
-                        <span class="${clasePuesto}">${puesto}</span>
+                        <span class="${clasePuesto}" ${estiloExtra}>${puesto}</span>
                     </div>`;
             }
 
-            // 2. Mostrar un resumen de los DÍAS ANTERIORES (últimos 3 guardados en historial)
-            let diasPrevios = historialJornadas.slice(0, 3);
+            // 2. Mostrar un resumen de los DÍAS ANTERIORES (excluyendo el día que se está editando)
+            let diasPrevios = historialJornadas
+                .filter(j => j.id !== editandoJornadaId)
+                .slice(0, 3);
+
             if (diasPrevios.length > 0) {
                 htmlCard += `<div style="font-size:0.75rem; color:var(--accent); margin: 12px 0 4px 0; font-weight:bold; border-bottom:1px solid #333; padding-bottom:2px;">DÍAS ANTERIORES</div>`;
                 
@@ -1363,14 +1740,19 @@
     }
 
     function imprimirJornadaActual() {
-        const ops = leerLista("listaOps");
         const cargas = leerLista("listaCargas");
         
         let tipoHorarioTexto = "☀️ Mañana";
         if (tipoHorarioSeleccionado === "tarde") tipoHorarioTexto = "🌙 Tarde";
         if (tipoHorarioSeleccionado === "noche") tipoHorarioTexto = "🌑 Noche";
 
-        let textoReporte = `📅 CONTROL DE ROTACIONES (${new Date().toLocaleDateString("es-ES")})\n`;
+        let fechaTexto = new Date().toLocaleDateString("es-ES");
+        if (editandoJornadaId !== null) {
+            const jEdit = historialJornadas.find(j => j.id === editandoJornadaId);
+            if (jEdit) fechaTexto = jEdit.fecha;
+        }
+
+        let textoReporte = `📅 CONTROL DE ROTACIONES (${fechaTexto})\n`;
         textoReporte += `Horario: ${tipoHorarioTexto}\n\n`;
 
         for(let t=1; t<=4; t++) {
@@ -1380,10 +1762,13 @@
                 let val = selector ? selector.value : "-";
                 textoReporte += `${c}: ${val}\n`;
             });
+            if ((bajasPorTurno[t] || []).length > 0) {
+                textoReporte += `Baja: ${bajasPorTurno[t].join(', ')}\n`;
+            }
             textoReporte += `\n`;
         }
 
-        compartirTextoNativo(textoReporte, `Planilla_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.txt`);
+        compartirTextoNativo(textoReporte, `Planilla_${fechaTexto.replace(/\//g,'-')}.txt`);
     }
 
     function imprimirJornadaPDF(id) {
