@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rotaciones-v16';
+const CACHE_NAME = 'rotaciones-v17';
 
 const ASSETS = [
   './',
@@ -19,7 +19,7 @@ self.addEventListener('activate', (e) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            return caches.delete(key); // Destruye la versión rota
+            return caches.delete(key); // Destruye la versión anterior
           }
         })
       );
