@@ -1031,7 +1031,7 @@
     function cambiarCombinacion() {
         saltoInicialJornada++;
         cambiosManualesUsuarios = {}; 
-        if (editandoJornadaId && turnoRebalanceoMinimo > 4) {
+        if (editandoJornadaId) {
             turnoRebalanceoMinimo = 1;
         }
         generarJornadaCompleta();
@@ -1094,9 +1094,9 @@
             if (!bajasPorTurno[t].includes(opBaja)) {
                 bajasPorTurno[t].push(opBaja);
             }
-            // Limpiar asignaciones manuales previas de este operario desde el turno de baja
+            // Limpiar asignaciones manuales desde el turno de baja para que todo el bloque se rebalancee limpio
             Object.keys(cambiosManualesUsuarios).forEach(clave => {
-                if (clave.startsWith(`${t}_X_`) && cambiosManualesUsuarios[clave] === opBaja) {
+                if (clave.startsWith(`${t}_X_`)) {
                     delete cambiosManualesUsuarios[clave];
                 }
             });
@@ -1200,6 +1200,16 @@
             return false;
         };
 
+        const contarRestantesSinRepetirHoy = (candidato, turnoActual) => {
+            let restantes = 0;
+            cargas.forEach(c => {
+                if (esAptoGlobal(candidato, c) && !yaLaHizoHoy(candidato, c, turnoActual)) {
+                    restantes++;
+                }
+            });
+            return restantes;
+        };
+
         const obtenerConteoAjustado = (op, carga) => {
             let base = parseInt(conteoSemanal[`${op}_X_${carga}`]) || 0;
             if (editandoJornadaId !== null && plantillaEditada) {
@@ -1218,7 +1228,7 @@
             let manualCargas = new Set();
             let ausentesEnEsteTurno = new Set(bajasPorTurno[t] || []);
 
-            // 1. Cambios manuales realizados por el usuario
+            // 1. Cambios manuales y turnos fijados hasta el turno editado
             cargas.forEach(carga => {
                 let claveManual = `${t}_X_${carga}`;
                 if (cambiosManualesUsuarios[claveManual]) {
@@ -1277,6 +1287,11 @@
                     }
                     if (totalA !== totalB) return totalA - totalB;
 
+                    // Priorizar al operario al que le quedan menos puestos nuevos disponibles hoy para no bloquear el último turno
+                    let restA = contarRestantesSinRepetirHoy(a, t);
+                    let restB = contarRestantesSinRepetirHoy(b, t);
+                    if (restA !== restB) return restA - restB;
+
                     let vecesA = obtenerConteoAjustado(a, carga);
                     let vecesB = obtenerConteoAjustado(b, carga);
                     if (vecesA !== vecesB) return vecesA - vecesB;
@@ -1317,9 +1332,15 @@
                 }
             };
 
+            // 1. Ideal: Apto, no repitió hoy y no lo hizo ayer
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && !hizoAyerGlobal(op, c));
+            // 2. Apto, no repitió hoy (permite repetir ayer si es necesario)
             buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t) && (!hizoAyerGlobal(op, c) || !sabeVarias(op)));
+            // 3. Estricto sin repetir hoy: agota todas las permutaciones posibles antes de permitir repetir un puesto del mismo día
+            buscarAumentos((op, c) => esAptoGlobal(op, c) && !yaLaHizoHoy(op, c, t));
+            // 4. Permite repetir hoy solo si el operario únicamente sabe 1 puesto
             buscarAumentos((op, c) => esAptoGlobal(op, c) && (!yaLaHizoHoy(op, c, t) || !sabeVarias(op)));
+            // 5. Último recurso si por bajas es matemáticamente inevitable repetir puesto
             buscarAumentos((op, c) => esAptoGlobal(op, c));
 
             cargasLibres.forEach(carga => {
@@ -1353,23 +1374,38 @@
                 if (res.nombre !== "No Apto") opsAsignadosEnEsteTurno.push(res.nombre);
 
                 let hizoEstaCargaAyer = false;
+                let repitioHoyEstaCarga = false;
                 if (res.nombre !== "No Apto") {
                     let puestosAyer = obtenerPuestoAyer(res.nombre);
                     if (puestosAyer && puestosAyer.has(carga)) hizoEstaCargaAyer = true;
+
+                    for (let prevT = 1; prevT < t; prevT++) {
+                        if (datosCalculados[prevT] && datosCalculados[prevT][carga] && datosCalculados[prevT][carga].nombre === res.nombre) {
+                            repitioHoyEstaCarga = true;
+                            break;
+                        }
+                    }
                 }
 
-                let claseExtra = hizoEstaCargaAyer ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
-                let cargaEscapada = carga.replace(/'/g, "\\'");
+                let claseExtra = (hizoEstaCargaAyer || repitioHoyEstaCarga) ? "op-error" : (res.alerta ? "op-alert" : res.error ? "op-error" : "");
 
                 html += `<tr>
                     <td class="carga-title">${carga}</td>
                     <td>
-                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualEnMemoria(${t}, '${cargaEscapada}', this.value)">
+                        <select class="select-op-editable ${claseExtra}" data-turno="${t}" data-carga="${carga}" onchange="guardarEdicionManualEnMemoria(${t}, this.dataset.carga, this.value)">
                             ${ops.map(o => {
                                 let puestosAyerOpt = obtenerPuestoAyer(o);
                                 let marcaAyer = (puestosAyerOpt && puestosAyerOpt.has(carga)) ? " 🔄 (Ayer)" : "";
                                 let marcaBaja = ausentesTurno.includes(o) ? " 🤒 (Baja)" : "";
-                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaAyer}${marcaBaja}</option>`;
+                                let turnoPrevioHoy = null;
+                                for (let prevT = 1; prevT < t; prevT++) {
+                                    if (datosCalculados[prevT] && datosCalculados[prevT][carga] && datosCalculados[prevT][carga].nombre === o) {
+                                        turnoPrevioHoy = prevT;
+                                        break;
+                                    }
+                                }
+                                let marcaHoy = turnoPrevioHoy ? ` 🔁 (T${turnoPrevioHoy})` : "";
+                                return `<option value="${o}" ${o === res.nombre ? 'selected' : ''}>${o}${marcaHoy}${marcaAyer}${marcaBaja}</option>`;
                             }).join('')}
                             <option value="No Apto" ${res.nombre === 'No Apto' ? 'selected' : ''}>⚠️ No Apto</option>
                         </select>
@@ -1393,11 +1429,52 @@
     }
 
     function guardarEdicionManualEnMemoria(turnoEditado, cargaEditada, nuevoOperario) {
-        cambiosManualesUsuarios[`${turnoEditado}_X_${cargaEditada}`] = nuevoOperario;
+        const cargas = leerLista("listaCargas");
+
+        // 1. Congelar los turnos anteriores al turno editado tal como están actualmente
+        for (let prevT = 1; prevT < turnoEditado; prevT++) {
+            cargas.forEach(c => {
+                if (matrizJornadaCalculada[prevT] && matrizJornadaCalculada[prevT][c]) {
+                    cambiosManualesUsuarios[`${prevT}_X_${c}`] = matrizJornadaCalculada[prevT][c].nombre;
+                }
+            });
+        }
+
+        // 2. En el turno editado: mantener los demás puestos de ese turno (excepto si duplican al nuevo operario)
+        cargas.forEach(c => {
+            if (c === cargaEditada) {
+                cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = nuevoOperario;
+            } else if (matrizJornadaCalculada[turnoEditado] && matrizJornadaCalculada[turnoEditado][c]) {
+                let opActual = matrizJornadaCalculada[turnoEditado][c].nombre;
+                if (nuevoOperario !== "No Apto" && opActual === nuevoOperario) {
+                    // Liberar el puesto que tenía antes el operario movido para que el sistema lo cubra sin duplicar
+                    delete cambiosManualesUsuarios[`${turnoEditado}_X_${c}`];
+                } else {
+                    cambiosManualesUsuarios[`${turnoEditado}_X_${c}`] = opActual;
+                }
+            }
+        });
+
+        // 3. Liberar todos los turnos posteriores (turnoEditado + 1 hasta 4) para que se rebalanceen automáticamente
+        for (let nextT = turnoEditado + 1; nextT <= 4; nextT++) {
+            cargas.forEach(c => {
+                delete cambiosManualesUsuarios[`${nextT}_X_${c}`];
+            });
+        }
+
+        if (editandoJornadaId !== null) {
+            turnoRebalanceoMinimo = turnoEditado + 1;
+        }
+
         if (nuevoOperario !== "No Apto" && bajasPorTurno[turnoEditado]) {
             bajasPorTurno[turnoEditado] = bajasPorTurno[turnoEditado].filter(o => o !== nuevoOperario);
         }
+
         generarJornadaCompleta();
+
+        if (turnoEditado < 4) {
+            mostrarToast(`🔄 Turno ${turnoEditado + 1}${turnoEditado + 1 < 4 ? ' y 4 rebalanceados' : ' rebalanceado'}`);
+        }
     }
 
     function obtenerPuestoAyer(operario) {
@@ -1507,7 +1584,6 @@
         if (tipoHorarioSeleccionado === "noche") tipoHorarioTexto = "🌑 Noche";
 
         if (indiceEditado !== -1) {
-            // Actualizar el registro existente en el historial
             historialJornadas[indiceEditado].tipoHorario = tipoHorarioTexto;
             historialJornadas[indiceEditado].datos = copiaTurnos;
             historialJornadas[indiceEditado].resumenOps = resumenOperariosHoy;
@@ -1524,7 +1600,6 @@
             mostrarToast("✅ ¡Jornada actualizada con éxito!");
             generarJornadaCompleta();
         } else {
-            // Crear nuevo registro del día
             let fechaActual = new Date();
             let nuevaJornada = {
                 id: Date.now(),
