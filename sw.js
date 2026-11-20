@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rotaciones-v17';
+const CACHE_NAME = 'rotaciones-v18';
 
 const ASSETS = [
   './',
